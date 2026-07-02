@@ -99,7 +99,7 @@ class NodesController(BaseController):
     async def restart_node(
         self,
         uuid: Annotated[str, Path(description="Node UUID")],
-        body: Annotated[RestartNodeRequestBodyDto, PydanticBody()] = RestartNodeRequestBodyDto(),
+        body: Annotated[RestartNodeRequestBodyDto | None, PydanticBody()] = None,
     ) -> RestartNodeResponseDto:
         """Restart Node"""
         ...
