@@ -12,9 +12,10 @@ class CreateApiTokenRequestDto(BaseModel):
         serialization_alias="name"
     )
     expires_in_days: float = Field(serialization_alias="expiresInDays", ge=1)
-    scopes: List[str] = Field(default_factory=lambda: [Scope.WILDCARD])
-    """API token scopes. Pass :class:`remnawave.enums.Scope` members (or raw strings).
-    Defaults to ``["*"]`` (full access). See ``GET /api/tokens/scopes`` for the catalog."""
+    scopes: List[str] = Field(
+        default_factory=lambda: [Scope.WILDCARD],
+        description='API token scopes. Pass :class:`remnawave.enums.Scope` members (or raw strings). Defaults to ["*"] (full access). See GET /api/tokens/scopes for the catalog.',
+    )
 
     def __init__(self, **data):
         # Backward compatibility: `token_name` was renamed to `name` in v2.8.0
