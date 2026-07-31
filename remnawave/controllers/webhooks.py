@@ -44,26 +44,33 @@ class WebhookHeadersDto:
 class WebhookUtility:
     @staticmethod
     def validate_webhook(
-        body: Union[str, dict],
+        body: Union[str, bytes, dict],
         signature: str,
         webhook_secret: str
     ) -> bool:
         """
         Validates the webhook's authenticity using HMAC SHA-256.
 
-        :param body: The webhook request body (either a JSON string or a parsed dictionary).
+        :param body: The webhook request body. Prefer the RAW body (``bytes`` or ``str``)
+            exactly as received — re-serializing a parsed ``dict`` can produce a different
+            byte string than the one the panel signed (key order, unicode escaping,
+            separators), which makes the signature check fail.
         :param signature: The signature received from the server.
         :param webhook_secret: The secret key used to compute the HMAC.
         :return: True if the signature matches, otherwise False.
         """
-        if isinstance(body, str):
-            original_body = body
+        if isinstance(body, bytes):
+            raw_body = body
+        elif isinstance(body, str):
+            raw_body = body.encode('utf-8')
         else:
-            original_body = json.dumps(body, separators=(',', ':'))
+            raw_body = json.dumps(
+                body, separators=(',', ':'), ensure_ascii=False
+            ).encode('utf-8')
 
         computed_signature = hmac.new(
             webhook_secret.encode('utf-8'),
-            original_body.encode('utf-8'),
+            raw_body,
             hashlib.sha256
         ).hexdigest()
 
@@ -71,7 +78,7 @@ class WebhookUtility:
 
     @staticmethod
     def validate_webhook_with_headers(
-        body: Union[str, dict],
+        body: Union[str, bytes, dict],
         headers: Union[dict[str, str], WebhookHeadersDto],
         webhook_secret: str
     ) -> bool:
@@ -90,7 +97,7 @@ class WebhookUtility:
 
     @staticmethod
     def parse_webhook(
-        body: Union[str, dict],
+        body: Union[str, bytes, dict],
         headers: Union[dict[str, str], WebhookHeadersDto],
         webhook_secret: str,
         validate: bool = True
@@ -107,7 +114,7 @@ class WebhookUtility:
         if validate and not WebhookUtility.validate_webhook_with_headers(body, headers, webhook_secret):
             return None
 
-        if isinstance(body, str):
+        if isinstance(body, (str, bytes)):
             body = json.loads(body)
 
         return WebhookPayloadDto.from_dict(body)
@@ -146,6 +153,11 @@ class WebhookUtility:
     def is_errors_event(event: str) -> bool:
         """Check if event is an errors event."""
         return event.startswith("errors.")
+
+    @staticmethod
+    def is_torrent_blocker_event(event: str) -> bool:
+        """Check if event is a torrent-blocker event."""
+        return event.startswith("torrent_blocker.")
 
     @staticmethod
     def get_typed_data(payload: WebhookPayloadDto) -> Union[UserDto, NodeDto, HwidUserDeviceDto, LoginAttemptDto, UserHwidDeviceEventDto, dict]:
