@@ -193,6 +193,8 @@ from .nodes import (
     GetOneNodeResponseDto,
     NodeConfigProfileDto,
     NodeConfigProfileRequestDto,
+    NodeNetworkInterfaceDto,
+    NodeProviderDto,
     NodeResponseDto,
     NodesResponseDto,  # Legacy alias
     ReorderNodeRequestDto,
@@ -235,6 +237,7 @@ from .subscription import (
 from .subscriptions_settings import (
     GetSubscriptionSettingsResponseDto,
     ResponseModificationHeader,
+    ResponseRuleEncryption,
     ResponseModifications,
     ResponseRule,
     ResponseRuleCondition,
@@ -596,6 +599,8 @@ __all__ = [
     "UpdateNodeRequestDto",
     "UpdateNodeResponseDto",
     "NodeConfigProfileDto",
+    "NodeNetworkInterfaceDto",
+    "NodeProviderDto",
     "NodeConfigProfileRequestDto",
     "RestartAllNodesRequestDto",  # Legacy alias
     "RestartAllNodesRequestBodyDto",
@@ -663,6 +668,7 @@ __all__ = [
     "HwidSettings",
     "UpdateSubscriptionSettingsResponseDto",
     "ResponseModificationHeader",
+    "ResponseRuleEncryption",
     "ResponseModifications",
     "ResponseRule",
     "ResponseRuleCondition",

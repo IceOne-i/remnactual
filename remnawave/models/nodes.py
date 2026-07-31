@@ -55,6 +55,45 @@ class NodeConfigProfileDto(BaseModel):
     active_inbounds: List[InboundsDto] = Field(alias="activeInbounds")
 
 
+class NodeNetworkInterfaceDto(BaseModel):
+    interface: str
+    rx_bytes_per_sec: float = Field(alias="rxBytesPerSec")
+    tx_bytes_per_sec: float = Field(alias="txBytesPerSec")
+    rx_total: float = Field(alias="rxTotal")
+    tx_total: float = Field(alias="txTotal")
+
+
+class NodeSystemInfoDto(BaseModel):
+    arch: str
+    cpus: int
+    cpu_model: str = Field(alias="cpuModel")
+    memory_total: float = Field(alias="memoryTotal")
+    hostname: str
+    platform: str
+    release: str
+    type: str
+    version: str
+    network_interfaces: List[str] = Field(alias="networkInterfaces")
+
+
+class NodeSystemStatsDto(BaseModel):
+    memory_free: float = Field(alias="memoryFree")
+    memory_used: float = Field(alias="memoryUsed")
+    uptime: float
+    load_avg: List[float] = Field(alias="loadAvg")
+    interface: Optional[NodeNetworkInterfaceDto] = None
+
+
+class NodeSystemDto(BaseModel):
+    info: NodeSystemInfoDto
+    stats: NodeSystemStatsDto
+
+
+class NodeVersionsDto(BaseModel):
+    xray: str
+    node: str
+
+
 class NodeConfigProfileRequestDto(BaseModel):
     active_config_profile_uuid: UUID = Field(alias="activeConfigProfileUuid")
     active_inbounds: List[UUID] = Field(alias="activeInbounds")
@@ -76,9 +115,6 @@ class CreateNodeRequestDto(BaseModel):
     )
     traffic_reset_day: Optional[int] = Field(
         None, serialization_alias="trafficResetDay", ge=1, le=31
-    )
-    excluded_inbounds: Optional[List[UUID]] = Field(
-        None, serialization_alias="excludedInbounds"
     )
     country_code: Annotated[Optional[str], StringConstraints(max_length=2)] = Field(
         "XX",
@@ -127,9 +163,6 @@ class UpdateNodeRequestDto(BaseModel):
     traffic_reset_day: Optional[float] = Field(
         None, serialization_alias="trafficResetDay", ge=1, le=31
     )
-    excluded_inbounds: Optional[List[UUID]] = Field(
-        None, serialization_alias="excludedInbounds"
-    )
     country_code: Annotated[Optional[str], StringConstraints(max_length=2)] = Field(
         None, serialization_alias="countryCode"
     )
@@ -173,8 +206,6 @@ class NodeResponseDto(BaseModel):
     is_connecting: bool = Field(alias="isConnecting")
     last_status_change: Optional[datetime] = Field(None, alias="lastStatusChange")
     last_status_message: Optional[str] = Field(None, alias="lastStatusMessage")
-    xray_version: Optional[str] = Field(None, alias="xrayVersion")
-    node_version: Optional[str] = Field(None, alias="nodeVersion")
     xray_uptime: float = Field(0, alias="xrayUptime")
     is_traffic_tracking_active: bool = Field(alias="isTrafficTrackingActive")
     traffic_reset_day: Optional[int] = Field(None, alias="trafficResetDay")
@@ -188,9 +219,6 @@ class NodeResponseDto(BaseModel):
     node_consumption_multiplier: Optional[float] = Field(None, alias="nodeConsumptionMultiplier")
     note: Optional[str] = Field(None, alias="note")
     proxy_url: Optional[str] = Field(None, alias="proxyUrl")
-    cpu_count: Optional[int] = Field(None, alias="cpuCount")
-    cpu_model: Optional[str] = Field(None, alias="cpuModel")
-    total_ram: Optional[str] = Field(None, alias="totalRam")
     created_at: datetime = Field(alias="createdAt")
     updated_at: datetime = Field(alias="updatedAt")
     config_profile: NodeConfigProfileDto = Field(alias="configProfile")
@@ -198,6 +226,29 @@ class NodeResponseDto(BaseModel):
     provider: Optional[NodeProviderDto] = None
     tags: List[str] = Field(default_factory=list, alias="tags")
     active_plugin_uuid: Optional[UUID] = Field(None, alias="activePluginUuid")
+    system: Optional[NodeSystemDto] = None
+    versions: Optional[NodeVersionsDto] = None
+
+    # Плоские поля до 2.8 — теперь живут в system/versions
+    @property
+    def xray_version(self) -> Optional[str]:
+        return self.versions.xray if self.versions else None
+
+    @property
+    def node_version(self) -> Optional[str]:
+        return self.versions.node if self.versions else None
+
+    @property
+    def cpu_count(self) -> Optional[int]:
+        return self.system.info.cpus if self.system else None
+
+    @property
+    def cpu_model(self) -> Optional[str]:
+        return self.system.info.cpu_model if self.system else None
+
+    @property
+    def total_ram(self) -> Optional[float]:
+        return self.system.info.memory_total if self.system else None
 
 
 class CreateNodeResponseDto(NodeResponseDto):
