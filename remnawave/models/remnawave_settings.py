@@ -2,6 +2,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from remnawave.models._serialization import AlwaysEmitModel
+
 
 class PasskeySettings(BaseModel):
     """Passkey authentication settings"""
@@ -86,9 +88,11 @@ class OAuth2Settings(BaseModel):
     github: GitHubOAuth2Settings
     pocketid: PocketIdOAuth2Settings
     yandex: YandexOAuth2Settings
-    keycloak: KeycloakOAuth2Settings
-    generic: GenericOAuth2Settings
-    telegram: TelegramOAuth2Settings
+    # В контракте у этих провайдеров есть .default({...}), поэтому в ответе
+    # старых инсталляций ключей может не быть.
+    keycloak: Optional[KeycloakOAuth2Settings] = None
+    generic: Optional[GenericOAuth2Settings] = None
+    telegram: Optional[TelegramOAuth2Settings] = None
 
 
 class TelegramAuthSettings(BaseModel):
@@ -105,8 +109,13 @@ class PasswordSettings(BaseModel):
     enabled: bool
 
 
-class RemnawaveBrandingSettings(BaseModel):
-    """Branding settings"""
+class RemnawaveBrandingSettings(AlwaysEmitModel):
+    """Branding settings.
+
+    Контракт объявляет оба ключа обязательными, но nullable, поэтому они
+    отправляются всегда — даже если вызывающий задал только один из них."""
+    __always_emit__ = ("title", "logo_url")
+
     model_config = ConfigDict(populate_by_name=True)
 
     title: Optional[str] = None

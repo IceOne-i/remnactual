@@ -27,8 +27,8 @@ async def test_legacy_user_usage(remnawave):
     user_uuid = str(users.users[0].uuid)
     start, end = generate_date_range()
     
-    user_usage = await remnawave.bandwidthstats.get_user_usage_legacy_old(
-        user_uuid=user_uuid,
+    user_usage = await remnawave.bandwidthstats.get_user_usage_legacy_stats(
+        uuid=user_uuid,
         start=start,
         end=end
     )
@@ -51,8 +51,8 @@ async def test_legacy_node_user_usage(remnawave):
     node_uuid = str(nodes[0].uuid)
     start, end = generate_date_range()
     
-    node_user_usage = await remnawave.bandwidthstats.get_node_user_usage_legacy_old(
-        node_uuid=node_uuid,
+    node_user_usage = await remnawave.bandwidthstats.get_node_users_usage_legacy_stats(
+        uuid=node_uuid,
         start=start,
         end=end
     )

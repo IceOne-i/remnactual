@@ -258,6 +258,12 @@ class TestRequestSerialization:
         assert "tags" not in _dump(UpdateHostRequestDto(uuid=uuid4(), tag=None))
         assert _dump(UpdateHostRequestDto(uuid=uuid4(), tag="EU"))["tags"] == ["EU"]
 
+    def test_branding_settings_always_sends_both_nullable_keys(self):
+        from remnawave.models import RemnawaveBrandingSettings
+
+        body = _dump(RemnawaveBrandingSettings(title="Panel"))
+        assert body == {"title": "Panel", "logoUrl": None}
+
 
 class TestRequestValidation:
     def test_resolve_requires_exactly_one_identifier(self):
@@ -342,6 +348,31 @@ class TestErrorCodes:
         for code, http in ERROR_HTTP_CODES.items():
             assert http in by_http, f"{code} has unexpected httpCode {http}"
 
+    def test_ambiguous_code_follows_actual_http_status(self):
+        """Контракт переиспользует A089 для 500 и 400 — решает реальный статус."""
+        from remnawave.exceptions.handler import _resolve_exception
+
+        assert _resolve_exception("A089", 500) is ServerError
+        assert _resolve_exception("A089", 400) is BadRequestError
+        assert _resolve_exception("A219", 404) is NotFoundError
+        assert _resolve_exception("A219", 500) is ServerError
+        assert _resolve_exception("UNKNOWN_CODE", 404) is NotFoundError
+
+    def test_handle_api_error_raises_for_every_non_2xx(self):
+        import httpx
+
+        from remnawave.exceptions import ApiError
+        from remnawave.exceptions.handler import handle_api_error
+
+        request = httpx.Request("GET", "https://panel.example.com/api/users")
+        for status in (302, 400, 404, 500):
+            response = httpx.Response(status, json={"message": "x"}, request=request)
+            with pytest.raises(ApiError):
+                handle_api_error(response)
+
+        ok = httpx.Response(200, json={"response": {}}, request=request)
+        assert handle_api_error(ok) is None
+
 
 # --------------------------------------------------------------------------- #
 # Webhooks
@@ -419,6 +450,28 @@ class TestWebhooks:
         )
         _, device = WebhookUtility.extract_user_hwid_event_data(payload)
         assert device.user_id == 42
+
+    def test_service_event_without_login_attempt_falls_back_to_dict(self):
+        payload = WebhookPayloadDto.from_dict(
+            {
+                "scope": "service",
+                "event": "service.login_attempt_success",
+                "timestamp": "2026-07-31T10:00:00Z",
+                "data": {},
+            }
+        )
+        assert payload.data == {}
+
+    def test_api_token_service_event_parses(self):
+        payload = WebhookPayloadDto.from_dict(
+            {
+                "scope": "service",
+                "event": "service.api_token_created",
+                "timestamp": "2026-07-31T10:00:00Z",
+                "data": {"apiToken": {"name": "ci", "uuid": str(uuid4()), "scopes": ["*"]}},
+            }
+        )
+        assert payload.data["apiToken"]["name"] == "ci"
 
     def test_signature_uses_raw_body_verbatim(self):
         import hashlib

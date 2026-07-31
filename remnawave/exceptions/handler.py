@@ -307,10 +307,26 @@ def handle_api_error(response: httpx.Response) -> None:
     if error_response.code is None:
         error_response.code = f"HTTP_{response.status_code}"
 
-    exception_class = ERRORS.get(
-        error_response.code, _get_exception_by_status_code(response.status_code)
+    raise _resolve_exception(error_response.code, response.status_code)(
+        response.status_code, error_response
     )
-    raise exception_class(response.status_code, error_response)
+
+
+def _resolve_exception(code: str | None, status_code: int) -> Type[ApiError]:
+    """Класс исключения по коду ошибки, сверенный с фактическим HTTP-статусом.
+
+    Контракт 2.8.35 переиспользует три кода (A089, A199, A219) для разных ошибок
+    с разными httpCode, поэтому таблица по коду не всегда однозначна. Если
+    объявленный статус расходится с реальным, доверяем реальному.
+    """
+    by_status = _get_exception_by_status_code(status_code)
+    by_code = ERRORS.get(code) if code is not None else None
+    if by_code is None:
+        return by_status
+    declared = ERROR_HTTP_CODES.get(str(code))
+    if declared is not None and declared != status_code:
+        return by_status
+    return by_code
 
 
 def get_http_code(error_code: str) -> int | None:

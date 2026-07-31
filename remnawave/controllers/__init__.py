@@ -17,7 +17,7 @@ from .subscriptions_template import SubscriptionsTemplateController
 from .system import SystemController
 from .users import UsersController
 from .users_bulk_actions import UsersBulkActionsController
-from .webhooks import WebhookUtility
+from .webhooks import WebhookHeadersDto, WebhookUtility
 from .subscriptions_request import SubscriptionRequestHistoryController
 from .passkeys import PasskeysController
 from .external_squads import ExternalSquadsController
@@ -49,6 +49,7 @@ __all__ = [
     "UsersController",
     "UsersBulkActionsController",
     "WebhookUtility",
+    "WebhookHeadersDto",
     "SubscriptionRequestHistoryController",
     "PasskeysController",
     "ExternalSquadsController",

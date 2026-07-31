@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from rapid_api_client import Path, Query
 from rapid_api_client.annotations import PydanticBody
@@ -32,9 +32,13 @@ class BandWidthStatsController(BaseController):
     async def get_stats_node_users_usage(
         self,
         uuid: Annotated[str, Path(description="UUID of the node")],
-        top_users_limit: Annotated[int, Query(description="Limit of top users to return", alias="topUsersLimit")],
         start: Annotated[str, Query(description="Start date")],
         end: Annotated[str, Query(description="End date")],
+        top_users_limit: Annotated[
+            Optional[int],
+            Query(default=None, ge=1, alias="topUsersLimit",
+                  description="Limit of top users to return (server default 100)"),
+        ] = None,
     ) -> GetStatsNodeUsersUsageResponseDto:
         """Get Node Users Usage by Node UUID"""
         ...
@@ -43,9 +47,13 @@ class BandWidthStatsController(BaseController):
     async def get_stats_nodes_users_usage(
         self,
         body: Annotated[GetStatsNodesUsersUsageRequestDto, PydanticBody()],
-        top_users_limit: Annotated[int, Query(description="Limit of top users to return", alias="topUsersLimit")],
         start: Annotated[str, Query(description="Start date (YYYY-MM-DD)")],
         end: Annotated[str, Query(description="End date (YYYY-MM-DD)")],
+        top_users_limit: Annotated[
+            Optional[int],
+            Query(default=None, ge=1, alias="topUsersLimit",
+                  description="Limit of top users to return (server default 100)"),
+        ] = None,
     ) -> GetStatsNodesUsersUsageResponseDto:
         """Get Nodes Users Usage by Nodes UUIDs"""
         ...
@@ -54,9 +62,13 @@ class BandWidthStatsController(BaseController):
     async def get_stats_user_usage(
         self,
         uuid: Annotated[str, Path(description="UUID of the user")],
-        top_nodes_limit: Annotated[int, Query(description="Limit of top nodes to return", alias="topNodesLimit")],
         start: Annotated[str, Query(description="Start date")],
         end: Annotated[str, Query(description="End date")],
+        top_nodes_limit: Annotated[
+            Optional[int],
+            Query(default=None, ge=1, alias="topNodesLimit",
+                  description="Limit of top nodes to return (server default 20)"),
+        ] = None,
     ) -> GetStatsUserUsageResponseDto:
         """Get User Usage by Range"""
         ...
@@ -64,9 +76,13 @@ class BandWidthStatsController(BaseController):
     @get("/bandwidth-stats/nodes", response_class=GetStatsNodesUsageResponseDto)
     async def get_stats_nodes_usage(
         self,
-        top_nodes_limit: Annotated[int, Query(description="Limit of top nodes to return", alias="topNodesLimit")],
         start: Annotated[str, Query(description="Start date")],
         end: Annotated[str, Query(description="End date")],
+        top_nodes_limit: Annotated[
+            Optional[int],
+            Query(default=None, ge=1, alias="topNodesLimit",
+                  description="Limit of top nodes to return (server default 20)"),
+        ] = None,
     ) -> GetStatsNodesUsageResponseDto:
         """Get Nodes Usage by Range"""
         ...
