@@ -1,5 +1,4 @@
 from typing import Annotated, Optional
-from uuid import UUID
 
 from remnawave.models import (
     CreateUserHwidDeviceResponseDto,

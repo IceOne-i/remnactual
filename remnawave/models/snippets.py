@@ -1,6 +1,6 @@
 from typing import Annotated, Any, List
 
-from pydantic import BaseModel, Field, StringConstraints, RootModel
+from pydantic import BaseModel, StringConstraints
 
 
 class SnippetItem(BaseModel):

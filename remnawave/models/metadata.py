@@ -1,9 +1,8 @@
 """Metadata management models for Users and Nodes"""
 
 from typing import Any, Dict, Optional
-from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class GetUserMetadataResponseDto(BaseModel):

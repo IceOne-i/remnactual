@@ -2,7 +2,6 @@ from typing import Annotated
 
 from rapid_api_client.annotations import Path, PydanticBody
 
-from remnawave.enums import TemplateType
 from remnawave.models import (
     CreateSubscriptionTemplateRequestDto,
     CreateSubscriptionTemplateResponseDto,

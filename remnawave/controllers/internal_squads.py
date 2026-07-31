@@ -4,12 +4,10 @@ from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
 from remnawave.models import (
-    AddUsersToInternalSquadRequestDto,
     AddUsersToInternalSquadResponseDto,
     CreateInternalSquadRequestDto,
     CreateInternalSquadResponseDto,
     DeleteInternalSquadResponseDto,
-    DeleteUsersFromInternalSquadRequestDto,
     DeleteUsersFromInternalSquadResponseDto,
     GetAllInternalSquadsResponseDto,
     GetInternalSquadByUuidResponseDto,

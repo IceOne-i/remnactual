@@ -1,5 +1,4 @@
-from typing import Annotated, Optional
-from uuid import UUID
+from typing import Annotated
 
 from rapid_api_client import Path
 from remnawave.models import GetAllInboundsResponseDto, GetInboundsByProfileUuidResponseDto

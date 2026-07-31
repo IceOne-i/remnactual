@@ -2,7 +2,7 @@ import datetime
 from typing import List
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, RootModel
 from pydantic.alias_generators import to_camel
 
 
@@ -16,5 +16,17 @@ class UserUsageByRange(BaseModel):
     model_config = {"alias_generator": to_camel, "populate_by_name": True}
 
 
-class UserUsageByRangeResponseDto(List[UserUsageByRange]):
-    pass
+class UserUsageByRangeResponseDto(RootModel[List[UserUsageByRange]]):
+    """Список потребления пользователя за период."""
+
+    def __iter__(self):
+        return iter(self.root)
+
+    def __getitem__(self, item):
+        return self.root[item]
+
+    def __bool__(self):
+        return bool(self.root)
+
+    def __len__(self):
+        return len(self.root)

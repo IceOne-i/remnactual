@@ -20,7 +20,6 @@ from remnawave.models import (
     UpdateNodeResponseDto,
     RestartAllNodesRequestBodyDto,
     RestartNodeRequestBodyDto,
-    ResetNodeTrafficRequestDto,
     ResetNodeTrafficResponseDto,
     ProfileModificationRequestDto,
     ProfileModificationResponseDto,
