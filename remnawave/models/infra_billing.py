@@ -2,7 +2,9 @@ from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_serializer
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+
+from remnawave.models._serialization import AlwaysEmitModel
 
 
 class InfraProviderSimpleDto(BaseModel):
@@ -164,23 +166,18 @@ class DeleteInfraBillingHistoryRecordByUuidResponseDto(InfraBillingHistoryData):
 
 
 # Billing Nodes models
-class CreateInfraBillingNodeRequestDto(BaseModel):
+class CreateInfraBillingNodeRequestDto(AlwaysEmitModel):
     """`nodeUuid` и `name` обязательны в теле запроса, но могут быть `null`
     (кастомная billing node не привязана к реальной ноде), поэтому оба ключа
     отправляются всегда — даже если вызывающий их не задал."""
+    __always_emit__ = ("node_uuid", "name")
+
     model_config = ConfigDict(populate_by_name=True)
 
     provider_uuid: UUID = Field(serialization_alias="providerUuid")
     node_uuid: Optional[UUID] = Field(None, serialization_alias="nodeUuid")
     name: Optional[Annotated[str, StringConstraints(min_length=1, max_length=255)]] = None
     next_billing_at: datetime = Field(serialization_alias="nextBillingAt")
-
-    @model_serializer(mode="wrap")
-    def _always_emit_nullable(self, handler, info):
-        data = handler(self)
-        data.setdefault("nodeUuid" if info.by_alias else "node_uuid", None)
-        data.setdefault("name", None)
-        return data
 
 
 class InfraBillingNodesData(BaseModel):

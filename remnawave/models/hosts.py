@@ -69,7 +69,9 @@ class UpdateHostRequestDto(BaseModel):
         # Backward compatibility: `tag` (single value) was replaced by `tags` (list) in v2.8.0
         if "tag" in data and "tags" not in data:
             tag = data.pop("tag")
-            data["tags"] = [tag] if tag is not None else None
+            # `tags: null` контрактом не принимается — при tag=None поле просто не задаём
+            if tag is not None:
+                data["tags"] = [tag]
         # Backward compatibility: `allow_insecure` was removed in v2.8.0 (use security_layer instead)
         data.pop("allow_insecure", None)
         # Backward compatibility: `xHttpExtraParams` alias was renamed to `xhttpExtraParams`
@@ -225,7 +227,9 @@ class CreateHostRequestDto(BaseModel):
         # Backward compatibility: `tag` (single value) was replaced by `tags` (list) in v2.8.0
         if "tag" in data and "tags" not in data:
             tag = data.pop("tag")
-            data["tags"] = [tag] if tag is not None else None
+            # `tags: null` контрактом не принимается — при tag=None поле просто не задаём
+            if tag is not None:
+                data["tags"] = [tag]
         # Backward compatibility: `allow_insecure` was removed in v2.8.0 (use security_layer instead)
         data.pop("allow_insecure", None)
         # Backward compatibility: `xHttpExtraParams` alias was renamed to `xhttpExtraParams`

@@ -6,6 +6,9 @@ class ClientType(StrEnum):
     STASH = "stash"
     SINGBOX = "singbox"
     MIHOMO = "mihomo"
-    JSON = "json"
+    XRAY_JSON = "json"
     V2RAY_JSON = "v2ray-json"
     CLASH = "clash"
+
+    #: Историческое имя члена XRAY_JSON
+    JSON = "json"

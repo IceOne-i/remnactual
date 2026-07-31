@@ -8,8 +8,9 @@ from pydantic import (
     Field,
     RootModel,
     StringConstraints,
-    model_serializer,
 )
+
+from remnawave.models._serialization import AlwaysEmitModel
 
 from remnawave.models.internal_squads import InboundsDto
 
@@ -325,20 +326,14 @@ class DeleteNodeResponseDto(BaseModel):
         return self.is_deleted
 
 
-class _ForceRestartBody(BaseModel):
+class _ForceRestartBody(AlwaysEmitModel):
     """`forceRestart` обязателен в теле запроса (2.8), поэтому ключ отправляется
     всегда — даже если вызывающий оставил значение по умолчанию."""
+    __always_emit__ = ("force_restart",)
+
     model_config = ConfigDict(populate_by_name=True)
 
     force_restart: bool = Field(default=False, alias="forceRestart")
-
-    @model_serializer(mode="wrap")
-    def _always_emit_force_restart(self, handler, info):
-        data = handler(self)
-        data.setdefault(
-            "forceRestart" if info.by_alias else "force_restart", self.force_restart
-        )
-        return data
 
 
 class RestartAllNodesRequestBodyDto(_ForceRestartBody):

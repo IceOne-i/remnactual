@@ -2,7 +2,9 @@ from datetime import datetime
 from typing import Annotated, Dict, List, Literal, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_serializer
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+
+from remnawave.models._serialization import AlwaysEmitModel
 
 from remnawave.enums import (
     ResponseRuleConditionOperator,
@@ -149,11 +151,13 @@ class CustomRemarksDto(BaseModel):
     hwid_not_supported: List[str] = Field(alias="HWIDNotSupported", min_length=1)
 
 
-class HwidSettingsDto(BaseModel):
+class HwidSettingsDto(AlwaysEmitModel):
     """HWID (Hardware ID) settings.
 
     `maxDevicesAnnounce` обязателен в теле запроса, но может быть `null`,
     поэтому ключ отправляется всегда."""
+    __always_emit__ = ("max_devices_announce",)
+
     model_config = ConfigDict(populate_by_name=True)
 
     enabled: bool
@@ -161,15 +165,6 @@ class HwidSettingsDto(BaseModel):
     max_devices_announce: Optional[Annotated[str, StringConstraints(max_length=200)]] = Field(
         None, alias="maxDevicesAnnounce"
     )
-
-    @model_serializer(mode="wrap")
-    def _always_emit_announce(self, handler, info):
-        data = handler(self)
-        data.setdefault(
-            "maxDevicesAnnounce" if info.by_alias else "max_devices_announce",
-            self.max_devices_announce,
-        )
-        return data
 
 class SubscriptionSettingsResponseDto(BaseModel):
     """Subscription settings response data"""

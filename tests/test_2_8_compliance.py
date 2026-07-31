@@ -27,7 +27,17 @@ from remnawave.models import (
     BulkAllUpdateUsersRequestDto,
     ConvertedUserInfo,
     CreateInfraBillingNodeRequestDto,
+    CreateInternalSquadRequestDto,
     DeleteApiTokenResponseDto,
+    DropByIpAddresses,
+    DropByUserUuids,
+    DropConnectionsRequestDto,
+    GetSubpageConfigByShortUuidRequestBodyDto,
+    ResolveUserRequestBodyDto,
+    RevokeUserRequestDto,
+    TargetAllNodes,
+    TargetSpecificNodes,
+    UpdateHostRequestDto,
     GetHwidStatisticsResponseDto,
     GetUserAccessibleNodesResponseDto,
     HwidDeviceDto,
@@ -218,6 +228,58 @@ class TestRequestSerialization:
     def test_force_restart_always_present(self):
         assert _dump(RestartNodeRequestBodyDto())["forceRestart"] is False
         assert _dump(RestartNodeRequestBodyDto(force_restart=True))["forceRestart"] is True
+
+    def test_drop_connections_discriminators_always_present(self):
+        body = _dump(
+            DropConnectionsRequestDto(
+                drop_by=DropByUserUuids(user_uuids=[uuid4()]),
+                target_nodes=TargetAllNodes(),
+            )
+        )
+        assert body["dropBy"]["by"] == "userUuids"
+        assert body["targetNodes"]["target"] == "allNodes"
+
+        body = _dump(
+            DropConnectionsRequestDto(
+                drop_by=DropByIpAddresses(ip_addresses=["1.2.3.4"]),
+                target_nodes=TargetSpecificNodes(node_uuids=[uuid4()]),
+            )
+        )
+        assert body["dropBy"]["by"] == "ipAddresses"
+        assert body["targetNodes"]["target"] == "specificNodes"
+
+    def test_create_squad_always_sends_inbounds(self):
+        assert _dump(CreateInternalSquadRequestDto(name="My Squad"))["inbounds"] == []
+
+    def test_subpage_body_always_sends_request_headers(self):
+        assert _dump(GetSubpageConfigByShortUuidRequestBodyDto())["requestHeaders"] == {}
+
+    def test_legacy_tag_none_does_not_emit_null_tags(self):
+        assert "tags" not in _dump(UpdateHostRequestDto(uuid=uuid4(), tag=None))
+        assert _dump(UpdateHostRequestDto(uuid=uuid4(), tag="EU"))["tags"] == ["EU"]
+
+
+class TestRequestValidation:
+    def test_resolve_requires_exactly_one_identifier(self):
+        with pytest.raises(ValidationError):
+            ResolveUserRequestBodyDto()
+        with pytest.raises(ValidationError):
+            ResolveUserRequestBodyDto(uuid=uuid4(), username="u")
+        assert ResolveUserRequestBodyDto(username="u").username == "u"
+
+    def test_update_user_requires_uuid_or_username(self):
+        with pytest.raises(ValidationError):
+            UpdateUserRequestDto(description="x")
+        assert UpdateUserRequestDto(username="u").username == "u"
+
+    def test_update_user_status_limited_to_active_disabled(self):
+        with pytest.raises(ValidationError):
+            UpdateUserRequestDto(uuid=uuid4(), status="LIMITED")
+        assert _dump(UpdateUserRequestDto(uuid=uuid4(), status="DISABLED"))["status"] == "DISABLED"
+
+    def test_revoke_short_uuid_has_no_charset_restriction(self):
+        dto = RevokeUserRequestDto(short_uuid="ab.cd-EF")
+        assert dto.short_uuid == "ab.cd-EF"
 
 
 # --------------------------------------------------------------------------- #

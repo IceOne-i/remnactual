@@ -25,7 +25,8 @@ class SubscriptionsController(BaseController):
             int, Query(default=0, ge=0, description="Index to start pagination from")
         ],
         size: Annotated[
-            int, Query(default=25, ge=1, description="Number of users per page")
+            int,
+            Query(default=25, ge=1, le=500, description="Number of subscriptions, no more than 500"),
         ],
     ) -> GetAllSubscriptionsResponseDto:
         """None"""

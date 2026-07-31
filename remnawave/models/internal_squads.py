@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, StringConstraints
 
+from remnawave.models._serialization import AlwaysEmitModel
+
 
 class InboundsDto(BaseModel):
     uuid: UUID
@@ -31,7 +33,10 @@ class InternalSquadDto(BaseModel):
     updated_at: datetime = Field(alias="updatedAt")
 
 
-class CreateInternalSquadRequestDto(BaseModel):
+class CreateInternalSquadRequestDto(AlwaysEmitModel):
+    # `inbounds` обязателен в контракте, поэтому ключ уходит всегда
+    __always_emit__ = ("inbounds",)
+
     name: Annotated[str, StringConstraints(min_length=2, max_length=30, pattern=r"^[A-Za-z0-9_\s-]+$")]
     inbounds: List[UUID] = Field(default_factory=list)
 
@@ -69,20 +74,12 @@ class DeleteInternalSquadResponseDto(BaseModel):
     is_deleted: bool = Field(alias="isDeleted")
 
 
-class AddUsersToInternalSquadRequestDto(BaseModel):
-    user_uuids: List[UUID] = Field(alias="userUuids")
-
-
 class BulkActionsResponseDto(BaseModel):
     event_sent: bool = Field(alias="eventSent")
 
 
 class AddUsersToInternalSquadResponseDto(BulkActionsResponseDto):
     pass
-
-
-class DeleteUsersFromInternalSquadRequestDto(BaseModel):
-    user_uuids: List[UUID] = Field(alias="userUuids")
 
 
 class DeleteUsersFromInternalSquadResponseDto(BulkActionsResponseDto):
