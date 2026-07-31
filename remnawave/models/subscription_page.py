@@ -1,6 +1,7 @@
 from typing import Annotated, Any, List, Optional
 from uuid import UUID
 
+from remnawave.models._serialization import AlwaysEmitModel
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 
@@ -107,8 +108,11 @@ class CloneSubscriptionPageConfigResponseDto(SubscriptionPageConfigDto):
     pass
 
 
-class GetSubpageConfigByShortUuidRequestBodyDto(BaseModel):
+class GetSubpageConfigByShortUuidRequestBodyDto(AlwaysEmitModel):
     """Request body for getting subpage config by short UUID"""
+    # `requestHeaders` обязателен в контракте
+    __always_emit__ = ("request_headers",)
+
     model_config = ConfigDict(populate_by_name=True)
     
     request_headers: dict[str, str] = Field(default_factory=dict, serialization_alias="requestHeaders")
@@ -122,8 +126,10 @@ class SubpageConfigData(BaseModel):
     webpage_allowed: bool = Field(alias="webpageAllowed")
 
 
-class GetSubpageConfigByShortUuidResponseDto(BaseModel):
-    """Response for getting subpage config by short UUID"""
-    model_config = ConfigDict(populate_by_name=True)
-    
-    response: SubpageConfigData
+class GetSubpageConfigByShortUuidResponseDto(SubpageConfigData):
+    """Response for getting subpage config by short UUID.
+
+    Обёртка `{"response": ...}` снимается транспортом, как и во всех остальных
+    моделях ответов, поэтому объявленный тип совпадает с фактически возвращаемым.
+    """
+    pass

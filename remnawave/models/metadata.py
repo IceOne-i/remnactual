@@ -1,14 +1,8 @@
 """Metadata management models for Users and Nodes"""
 
 from typing import Any, Dict, Optional
-from uuid import UUID
 
-from pydantic import BaseModel, Field
-
-
-class GetMetadataResponseDto(BaseModel):
-    """Get metadata response"""
-    metadata: Optional[Dict[str, Any]] = None
+from pydantic import BaseModel
 
 
 class GetUserMetadataResponseDto(BaseModel):

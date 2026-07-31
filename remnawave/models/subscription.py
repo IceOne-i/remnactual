@@ -1,87 +1,26 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from remnawave.enums import TrafficLimitStrategy, UserStatus
 from remnawave.utils.happ_crypt import create_happ_crypto_link
+from remnawave.models.users import (
+    ActiveInternalSquadDto,
+    HappCrypto,
+    UserLastConnectedNodeDto,
+    UserResponseDto,
+    UserTrafficDto,
+)
 
 
-class HappCrypto(BaseModel):
-    crypto_link: str = Field(alias="cryptoLink")
-
-
-class UserLastConnectedNodeDto(BaseModel):
-    connected_at: datetime = Field(alias="connectedAt")
-    node_name: str = Field(alias="nodeName")
-    country_code: str = Field(alias="countryCode")
-
-
-class ActiveInternalSquadDto(BaseModel):
-    uuid: UUID
-    name: str
-
-
-class UserTrafficDto(BaseModel):
-    """User traffic information"""
-    used_traffic_bytes: float = Field(alias="usedTrafficBytes")
-    lifetime_used_traffic_bytes: float = Field(alias="lifetimeUsedTrafficBytes")
-    online_at: Optional[datetime] = Field(None, alias="onlineAt")
-    first_connected_at: Optional[datetime] = Field(None, alias="firstConnectedAt")
-    last_connected_node_uuid: Optional[UUID] = Field(None, alias="lastConnectedNodeUuid")
-
-
-class UserResponseDto(BaseModel):
-    uuid: UUID
-    short_uuid: str = Field(alias="shortUuid")
-    username: str
-    status: UserStatus = Field(default=UserStatus.ACTIVE)
-    user_traffic: UserTrafficDto = Field(alias="userTraffic")
-    sub_last_user_agent: Optional[str] = Field(None, alias="subLastUserAgent")
-    sub_last_opened_at: Optional[datetime] = Field(None, alias="subLastOpenedAt")
-    expire_at: datetime = Field(alias="expireAt")
-    sub_revoked_at: Optional[datetime] = Field(None, alias="subRevokedAt")
-    last_traffic_reset_at: Optional[datetime] = Field(None, alias="lastTrafficResetAt")
-    trojan_password: str = Field(alias="trojanPassword")
-    vless_uuid: UUID = Field(alias="vlessUuid")
-    ss_password: str = Field(alias="ssPassword")
-    description: Optional[str] = None
-    tag: Optional[str] = None
-    telegram_id: Optional[int] = Field(None, alias="telegramId")
-    email: Optional[str] = None
-    hwid_device_limit: Optional[int] = Field(None, alias="hwidDeviceLimit")
-    last_triggered_threshold: int = Field(default=0, alias="lastTriggeredThreshold")
-    created_at: datetime = Field(alias="createdAt")
-    updated_at: datetime = Field(alias="updatedAt")
-    active_internal_squads: List[ActiveInternalSquadDto] = Field(alias="activeInternalSquads")
-    subscription_url: str = Field(alias="subscriptionUrl")
-    
-    # Legacy alias for backward compatibility
-    @property
-    def used_traffic_bytes(self) -> float:
-        """Backward compatibility property"""
-        return self.user_traffic.used_traffic_bytes
-    
-    @property
-    def lifetime_used_traffic_bytes(self) -> float:
-        """Backward compatibility property"""
-        return self.user_traffic.lifetime_used_traffic_bytes
-    
-    @property
-    def online_at(self) -> Optional[datetime]:
-        """Backward compatibility property"""
-        return self.user_traffic.online_at
-    
-    @property
-    def first_connected_at(self) -> Optional[datetime]:
-        """Backward compatibility property"""
-        return self.user_traffic.first_connected_at
-    
-    @property
-    def last_connected_node_uuid(self) -> Optional[UUID]:
-        """Backward compatibility property"""
-        return self.user_traffic.last_connected_node_uuid
+class HwidCheckupDto(BaseModel):
+    """Результат проверки HWID-лимита (2.8, заменил булев `isHwidLimited`)"""
+    subscription_allowed: bool = Field(alias="subscriptionAllowed")
+    max_device_reached: bool = Field(alias="maxDeviceReached")
+    hwid_not_supported: bool = Field(alias="hwidNotSupported")
+    limit_bypassed: bool = Field(alias="limitBypassed")
 
 
 class ConvertedUserInfo(BaseModel):
@@ -89,7 +28,12 @@ class ConvertedUserInfo(BaseModel):
     traffic_limit: str = Field(alias="trafficLimit")
     traffic_used: str = Field(alias="trafficUsed")
     lifetime_traffic_used: str = Field(alias="lifetimeTrafficUsed")
-    is_hwid_limited: bool = Field(alias="isHwidLimited")
+    hwid_checkup: Optional[HwidCheckupDto] = Field(None, alias="hwidCheckup")
+
+    @property
+    def is_hwid_limited(self) -> bool:
+        """Обратная совместимость с полем, удалённым в 2.8."""
+        return bool(self.hwid_checkup and not self.hwid_checkup.subscription_allowed)
 
 
 class Passwords(BaseModel):
@@ -161,12 +105,160 @@ class RawHost(BaseModel):
     xray_json_template: Optional[Dict[str, Any]] = Field(None, alias="xrayJsonTemplate")
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Resolved proxy configs (2.8) — заменили `rawHosts` в raw-подписке
+# ─────────────────────────────────────────────────────────────────────────────
+
+class VlessProtocolOptions(BaseModel):
+    encryption: str
+    id: str
+    flow: str
+
+
+class ShadowsocksProtocolOptions(BaseModel):
+    method: str
+    password: str
+    uot: bool
+    uot_version: int = Field(alias="uotVersion")
+
+
+class TrojanProtocolOptions(BaseModel):
+    password: str
+
+
+class HysteriaProtocolOptions(BaseModel):
+    version: int
+
+
+class TcpTransportOptions(BaseModel):
+    header: Optional[Dict[str, Any]] = Field(...)
+
+
+class XhttpTransportOptions(BaseModel):
+    path: Optional[str] = Field(...)
+    host: Optional[str] = Field(...)
+    mode: str
+    extra: Optional[Dict[str, Any]] = Field(...)
+
+
+class WsTransportOptions(BaseModel):
+    path: Optional[str] = Field(...)
+    host: Optional[str] = Field(...)
+    headers: Optional[Dict[str, str]] = Field(...)
+    heartbeat_period: Optional[float] = Field(..., alias="heartbeatPeriod")
+
+
+class HttpUpgradeTransportOptions(BaseModel):
+    path: Optional[str] = Field(...)
+    host: Optional[str] = Field(...)
+    headers: Optional[Dict[str, str]] = Field(...)
+
+
+class GrpcTransportOptions(BaseModel):
+    authority: Optional[str] = Field(...)
+    service_name: Optional[str] = Field(..., alias="serviceName")
+    multi_mode: bool = Field(alias="multiMode")
+
+
+class KcpTransportOptions(BaseModel):
+    client_mtu: int = Field(alias="clientMtu")
+    client_tti: int = Field(alias="clientTti")
+    congestion: bool
+
+
+class HysteriaTransportOptions(BaseModel):
+    version: int
+    auth: str
+
+
+class TlsSecurityOptions(BaseModel):
+    pinned_peer_cert_sha256: Optional[str] = Field(..., alias="pinnedPeerCertSha256")
+    verify_peer_cert_by_name: Optional[str] = Field(..., alias="verifyPeerCertByName")
+    alpn: Optional[str] = Field(...)
+    enable_session_resumption: bool = Field(alias="enableSessionResumption")
+    fingerprint: Optional[str] = Field(...)
+    server_name: Optional[str] = Field(..., alias="serverName")
+    ech_config_list: Optional[str] = Field(..., alias="echConfigList")
+    ech_force_query: Optional[str] = Field(..., alias="echForceQuery")
+
+
+class RealitySecurityOptions(BaseModel):
+    fingerprint: str
+    public_key: str = Field(alias="publicKey")
+    short_id: Optional[str] = Field(..., alias="shortId")
+    server_name: str = Field(alias="serverName")
+    spider_x: Optional[str] = Field(..., alias="spiderX")
+    mldsa65_verify: Optional[str] = Field(..., alias="mldsa65Verify")
+
+
+class ProxyEntryMetadata(BaseModel):
+    uuid: UUID
+    tags: List[str]
+    exclude_from_subscription_types: List[str] = Field(alias="excludeFromSubscriptionTypes")
+    inbound_tag: str = Field(alias="inboundTag")
+    config_profile_uuid: Optional[UUID] = Field(None, alias="configProfileUuid")
+    config_profile_inbound_uuid: Optional[UUID] = Field(None, alias="configProfileInboundUuid")
+    is_disabled: bool = Field(alias="isDisabled")
+    is_hidden: bool = Field(alias="isHidden")
+    view_position: int = Field(alias="viewPosition")
+    remark: str
+    vless_route_id: Optional[int] = Field(None, alias="vlessRouteId")
+    raw_inbound: Optional[Any] = Field(None, alias="rawInbound")
+
+
+class ResolvedProxyStreamOverrides(BaseModel):
+    final_mask: Optional[Any] = Field(None, alias="finalMask")
+    sockopt: Optional[Any] = None
+
+
+class ResolvedProxyClientOverrides(BaseModel):
+    shuffle_host: bool = Field(alias="shuffleHost")
+    mihomo_x25519: bool = Field(alias="mihomoX25519")
+    mihomo_ip_version: Optional[str] = Field(None, alias="mihomoIpVersion")
+    server_description: Optional[str] = Field(None, alias="serverDescription")
+    xray_json_template: Optional[Any] = Field(None, alias="xrayJsonTemplate")
+
+
+class ResolvedProxyConfig(BaseModel):
+    """Элемент `resolvedProxyConfigs` raw-подписки (2.8)"""
+    final_remark: str = Field(alias="finalRemark")
+    address: str
+    port: int
+    protocol: str
+    protocol_options: Union[
+        VlessProtocolOptions,
+        ShadowsocksProtocolOptions,
+        TrojanProtocolOptions,
+        HysteriaProtocolOptions,
+    ] = Field(alias="protocolOptions")
+    transport: str
+    transport_options: Union[
+        WsTransportOptions,
+        HttpUpgradeTransportOptions,
+        XhttpTransportOptions,
+        GrpcTransportOptions,
+        KcpTransportOptions,
+        HysteriaTransportOptions,
+        TcpTransportOptions,
+    ] = Field(alias="transportOptions")
+    security: str
+    security_options: Optional[Union[TlsSecurityOptions, RealitySecurityOptions]] = Field(
+        None, alias="securityOptions"
+    )
+    stream_overrides: ResolvedProxyStreamOverrides = Field(alias="streamOverrides")
+    mux: Optional[Any] = None
+    client_overrides: ResolvedProxyClientOverrides = Field(alias="clientOverrides")
+    metadata: ProxyEntryMetadata
+
+
 class RawSubscriptionResponse(BaseModel):
     """Raw subscription response data"""
     user: UserResponseDto
     converted_user_info: ConvertedUserInfo = Field(alias="convertedUserInfo")
-    headers: Dict[str, str]
-    raw_hosts: Optional[List[RawHost]] = Field(None, alias="rawHosts")
+    headers: Dict[str, Optional[str]]
+    resolved_proxy_configs: List[ResolvedProxyConfig] = Field(
+        default_factory=list, alias="resolvedProxyConfigs"
+    )
 
 
 class GetRawSubscriptionByShortUuidResponseDto(RawSubscriptionResponse):

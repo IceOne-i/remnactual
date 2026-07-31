@@ -67,12 +67,8 @@ class DeleteConfigProfileResponseDto(BaseModel):
     is_deleted: bool = Field(alias="isDeleted")
 
 
-class GetAllInboundsResponseDto(List[InboundDto]):
-    pass
-
-
-class GetInboundsByProfileUuidResponseDto(List[InboundDto]):
-    pass
+# GetAllInboundsResponseDto / GetInboundsByProfileUuidResponseDto живут в
+# remnawave.models.inbounds — обе ручки отдают {total, inbounds[]}, а не голый список.
 
 
 class ReorderConfigProfileItem(BaseModel):

@@ -1,5 +1,4 @@
 from typing import Annotated, Optional
-from uuid import UUID
 
 from remnawave.models import (
     CreateUserHwidDeviceResponseDto,
@@ -12,15 +11,33 @@ from remnawave.models import (
     GetTopUsersByHwidDevicesResponseDto
 )
 from rapid_api_client import Path, PydanticBody, Query
-from remnawave.rapid import AttributeBody, BaseController, post, get
+from remnawave.rapid import BaseController, post, get
 
 
 class HWIDUserController(BaseController):
     @get("/hwid/devices", response_class=GetUserHwidDevicesResponseDto)
     async def get_hwid_users(
         self,
-        size: Annotated[int | None, AttributeBody()] = None,
-        start: Annotated[int | None, AttributeBody()] = None,
+        size: Annotated[
+            Optional[int], Query(default=None, ge=1, le=1000, description="Page size, 1..1000")
+        ] = None,
+        start: Annotated[
+            Optional[int], Query(default=None, description="Offset for pagination")
+        ] = None,
+        filters: Annotated[
+            Optional[str], Query(default=None, description="JSON array of filters")
+        ] = None,
+        filter_modes: Annotated[
+            Optional[str],
+            Query(default=None, alias="filterModes", description="JSON object of filter modes"),
+        ] = None,
+        global_filter_mode: Annotated[
+            Optional[str],
+            Query(default=None, alias="globalFilterMode", description="Global filter mode"),
+        ] = None,
+        sorting: Annotated[
+            Optional[str], Query(default=None, description="JSON array of sorting rules")
+        ] = None,
     ) -> GetUserHwidDevicesResponseDto:
         """Get all user HWID devices"""
         ...

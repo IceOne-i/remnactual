@@ -1,10 +1,14 @@
+from datetime import datetime
 from functools import partial, wraps
 from inspect import signature
 from typing import Any, Callable, Coroutine, Type
 
+import httpx
 from httpx import AsyncClient, Response
 from pydantic import TypeAdapter
 from rapid_api_client.typing import BM, T
+
+from remnawave.exceptions import ApiErrorResponse, NetworkError
 
 from .client import BaseController, CustomRapidParameters
 
@@ -38,7 +42,20 @@ def http(
             request = api._build_request(
                 sig, rapid_parameters, method, path, (api,) + args, kwargs, timeout
             )
-            response = await api.client.send(request)
+            try:
+                response = await api.client.send(request)
+            except httpx.RequestError as exc:
+                # Соединение/таймаут/DNS — оборачиваем в исключение SDK, чтобы
+                # вызывающему не приходилось ловить httpx напрямую.
+                raise NetworkError(
+                    0,
+                    ApiErrorResponse(
+                        timestamp=datetime.now(),
+                        path=str(request.url.path),
+                        message=f"Request error: {exc}",
+                        code="NETWORK_ERROR",
+                    ),
+                ) from exc
             # noinspection PyProtectedMember
             return api._handle_response(response, response_class=response_class)
 

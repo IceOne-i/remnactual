@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated
 
 from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
@@ -15,7 +15,7 @@ from remnawave.models import (
     UpdateHostResponseDto,
     GetAllHostTagsResponseDto,
 )
-from remnawave.rapid import AttributeBody, BaseController, delete, get, post, patch
+from remnawave.rapid import BaseController, delete, get, post, patch
 
 
 class HostsController(BaseController):

@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from remnawave.models._serialization import AlwaysEmitModel
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Fetch IPs – step 1: start the job
@@ -30,12 +32,18 @@ class FetchIpsProgressData(BaseModel):
     percent: float
 
 
+class IpEntry(BaseModel):
+    """IP-адрес с меткой последнего появления"""
+    ip: str
+    last_seen: datetime = Field(alias="lastSeen")
+
+
 class FetchIpsNodeResult(BaseModel):
     """Per-node IP list for a user"""
     node_uuid: UUID = Field(alias="nodeUuid")
     node_name: str = Field(alias="nodeName")
     country_code: str = Field(alias="countryCode")
-    ips: List[str]
+    ips: List[IpEntry]
 
 
 class FetchIpsResult(BaseModel):
@@ -63,8 +71,10 @@ class FetchIpsResultResponseDto(FetchIpsResultData):
 # Drop Connections request – discriminated unions for dropBy / targetNodes
 # ─────────────────────────────────────────────────────────────────────────────
 
-class DropByUserUuids(BaseModel):
+class DropByUserUuids(AlwaysEmitModel):
     """Drop connections for specific user UUIDs"""
+    __always_emit__ = ("by",)
+
     by: Literal["userUuids"] = "userUuids"
     user_uuids: List[UUID] = Field(
         ...,
@@ -74,8 +84,10 @@ class DropByUserUuids(BaseModel):
     )
 
 
-class DropByIpAddresses(BaseModel):
+class DropByIpAddresses(AlwaysEmitModel):
     """Drop connections from specific IP addresses"""
+    __always_emit__ = ("by",)
+
     by: Literal["ipAddresses"] = "ipAddresses"
     ip_addresses: List[str] = Field(
         ...,
@@ -92,13 +104,17 @@ DropBy = Annotated[
 ]
 
 
-class TargetAllNodes(BaseModel):
+class TargetAllNodes(AlwaysEmitModel):
     """Send the drop-connections event to all connected nodes"""
+    __always_emit__ = ("target",)
+
     target: Literal["allNodes"] = "allNodes"
 
 
-class TargetSpecificNodes(BaseModel):
+class TargetSpecificNodes(AlwaysEmitModel):
     """Send the drop-connections event to specific nodes only"""
+    __always_emit__ = ("target",)
+
     target: Literal["specificNodes"] = "specificNodes"
     node_uuids: List[UUID] = Field(
         ...,

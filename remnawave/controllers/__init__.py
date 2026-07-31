@@ -6,7 +6,6 @@ from .hosts import HostsController
 from .hosts_bulk_actions import HostsBulkActionsController
 from .hwid import HWIDUserController
 from .inbounds import InboundsController
-from .inbounds_bulk_actions import InboundsBulkActionsController
 from .infra_billing import InfraBillingController
 from .internal_squads import InternalSquadsController
 from .keygen import KeygenController
@@ -18,8 +17,7 @@ from .subscriptions_template import SubscriptionsTemplateController
 from .system import SystemController
 from .users import UsersController
 from .users_bulk_actions import UsersBulkActionsController
-from .webhooks import WebhookUtility
-from .xray_config import XrayConfigController
+from .webhooks import WebhookHeadersDto, WebhookUtility
 from .subscriptions_request import SubscriptionRequestHistoryController
 from .passkeys import PasskeysController
 from .external_squads import ExternalSquadsController
@@ -39,7 +37,6 @@ __all__ = [
     "HostsBulkActionsController",
     "HWIDUserController",
     "InboundsController",
-    "InboundsBulkActionsController",
     "InfraBillingController",
     "InternalSquadsController",
     "KeygenController",
@@ -52,7 +49,7 @@ __all__ = [
     "UsersController",
     "UsersBulkActionsController",
     "WebhookUtility",
-    "XrayConfigController",
+    "WebhookHeadersDto",
     "SubscriptionRequestHistoryController",
     "PasskeysController",
     "ExternalSquadsController",

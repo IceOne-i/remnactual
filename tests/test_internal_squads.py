@@ -2,12 +2,10 @@ from uuid import UUID
 import pytest
 
 from remnawave.models import (
-    AddUsersToInternalSquadRequestDto,
     AddUsersToInternalSquadResponseDto,
     CreateInternalSquadRequestDto,
     CreateInternalSquadResponseDto,
     DeleteInternalSquadResponseDto,
-    DeleteUsersFromInternalSquadRequestDto,
     DeleteUsersFromInternalSquadResponseDto,
     GetAllInternalSquadsResponseDto,
     GetInternalSquadByUuidResponseDto,

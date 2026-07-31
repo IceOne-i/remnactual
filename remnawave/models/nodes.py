@@ -2,7 +2,15 @@ from datetime import datetime
 from typing import Annotated, List, Optional, Union, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, RootModel
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    RootModel,
+    StringConstraints,
+)
+
+from remnawave.models._serialization import AlwaysEmitModel
 
 from remnawave.models.internal_squads import InboundsDto
 
@@ -48,7 +56,48 @@ class NodeConfigProfileDto(BaseModel):
     active_inbounds: List[InboundsDto] = Field(alias="activeInbounds")
 
 
+class NodeNetworkInterfaceDto(BaseModel):
+    interface: str
+    rx_bytes_per_sec: float = Field(alias="rxBytesPerSec")
+    tx_bytes_per_sec: float = Field(alias="txBytesPerSec")
+    rx_total: float = Field(alias="rxTotal")
+    tx_total: float = Field(alias="txTotal")
+
+
+class NodeSystemInfoDto(BaseModel):
+    arch: str
+    cpus: int
+    cpu_model: str = Field(alias="cpuModel")
+    memory_total: float = Field(alias="memoryTotal")
+    hostname: str
+    platform: str
+    release: str
+    type: str
+    version: str
+    network_interfaces: List[str] = Field(alias="networkInterfaces")
+
+
+class NodeSystemStatsDto(BaseModel):
+    memory_free: float = Field(alias="memoryFree")
+    memory_used: float = Field(alias="memoryUsed")
+    uptime: float
+    load_avg: List[float] = Field(alias="loadAvg")
+    interface: Optional[NodeNetworkInterfaceDto] = None
+
+
+class NodeSystemDto(BaseModel):
+    info: NodeSystemInfoDto
+    stats: NodeSystemStatsDto
+
+
+class NodeVersionsDto(BaseModel):
+    xray: str
+    node: str
+
+
 class NodeConfigProfileRequestDto(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     active_config_profile_uuid: UUID = Field(alias="activeConfigProfileUuid")
     active_inbounds: List[UUID] = Field(alias="activeInbounds")
 
@@ -69,9 +118,6 @@ class CreateNodeRequestDto(BaseModel):
     )
     traffic_reset_day: Optional[int] = Field(
         None, serialization_alias="trafficResetDay", ge=1, le=31
-    )
-    excluded_inbounds: Optional[List[UUID]] = Field(
-        None, serialization_alias="excludedInbounds"
     )
     country_code: Annotated[Optional[str], StringConstraints(max_length=2)] = Field(
         "XX",
@@ -120,9 +166,6 @@ class UpdateNodeRequestDto(BaseModel):
     traffic_reset_day: Optional[float] = Field(
         None, serialization_alias="trafficResetDay", ge=1, le=31
     )
-    excluded_inbounds: Optional[List[UUID]] = Field(
-        None, serialization_alias="excludedInbounds"
-    )
     country_code: Annotated[Optional[str], StringConstraints(max_length=2)] = Field(
         None, serialization_alias="countryCode"
     )
@@ -166,8 +209,6 @@ class NodeResponseDto(BaseModel):
     is_connecting: bool = Field(alias="isConnecting")
     last_status_change: Optional[datetime] = Field(None, alias="lastStatusChange")
     last_status_message: Optional[str] = Field(None, alias="lastStatusMessage")
-    xray_version: Optional[str] = Field(None, alias="xrayVersion")
-    node_version: Optional[str] = Field(None, alias="nodeVersion")
     xray_uptime: float = Field(0, alias="xrayUptime")
     is_traffic_tracking_active: bool = Field(alias="isTrafficTrackingActive")
     traffic_reset_day: Optional[int] = Field(None, alias="trafficResetDay")
@@ -181,9 +222,6 @@ class NodeResponseDto(BaseModel):
     node_consumption_multiplier: Optional[float] = Field(None, alias="nodeConsumptionMultiplier")
     note: Optional[str] = Field(None, alias="note")
     proxy_url: Optional[str] = Field(None, alias="proxyUrl")
-    cpu_count: Optional[int] = Field(None, alias="cpuCount")
-    cpu_model: Optional[str] = Field(None, alias="cpuModel")
-    total_ram: Optional[str] = Field(None, alias="totalRam")
     created_at: datetime = Field(alias="createdAt")
     updated_at: datetime = Field(alias="updatedAt")
     config_profile: NodeConfigProfileDto = Field(alias="configProfile")
@@ -191,6 +229,29 @@ class NodeResponseDto(BaseModel):
     provider: Optional[NodeProviderDto] = None
     tags: List[str] = Field(default_factory=list, alias="tags")
     active_plugin_uuid: Optional[UUID] = Field(None, alias="activePluginUuid")
+    system: Optional[NodeSystemDto] = None
+    versions: Optional[NodeVersionsDto] = None
+
+    # Плоские поля до 2.8 — теперь живут в system/versions
+    @property
+    def xray_version(self) -> Optional[str]:
+        return self.versions.xray if self.versions else None
+
+    @property
+    def node_version(self) -> Optional[str]:
+        return self.versions.node if self.versions else None
+
+    @property
+    def cpu_count(self) -> Optional[int]:
+        return self.system.info.cpus if self.system else None
+
+    @property
+    def cpu_model(self) -> Optional[str]:
+        return self.system.info.cpu_model if self.system else None
+
+    @property
+    def total_ram(self) -> Optional[float]:
+        return self.system.info.memory_total if self.system else None
 
 
 class CreateNodeResponseDto(NodeResponseDto):
@@ -240,10 +301,6 @@ class RestartAllNodesResponseDto(BaseModel):
     event_sent: bool = Field(alias="eventSent")
 
 
-class ResetNodeTrafficResponseDto(BaseModel):
-    event_sent: bool = Field(alias="eventSent")
-
-
 class ReorderNodeResponseDto(RootModel[List[NodeResponseDto]]):
     root: List[NodeResponseDto]
 
@@ -269,16 +326,23 @@ class DeleteNodeResponseDto(BaseModel):
         return self.is_deleted
 
 
-class RestartAllNodesRequestBodyDto(BaseModel):
+class _ForceRestartBody(AlwaysEmitModel):
+    """`forceRestart` обязателен в теле запроса (2.8), поэтому ключ отправляется
+    всегда — даже если вызывающий оставил значение по умолчанию."""
+    __always_emit__ = ("force_restart",)
+
     model_config = ConfigDict(populate_by_name=True)
 
     force_restart: bool = Field(default=False, alias="forceRestart")
 
 
-class RestartNodeRequestBodyDto(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+class RestartAllNodesRequestBodyDto(_ForceRestartBody):
+    pass
 
-    force_restart: bool = Field(default=False, alias="forceRestart")
+
+class RestartNodeRequestBodyDto(_ForceRestartBody):
+    pass
+
 
 class ResetNodeTrafficRequestDto(BaseModel):
     uuid: Union[str, UUID] = Field(alias="uuid")
@@ -288,12 +352,16 @@ class ResetNodeTrafficResponseDto(RestartEventResponse):
 
 class ConfigProfileData(BaseModel):
     """Config profile data for modification"""
+    model_config = ConfigDict(populate_by_name=True)
+
     active_config_profile_uuid: str = Field(alias="activeConfigProfileUuid")
     active_inbounds: List[str] = Field(alias="activeInbounds", min_length=1)
 
 
 class ProfileModificationRequestDto(BaseModel):
     """Request to modify profiles for multiple nodes"""
+    model_config = ConfigDict(populate_by_name=True)
+
     uuids: List[str] = Field(min_length=1)
     config_profile: ConfigProfileData = Field(alias="configProfile")
 
@@ -326,9 +394,33 @@ class NodesBulkActionsResponseDto(BaseModel):
     event_sent: bool = Field(alias="eventSent")
 
 
-class BulkNodesUpdateRequestDto(NodesBulkActionsRequestDto):
-    """OpenAPI alias for bulk nodes update request"""
-    pass
+class BulkNodesUpdateFieldsDto(BaseModel):
+    """Поля, применяемые к каждой ноде в POST /nodes/bulk-actions/update"""
+    model_config = ConfigDict(populate_by_name=True)
+
+    country_code: Optional[Annotated[str, StringConstraints(max_length=2)]] = Field(
+        None, alias="countryCode"
+    )
+    consumption_multiplier: Optional[float] = Field(
+        None, alias="consumptionMultiplier", ge=0, le=100
+    )
+    node_consumption_multiplier: Optional[float] = Field(
+        None, alias="nodeConsumptionMultiplier", ge=0, le=100
+    )
+    provider_uuid: Optional[UUID] = Field(None, alias="providerUuid")
+    tags: Optional[
+        List[Annotated[str, StringConstraints(max_length=36, pattern=r"^[A-Z0-9_:]+$")]]
+    ] = Field(None, max_length=10)
+    active_plugin_uuid: Optional[UUID] = Field(None, alias="activePluginUuid")
+    note: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+
+
+class BulkNodesUpdateRequestDto(BaseModel):
+    """Request for POST /nodes/bulk-actions/update"""
+    model_config = ConfigDict(populate_by_name=True)
+
+    uuids: List[UUID] = Field(min_length=1)
+    fields: BulkNodesUpdateFieldsDto
 
 
 class BulkNodesUpdateResponseDto(NodesBulkActionsResponseDto):

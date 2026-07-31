@@ -1,8 +1,10 @@
 from datetime import datetime
-from typing import Annotated, Dict, List, Optional
+from typing import Annotated, Dict, List, Literal, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+
+from remnawave.models._serialization import AlwaysEmitModel
 
 from remnawave.enums import (
     ResponseRuleConditionOperator,
@@ -15,6 +17,8 @@ from remnawave.enums import (
 
 class ResponseRuleCondition(BaseModel):
     """Condition to check against request headers"""
+    model_config = ConfigDict(populate_by_name=True)
+
     header_name: Annotated[str, StringConstraints(pattern=r"^[!#$%&'*+\-.0-9A-Z^_`a-z|~]+$")] = Field(
         alias="headerName"
     )
@@ -25,12 +29,24 @@ class ResponseRuleCondition(BaseModel):
 
 class ResponseModificationHeader(BaseModel):
     """Response header modification"""
+    model_config = ConfigDict(populate_by_name=True)
+
     key: Annotated[str, StringConstraints(pattern=r"^[!#$%&'*+\-.0-9A-Z^_`a-z|~]+$")]
     value: Annotated[str, StringConstraints(min_length=1)]
 
 
+class ResponseRuleEncryption(BaseModel):
+    """Шифрование тела ответа (2.8, age-encryption)"""
+    model_config = ConfigDict(populate_by_name=True)
+
+    method: Literal["age1", "age1pq1"]
+    key: str
+
+
 class ResponseModifications(BaseModel):
     """Response modifications to apply when rule matches"""
+    model_config = ConfigDict(populate_by_name=True)
+
     headers: Optional[List[ResponseModificationHeader]] = None
     apply_headers_to_end: Optional[bool] = Field(
         None,
@@ -59,10 +75,41 @@ class ResponseModifications(BaseModel):
             "(treated as False)."
         ),
     )
+    additional_extended_clients_regex: Optional[
+        List[Annotated[str, StringConstraints(min_length=1)]]
+    ] = Field(
+        None,
+        alias="additionalExtendedClientsRegex",
+        description=(
+            "Дополнительные regex-паттерны расширенных клиентов; таким клиентам "
+            "в ответе подписки отдаётся serverDescription."
+        ),
+    )
+    disable_hwid_check: Optional[bool] = Field(
+        None,
+        alias="disableHwidCheck",
+        description=(
+            "If True, HWID check is disabled. Приоритетнее настроек Subscription Settings."
+        ),
+    )
+    encryption: Optional[ResponseRuleEncryption] = Field(
+        None,
+        description="Шифрование тела ответа (age1 | age1pq1).",
+    )
+    exclude_hosts_by_tags: Optional[
+        List[Annotated[str, StringConstraints(max_length=36, pattern=r"^[A-Z0-9_:]+$")]]
+    ] = Field(
+        None,
+        alias="excludeHostsByTags",
+        min_length=1,
+        description="Исключает хосты из выдачи подписки, если хотя бы один их тег совпал.",
+    )
 
 
 class ResponseRule(BaseModel):
     """Individual response rule configuration"""
+    model_config = ConfigDict(populate_by_name=True)
+
     name: Annotated[str, StringConstraints(min_length=1, max_length=50)]
     description: Optional[Annotated[str, StringConstraints(min_length=1, max_length=250)]] = None
     enabled: bool
@@ -85,6 +132,8 @@ class ResponseRulesSettings(BaseModel):
 
 class ResponseRules(BaseModel):
     """Response rules configuration"""
+    model_config = ConfigDict(populate_by_name=True)
+
     version: ResponseRuleVersion
     rules: List[ResponseRule]
     settings: Optional[ResponseRulesSettings] = None
@@ -92,6 +141,8 @@ class ResponseRules(BaseModel):
 
 class CustomRemarksDto(BaseModel):
     """Custom remarks for different user states"""
+    model_config = ConfigDict(populate_by_name=True)
+
     expired_users: List[str] = Field(alias="expiredUsers", min_length=1)
     limited_users: List[str] = Field(alias="limitedUsers", min_length=1)
     disabled_users: List[str] = Field(alias="disabledUsers", min_length=1)
@@ -100,8 +151,15 @@ class CustomRemarksDto(BaseModel):
     hwid_not_supported: List[str] = Field(alias="HWIDNotSupported", min_length=1)
 
 
-class HwidSettingsDto(BaseModel):
-    """HWID (Hardware ID) settings"""
+class HwidSettingsDto(AlwaysEmitModel):
+    """HWID (Hardware ID) settings.
+
+    `maxDevicesAnnounce` обязателен в теле запроса, но может быть `null`,
+    поэтому ключ отправляется всегда."""
+    __always_emit__ = ("max_devices_announce",)
+
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     fallback_device_limit: int = Field(alias="fallbackDeviceLimit")
     max_devices_announce: Optional[Annotated[str, StringConstraints(max_length=200)]] = Field(

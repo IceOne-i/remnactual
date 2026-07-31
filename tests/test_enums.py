@@ -90,7 +90,11 @@ class TestSecurityLayer:
 
 class TestFingerprint:
     def test_all_api_values(self):
-        api_values = {"chrome", "firefox", "safari", "ios", "android", "edge", "qq", "random", "randomized"}
+        # contract: libs/contract/constants/hosts/fingerprints.ts
+        api_values = {
+            "randomized", "android", "firefox", "chrome", "safari",
+            "edge", "ios", "qq", "360", "random",
+        }
         actual = {v.value for v in Fingerprint}
         assert api_values == actual
 

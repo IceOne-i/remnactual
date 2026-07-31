@@ -22,11 +22,12 @@ class DeleteUserHwidDeviceRequestDto(BaseModel):
 
 class HwidDeviceDto(BaseModel):
     hwid: str
-    user_uuid: UUID = Field(alias="userUuid")
+    user_id: int = Field(alias="userId")
     platform: Optional[str] = None
     os_version: Optional[str] = Field(None, alias="osVersion")
     device_model: Optional[str] = Field(None, alias="deviceModel")
     user_agent: Optional[str] = Field(None, alias="userAgent")
+    request_ip: Optional[str] = Field(None, alias="requestIp")
     created_at: datetime = Field(alias="createdAt")
     updated_at: datetime = Field(alias="updatedAt")
 
@@ -50,14 +51,16 @@ class GetUserHwidDevicesResponseDto(BaseModel):
     total: float
     devices: List[HwidDeviceDto]
 
-class PlatformStatItem(BaseModel):
-    platform: str
-    count: float
-
-
 class AppStatItem(BaseModel):
     app: str
     count: float
+
+
+class PlatformStatItem(BaseModel):
+    platform: str
+    count: float
+    # 2.8: byApp переехал внутрь каждой платформы
+    by_app: List[AppStatItem] = Field(default_factory=list, alias="byApp")
 
 
 class HwidStats(BaseModel):
@@ -68,8 +71,16 @@ class HwidStats(BaseModel):
 
 class HwidStatisticsData(BaseModel):
     by_platform: List[PlatformStatItem] = Field(alias="byPlatform")
-    by_app: List[AppStatItem] = Field(alias="byApp")
     stats: HwidStats
+
+    @property
+    def by_app(self) -> List[AppStatItem]:
+        """До 2.8 `byApp` был на верхнем уровне — собираем из платформ."""
+        merged: dict[str, float] = {}
+        for platform in self.by_platform:
+            for item in platform.by_app:
+                merged[item.app] = merged.get(item.app, 0.0) + item.count
+        return [AppStatItem(app=app, count=count) for app, count in merged.items()]
 
 
 class GetHwidStatisticsResponseDto(HwidStatisticsData):

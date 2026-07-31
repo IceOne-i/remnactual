@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, StringConstraints
 
+from remnawave.models._serialization import AlwaysEmitModel
+
 
 class InboundsDto(BaseModel):
     uuid: UUID
@@ -31,7 +33,10 @@ class InternalSquadDto(BaseModel):
     updated_at: datetime = Field(alias="updatedAt")
 
 
-class CreateInternalSquadRequestDto(BaseModel):
+class CreateInternalSquadRequestDto(AlwaysEmitModel):
+    # `inbounds` обязателен в контракте, поэтому ключ уходит всегда
+    __always_emit__ = ("inbounds",)
+
     name: Annotated[str, StringConstraints(min_length=2, max_length=30, pattern=r"^[A-Za-z0-9_\s-]+$")]
     inbounds: List[UUID] = Field(default_factory=list)
 
@@ -42,7 +47,9 @@ class CreateInternalSquadResponseDto(InternalSquadDto):
 
 class UpdateInternalSquadRequestDto(BaseModel):
     uuid: UUID
-    inbounds: List[UUID] = Field(default_factory=list)
+    # `inbounds` опционален: если ключ отправлен, бэкенд ЗАМЕНЯЕТ набор inbound'ов,
+    # поэтому пустой список стирает их все. Не отправляем, если вызывающий не задал.
+    inbounds: Optional[List[UUID]] = None
     name: Optional[Annotated[str, StringConstraints(min_length=2, max_length=30, pattern=r"^[A-Za-z0-9_\s-]+$")]] = None
 
 
@@ -67,20 +74,12 @@ class DeleteInternalSquadResponseDto(BaseModel):
     is_deleted: bool = Field(alias="isDeleted")
 
 
-class AddUsersToInternalSquadRequestDto(BaseModel):
-    user_uuids: List[UUID] = Field(alias="userUuids")
-
-
 class BulkActionsResponseDto(BaseModel):
     event_sent: bool = Field(alias="eventSent")
 
 
 class AddUsersToInternalSquadResponseDto(BulkActionsResponseDto):
     pass
-
-
-class DeleteUsersFromInternalSquadRequestDto(BaseModel):
-    user_uuids: List[UUID] = Field(alias="userUuids")
 
 
 class DeleteUsersFromInternalSquadResponseDto(BulkActionsResponseDto):
@@ -93,9 +92,8 @@ class AccessibleNodeDto(BaseModel):
     country_code: Optional[str] = Field(default=None, alias="countryCode")
     config_profile_uuid: Optional[UUID] = Field(default=None, alias="configProfileUuid")
     config_profile_name: Optional[str] = Field(default=None, alias="configProfileName")
-    active_inbounds: List[Optional[UUID]] = Field(
-        default_factory=list, alias="activeInbounds"
-    )
+    # activeInbounds — список ТЕГОВ inbound'ов (строки), а не UUID
+    active_inbounds: List[str] = Field(default_factory=list, alias="activeInbounds")
 
 
 class GetInternalSquadAccessibleNodesResponseDto(BaseModel):

@@ -1,6 +1,6 @@
 from typing import Annotated, Any, List
 
-from pydantic import BaseModel, Field, StringConstraints, RootModel
+from pydantic import BaseModel, StringConstraints
 
 
 class SnippetItem(BaseModel):
@@ -51,6 +51,3 @@ class UpdateSnippetRequestDto(BaseModel):
 class DeleteSnippetRequestDto(BaseModel):
     """Delete snippet request"""
     name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_\s-]+$")]
-
-class DeleteSnippetResponseDto(SnippetsData):
-    """Delete snippet response"""

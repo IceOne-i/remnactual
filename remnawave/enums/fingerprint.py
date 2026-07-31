@@ -9,5 +9,6 @@ class Fingerprint(StrEnum):
     ANDROID = "android"
     EDGE = "edge"
     QQ = "qq"
+    F360 = "360"
     RANDOM = "random"
     RANDOMIZED = "randomized"

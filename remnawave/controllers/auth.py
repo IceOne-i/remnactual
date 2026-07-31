@@ -15,8 +15,6 @@ from remnawave.models import (
     GetPasskeyAuthenticationOptionsResponseDto,
     RegisterRequestDto,
     RegisterResponseDto,
-    TelegramCallbackRequestDto,
-    TelegramCallbackResponseDto,
 )
 from remnawave.rapid import BaseController, get, post
 
@@ -43,14 +41,6 @@ class AuthController(BaseController):
         self,
     ) -> GetStatusResponseDto:
         """Get status"""
-        ...
-
-    @post("/auth/oauth2/tg/callback", response_class=TelegramCallbackResponseDto)
-    async def oauth2_tg_callback(
-        self,
-        body: Annotated[TelegramCallbackRequestDto, PydanticBody()],
-    ) -> TelegramCallbackResponseDto:
-        """OAuth2 Telegram callback"""
         ...
 
     @post("/auth/oauth2/authorize", response_class=OAuth2AuthorizeResponseDto)

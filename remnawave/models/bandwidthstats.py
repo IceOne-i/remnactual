@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import date
 from typing import List
 from uuid import UUID
 
@@ -11,7 +11,7 @@ class NodeUsageResponseDto(BaseModel):
     """Deprecated: Old node usage model"""
     node_uuid: UUID = Field(alias="nodeUuid")
     node_name: str = Field(alias="nodeName")
-    total: int
+    total: float
     total_download: float = Field(alias="totalDownload")
     total_upload: float = Field(alias="totalUpload")
     human_readable_total: str = Field(alias="humanReadableTotal")
@@ -98,7 +98,7 @@ class UserUsageByRangeItem(BaseModel):
     user_uuid: UUID = Field(alias="userUuid")
     node_uuid: UUID = Field(alias="nodeUuid")
     node_name: str = Field(alias="nodeName")
-    total: int
+    total: float
     date: str
 
 
@@ -122,7 +122,7 @@ class NodeUserUsageItem(BaseModel):
     user_uuid: UUID = Field(alias="userUuid")
     username: str
     node_uuid: UUID = Field(alias="nodeUuid")
-    total: int
+    total: float
     date: str
 
 
@@ -151,7 +151,7 @@ class LegacyUserUsageItem(BaseModel):
     node_uuid: UUID = Field(alias="nodeUuid")
     node_name: str = Field(alias="nodeName")
     country_code: str = Field(alias="countryCode")
-    total: int
+    total: float
     date: str
 
 
@@ -173,7 +173,7 @@ class LegacyNodeUserUsageItem(BaseModel):
     user_uuid: UUID = Field(alias="userUuid")
     username: str
     node_uuid: UUID = Field(alias="nodeUuid")
-    total: int
+    total: float
     date: str
 
 
@@ -226,7 +226,7 @@ class TopNodeItem(BaseModel):
     color: str
     name: str
     country_code: str = Field(alias="countryCode")
-    total: int
+    total: float
 
 
 class NodeSeriesItem(BaseModel):
@@ -235,14 +235,14 @@ class NodeSeriesItem(BaseModel):
     name: str
     color: str
     country_code: str = Field(alias="countryCode")
-    total: int
-    data: List[int]
+    total: float
+    data: List[float]
 
 
 class StatsNodesUsageData(BaseModel):
     """Stats nodes usage data"""
     categories: List[str]
-    sparkline_data: List[int] = Field(alias="sparklineData")
+    sparkline_data: List[float] = Field(alias="sparklineData")
     top_nodes: List[TopNodeItem] = Field(alias="topNodes")
     series: List[NodeSeriesItem]
 
@@ -260,13 +260,13 @@ class TopUserItem(BaseModel):
     """Top user item"""
     color: str
     username: str
-    total: int
+    total: float
 
 
 class StatsNodeUsersUsageData(BaseModel):
     """Stats node users usage data"""
     categories: List[str]
-    sparkline_data: List[int] = Field(alias="sparklineData")
+    sparkline_data: List[float] = Field(alias="sparklineData")
     top_users: List[TopUserItem] = Field(alias="topUsers")
 
 
@@ -310,7 +310,7 @@ class GetStatsNodesUsersUsageResponseDto(RootModel[StatsNodesUsersUsageData]):
 class StatsUserUsageData(BaseModel):
     """Stats user usage data"""
     categories: List[str]
-    sparkline_data: List[int] = Field(alias="sparklineData")
+    sparkline_data: List[float] = Field(alias="sparklineData")
     top_nodes: List[TopNodeItem] = Field(alias="topNodes")
     series: List[NodeSeriesItem]
 

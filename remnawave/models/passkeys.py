@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, List
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from typing import Annotated
 
 
@@ -15,9 +15,12 @@ class PasskeyDto(BaseModel):
 
 # Registration models
 class GetPasskeyRegistrationOptionsResponseDto(BaseModel):
-    """Response with passkey registration options"""
-    # WebAuthn registration options are complex objects
-    pass
+    """Response with passkey registration options.
+
+    Контракт объявляет тело как `z.unknown()` — произвольный WebAuthn-объект,
+    поэтому все ключи сохраняются как есть (`extra="allow"`).
+    """
+    model_config = ConfigDict(extra="allow")
 
 
 class VerifyPasskeyRegistrationRequestDto(BaseModel):

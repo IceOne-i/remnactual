@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
 from inspect import BoundArguments, Signature
 from typing import Any, Dict, Mapping, Self, Tuple, Type
 
@@ -21,7 +20,7 @@ from rapid_api_client.client import pydantic_xml, RapidParameter, RapidParameter
 from rapid_api_client.typing import BM, T
 from rapid_api_client.utils import filter_none_values, find_annotation
 
-from remnawave.exceptions import ApiError, ApiErrorResponse, handle_api_error
+from remnawave.exceptions import handle_api_error
 from remnawave.rapid import AttributeBody
 from remnawave.utils.serializer import orjson_default
 
@@ -61,24 +60,15 @@ class BaseController(RapidApi):
         response: Response,
         response_class: Type[Response | str | bytes | BM] | TypeAdapter[T] = Response,
     ) -> Response | str | bytes | BM | T:
-        if response_class is Response:
-            return response
-
+        # Ошибки разбираем ДО короткого замыкания на сырой Response, иначе
+        # эндпоинт без явного response_class молча вернул бы 4xx/5xx как объект.
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as e:
             handle_api_error(e.response)
-        except httpx.RequestError as e:
-            now_time = datetime.now()
-            raise ApiError(
-                0,
-                ApiErrorResponse(
-                    timestamp=now_time,
-                    path="/api/users",
-                    message=f"Request error: {str(e)}",
-                    code="NETWORK_ERROR",
-                ),
-            )
+
+        if response_class is Response:
+            return response
 
         if response_class is str:
             return response.text
@@ -220,8 +210,12 @@ class CustomRapidParameters(RapidParameters):
             elif isinstance(first_body_param.annot, PydanticBody):
                 if (value := first_body_param.get_value(ba)) is not None:
                     assert isinstance(value, BaseModel)
+                    # `exclude_unset` (not `exclude_none`): the API distinguishes an absent key
+                    # from an explicit `null`, and since 2.8 several nullable fields can only be
+                    # cleared by sending `null`. Sending exactly what the caller set preserves
+                    # that distinction; server-side defaults cover the fields left untouched.
                     return "json", value.model_dump(
-                        exclude_none=True, by_alias=True, mode="json"
+                        exclude_unset=True, by_alias=True, mode="json"
                     )
             elif isinstance(first_body_param.annot, JsonBody):
                 if (value := first_body_param.get_value(ba)) is not None:

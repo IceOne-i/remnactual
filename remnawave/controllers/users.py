@@ -53,15 +53,41 @@ class UsersController(BaseController):
     async def get_all_users(
         self,
         start: Annotated[
-            Optional[int], 
-            Query(default=None, description="Offset for pagination")
+            Optional[int],
+            Query(default=None, description="Offset for pagination (default 0)")
         ] = None,
         size: Annotated[
             Optional[int],
-            Query(default=None, description="Page size for pagination")
+            Query(default=None, description="Page size, 1..1000 (default 25)")
+        ] = None,
+        filters: Annotated[
+            Optional[str],
+            Query(
+                default=None,
+                description='JSON array of filters, e.g. \'[{"id":"username","value":"john"}]\'',
+            ),
+        ] = None,
+        filter_modes: Annotated[
+            Optional[str],
+            Query(
+                default=None,
+                alias="filterModes",
+                description='JSON object of per-column filter modes, e.g. \'{"username":"contains"}\'',
+            ),
+        ] = None,
+        global_filter_mode: Annotated[
+            Optional[str],
+            Query(default=None, alias="globalFilterMode", description="Global filter mode"),
+        ] = None,
+        sorting: Annotated[
+            Optional[str],
+            Query(
+                default=None,
+                description='JSON array of sorting rules, e.g. \'[{"id":"createdAt","desc":true}]\'',
+            ),
         ] = None,
     ) -> GetAllUsersResponseDto:
-        """Get all users"""
+        """Get all users using offset-based pagination"""
         ...
 
     @get("/users/stream", response_class=GetUsersStreamResponseDto)

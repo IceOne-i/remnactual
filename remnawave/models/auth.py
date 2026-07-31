@@ -1,6 +1,6 @@
 from typing import Annotated, Any, Dict, Optional
 
-from pydantic import BaseModel, Field, StringConstraints, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from remnawave.enums.auth import OAuth2Provider
 
@@ -109,9 +109,12 @@ class OAuth2CallbackResponseDto(BaseModel):
 
 # Passkey Authentication models
 class GetPasskeyAuthenticationOptionsResponseDto(BaseModel):
-    """Response with passkey authentication options"""
-    # Passkey options are complex WebAuthn objects
-    pass
+    """Response with passkey authentication options.
+
+    Контракт объявляет тело как `z.unknown()` — произвольный WebAuthn-объект,
+    поэтому все ключи сохраняются как есть (`extra="allow"`).
+    """
+    model_config = ConfigDict(extra="allow")
 
 
 class VerifyPasskeyAuthenticationRequestDto(BaseModel):

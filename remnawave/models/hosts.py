@@ -69,7 +69,9 @@ class UpdateHostRequestDto(BaseModel):
         # Backward compatibility: `tag` (single value) was replaced by `tags` (list) in v2.8.0
         if "tag" in data and "tags" not in data:
             tag = data.pop("tag")
-            data["tags"] = [tag] if tag is not None else None
+            # `tags: null` контрактом не принимается — при tag=None поле просто не задаём
+            if tag is not None:
+                data["tags"] = [tag]
         # Backward compatibility: `allow_insecure` was removed in v2.8.0 (use security_layer instead)
         data.pop("allow_insecure", None)
         # Backward compatibility: `xHttpExtraParams` alias was renamed to `xhttpExtraParams`
@@ -206,21 +208,28 @@ class CreateHostRequestDto(BaseModel):
         config_profile_uuid: Optional[UUID] = None,
         **data,
     ):
-        # Backward-compatible support for misspelled helper argument used in old tests/examples
+        # Совместимость: `inbound_uuid` + `config_profile_uuid` собираются в `inbound`.
+        # Исторически UUID профиля передавали под именем `config_profile_inbound_uuid`.
         if config_profile_uuid is None and "config_profile_inbound_uuid" in data:
             config_profile_uuid = data.pop("config_profile_inbound_uuid")
 
         if inbound_uuid is not None and "inbound" not in data:
+            if config_profile_uuid is None:
+                raise ValueError(
+                    "config_profile_uuid is required when passing inbound_uuid; "
+                    "pass inbound=CreateHostInboundData(...) instead"
+                )
             data["inbound"] = CreateHostInboundData(
-                config_profile_uuid=config_profile_uuid
-                or UUID("107541f1-ae1a-4e2d-9dec-7297557b5125"),
+                config_profile_uuid=config_profile_uuid,
                 config_profile_inbound_uuid=inbound_uuid,
             )
 
         # Backward compatibility: `tag` (single value) was replaced by `tags` (list) in v2.8.0
         if "tag" in data and "tags" not in data:
             tag = data.pop("tag")
-            data["tags"] = [tag] if tag is not None else None
+            # `tags: null` контрактом не принимается — при tag=None поле просто не задаём
+            if tag is not None:
+                data["tags"] = [tag]
         # Backward compatibility: `allow_insecure` was removed in v2.8.0 (use security_layer instead)
         data.pop("allow_insecure", None)
         # Backward compatibility: `xHttpExtraParams` alias was renamed to `xhttpExtraParams`

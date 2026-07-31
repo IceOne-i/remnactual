@@ -1,10 +1,14 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field
+
+from remnawave.models._serialization import AlwaysEmitModel
 
 
 class PasskeySettings(BaseModel):
     """Passkey authentication settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     rp_id: str | None = Field(alias="rpId")
     origin: str | None
@@ -12,6 +16,8 @@ class PasskeySettings(BaseModel):
 
 class GitHubOAuth2Settings(BaseModel):
     """GitHub OAuth2 settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     client_id: str | None = Field(alias="clientId")
     client_secret: str | None = Field(alias="clientSecret")
@@ -20,6 +26,8 @@ class GitHubOAuth2Settings(BaseModel):
 
 class PocketIdOAuth2Settings(BaseModel):
     """PocketID OAuth2 settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     client_id: str | None = Field(alias="clientId")
     client_secret: str | None = Field(alias="clientSecret")
@@ -29,6 +37,8 @@ class PocketIdOAuth2Settings(BaseModel):
 
 class YandexOAuth2Settings(BaseModel):
     """Yandex OAuth2 settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     client_id: str | None = Field(alias="clientId")
     client_secret: str | None = Field(alias="clientSecret")
@@ -37,6 +47,8 @@ class YandexOAuth2Settings(BaseModel):
 
 class KeycloakOAuth2Settings(BaseModel):
     """Keycloak OAuth2 settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     realm: str | None
     client_id: str | None = Field(alias="clientId")
@@ -48,6 +60,8 @@ class KeycloakOAuth2Settings(BaseModel):
 
 class GenericOAuth2Settings(BaseModel):
     """Generic OAuth2 settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     client_id: str | None = Field(alias="clientId")
     client_secret: str | None = Field(alias="clientSecret")
@@ -60,6 +74,8 @@ class GenericOAuth2Settings(BaseModel):
 
 class TelegramOAuth2Settings(BaseModel):
     """Telegram OAuth2 settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     client_id: str | None = Field(alias="clientId")
     client_secret: str | None = Field(alias="clientSecret")
@@ -72,9 +88,11 @@ class OAuth2Settings(BaseModel):
     github: GitHubOAuth2Settings
     pocketid: PocketIdOAuth2Settings
     yandex: YandexOAuth2Settings
-    keycloak: KeycloakOAuth2Settings
-    generic: GenericOAuth2Settings
-    telegram: TelegramOAuth2Settings
+    # В контракте у этих провайдеров есть .default({...}), поэтому в ответе
+    # старых инсталляций ключей может не быть.
+    keycloak: Optional[KeycloakOAuth2Settings] = None
+    generic: Optional[GenericOAuth2Settings] = None
+    telegram: Optional[TelegramOAuth2Settings] = None
 
 
 class TelegramAuthSettings(BaseModel):
@@ -91,10 +109,17 @@ class PasswordSettings(BaseModel):
     enabled: bool
 
 
-class BrandingSettings(BaseModel):
-    """Branding settings"""
+class RemnawaveBrandingSettings(AlwaysEmitModel):
+    """Branding settings.
+
+    Контракт объявляет оба ключа обязательными, но nullable, поэтому они
+    отправляются всегда — даже если вызывающий задал только один из них."""
+    __always_emit__ = ("title", "logo_url")
+
+    model_config = ConfigDict(populate_by_name=True)
+
     title: Optional[str] = None
-    logo_url: Optional[HttpUrl] = Field(None, alias="logoUrl")
+    logo_url: Optional[str] = Field(None, alias="logoUrl")
 
 
 class RemnawaveSettingsData(BaseModel):
@@ -102,7 +127,7 @@ class RemnawaveSettingsData(BaseModel):
     passkey_settings: PasskeySettings | None = Field(alias="passkeySettings")
     oauth2_settings: OAuth2Settings | None = Field(alias="oauth2Settings")
     password_settings: Optional[PasswordSettings] = Field(None, alias="passwordSettings")
-    branding_settings: Optional[BrandingSettings] = Field(None, alias="brandingSettings")
+    branding_settings: Optional[RemnawaveBrandingSettings] = Field(None, alias="brandingSettings")
 
 
 class GetRemnawaveSettingsResponseDto(RemnawaveSettingsData):
@@ -115,9 +140,13 @@ class UpdateRemnawaveSettingsRequestDto(BaseModel):
     passkey_settings: Optional[PasskeySettings] = Field(None, serialization_alias="passkeySettings")
     oauth2_settings: Optional[OAuth2Settings] = Field(None, serialization_alias="oauth2Settings")
     password_settings: Optional[PasswordSettings] = Field(None, serialization_alias="passwordSettings")
-    branding_settings: Optional[BrandingSettings] = Field(None, serialization_alias="brandingSettings")
+    branding_settings: Optional[RemnawaveBrandingSettings] = Field(None, serialization_alias="brandingSettings")
 
 
 class UpdateRemnawaveSettingsResponseDto(RemnawaveSettingsData):
     """Update Remnawave settings response"""
     pass
+
+
+# Backwards-compatible alias (конфликтовал с auth.BrandingSettings)
+BrandingSettings = RemnawaveBrandingSettings
