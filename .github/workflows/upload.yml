@@ -1,9 +1,15 @@
 name: Publish Python Package
 
+# ОТКЛЮЧЕНО. Форк не владеет проектом `remnawave` на PyPI, поэтому автопубликация
+# при пуше в production невозможна. Запускается только вручную.
+# Чтобы включить обратно: вернуть блок
+#   push:
+#     branches:
+#       - production
+# и убедиться, что `name` в pyproject.toml указывает на проект PyPI,
+# к которому у репозитория есть права публикации.
 on:
-  push:
-    branches:
-      - production 
+  workflow_dispatch:
 
 permissions:
   contents: write
