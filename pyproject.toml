@@ -28,7 +28,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/IceOne-i/python-sdk"
+Homepage = "https://github.com/IceOne-i/remnactual"
 "Upstream project" = "https://github.com/remnawave/python-sdk"
 "Panel Page" = "https://remna.st/"
 "API Documentation" = "https://docs.rw/api"

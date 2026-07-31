@@ -26,13 +26,13 @@ Every endpoint, request body and response model in this fork is verified against
 ## Installation
 
 ```bash
-pip install git+https://github.com/IceOne-i/python-sdk.git@production
+pip install git+https://github.com/IceOne-i/remnactual.git@production
 ```
 
 A specific branch or tag:
 
 ```bash
-pip install "git+https://github.com/IceOne-i/python-sdk.git@fix/api-2.8-compliance"
+pip install "git+https://github.com/IceOne-i/remnactual.git@fix/api-2.8-compliance"
 ```
 
 ## Quick start
