@@ -212,8 +212,9 @@ intentional, because the previous behaviour could not work against a 2.8 panel.
 pip install -e .
 pip install pytest pytest-asyncio pytest-mock python-dotenv pytz
 
-# offline tests (models, enums, controller surface)
-pytest tests/test_models_validation.py tests/test_enums.py tests/test_controllers_completeness.py
+# offline tests (2.8 contract regressions, models, enums, controller surface)
+pytest tests/test_2_8_compliance.py tests/test_models_validation.py \
+       tests/test_enums.py tests/test_controllers_completeness.py
 
 # full suite — requires a live panel
 #   REMNAWAVE_BASE_URL, REMNAWAVE_TOKEN and the REMNAWAVE_* fixtures in tests/conftest.py
