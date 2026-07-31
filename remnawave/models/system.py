@@ -120,16 +120,25 @@ class RuntimeMetric(BaseModel):
     """Runtime metric from health endpoint"""
     model_config = {"extra": "allow"}
 
-    rss: Optional[float] = None
-    heap_total: Optional[float] = Field(None, alias="heapTotal")
-    heap_used: Optional[float] = Field(None, alias="heapUsed")
-    external: Optional[float] = None
-    instance_type: Optional[str] = Field(None, alias="instanceType")
+    rss: float
+    heap_used: float = Field(alias="heapUsed")
+    heap_total: float = Field(alias="heapTotal")
+    external: float
+    array_buffers: float = Field(alias="arrayBuffers")
+    event_loop_delay_ms: float = Field(alias="eventLoopDelayMs")
+    event_loop_p99_ms: float = Field(alias="eventLoopP99Ms")
+    active_handles: float = Field(alias="activeHandles")
+    uptime: float
+    pid: float
+    timestamp: float
+    instance_id: str = Field(alias="instanceId")
+    instance_type: str = Field(alias="instanceType")
 
 
 class GetRemnawaveHealthResponseDto(BaseModel):
+    runtime_metrics: List[RuntimeMetric] = Field(alias="runtimeMetrics")
+    # 2.8 больше не отдаёт pm2Stats, поле оставлено для совместимости со старыми панелями
     pm2_stats: Optional[List[PM2Stat]] = Field(None, alias="pm2Stats")
-    runtime_metrics: Optional[List[RuntimeMetric]] = Field(None, alias="runtimeMetrics")
 
 
 class TrafficStatDto(BaseModel):

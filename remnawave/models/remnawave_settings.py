@@ -1,10 +1,12 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PasskeySettings(BaseModel):
     """Passkey authentication settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     rp_id: str | None = Field(alias="rpId")
     origin: str | None
@@ -12,6 +14,8 @@ class PasskeySettings(BaseModel):
 
 class GitHubOAuth2Settings(BaseModel):
     """GitHub OAuth2 settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     client_id: str | None = Field(alias="clientId")
     client_secret: str | None = Field(alias="clientSecret")
@@ -20,6 +24,8 @@ class GitHubOAuth2Settings(BaseModel):
 
 class PocketIdOAuth2Settings(BaseModel):
     """PocketID OAuth2 settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     client_id: str | None = Field(alias="clientId")
     client_secret: str | None = Field(alias="clientSecret")
@@ -29,6 +35,8 @@ class PocketIdOAuth2Settings(BaseModel):
 
 class YandexOAuth2Settings(BaseModel):
     """Yandex OAuth2 settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     client_id: str | None = Field(alias="clientId")
     client_secret: str | None = Field(alias="clientSecret")
@@ -37,6 +45,8 @@ class YandexOAuth2Settings(BaseModel):
 
 class KeycloakOAuth2Settings(BaseModel):
     """Keycloak OAuth2 settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     realm: str | None
     client_id: str | None = Field(alias="clientId")
@@ -48,6 +58,8 @@ class KeycloakOAuth2Settings(BaseModel):
 
 class GenericOAuth2Settings(BaseModel):
     """Generic OAuth2 settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     client_id: str | None = Field(alias="clientId")
     client_secret: str | None = Field(alias="clientSecret")
@@ -60,6 +72,8 @@ class GenericOAuth2Settings(BaseModel):
 
 class TelegramOAuth2Settings(BaseModel):
     """Telegram OAuth2 settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     client_id: str | None = Field(alias="clientId")
     client_secret: str | None = Field(alias="clientSecret")
@@ -93,6 +107,8 @@ class PasswordSettings(BaseModel):
 
 class RemnawaveBrandingSettings(BaseModel):
     """Branding settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     title: Optional[str] = None
     logo_url: Optional[str] = Field(None, alias="logoUrl")
 

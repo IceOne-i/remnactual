@@ -1,5 +1,6 @@
-from typing import Annotated
-from rapid_api_client import PydanticBody
+from typing import Annotated, Optional
+
+from rapid_api_client import PydanticBody, Query
 from remnawave.models import (
     GetBandwidthStatsResponseDto,
     GetNodesStatisticsResponseDto,
@@ -26,6 +27,10 @@ class SystemController(BaseController):
     @get("/system/stats", response_class=GetStatsResponseDto)
     async def get_stats(
         self,
+        tz: Annotated[
+            Optional[str],
+            Query(default=None, description="IANA timezone, e.g. Europe/Moscow"),
+        ] = None,
     ) -> GetStatsResponseDto:
         """Get System Stats"""
         ...
@@ -33,6 +38,10 @@ class SystemController(BaseController):
     @get("/system/stats/bandwidth", response_class=GetBandwidthStatsResponseDto)
     async def get_bandwidth_stats(
         self,
+        tz: Annotated[
+            Optional[str],
+            Query(default=None, description="IANA timezone, e.g. Europe/Moscow"),
+        ] = None,
     ) -> GetBandwidthStatsResponseDto:
         """Get System Bandwidth Statistics"""
         ...
@@ -40,6 +49,10 @@ class SystemController(BaseController):
     @get("/system/stats/nodes", response_class=GetNodesStatisticsResponseDto)
     async def get_nodes_statistics(
         self,
+        tz: Annotated[
+            Optional[str],
+            Query(default=None, description="IANA timezone, e.g. Europe/Moscow"),
+        ] = None,
     ) -> GetNodesStatisticsResponseDto:
         """Get Nodes Statistics"""
         ...

@@ -1,20 +1,10 @@
 from datetime import datetime
-from enum import StrEnum
 from typing import Dict, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
+from remnawave.enums import TemplateType
 from remnawave.models import CustomRemarksDto, HwidSettingsDto
-
-
-class TemplateType(StrEnum):
-    """Template type enum"""
-    XRAY_JSON = "XRAY_JSON"
-    XRAY_BASE64 = "XRAY_BASE64"
-    MIHOMO = "MIHOMO"
-    STASH = "STASH"
-    CLASH = "CLASH"
-    SINGBOX = "SINGBOX"
 
 
 class ExternalSquadInfoDto(BaseModel):

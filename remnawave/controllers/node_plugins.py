@@ -28,8 +28,24 @@ class NodePluginsController(BaseController):
     @get("/node-plugins/torrent-blocker", response_class=GetTorrentBlockerReportsResponseDto)
     async def get_torrent_blocker_reports(
         self,
-        size: Annotated[Optional[int], Query(default=None, ge=1, description="Page size")] = None,
+        size: Annotated[
+            Optional[int], Query(default=None, ge=1, le=1000, description="Page size, 1..1000")
+        ] = None,
         start: Annotated[Optional[int], Query(default=None, ge=0, description="Offset")] = None,
+        filters: Annotated[
+            Optional[str], Query(default=None, description="JSON array of filters")
+        ] = None,
+        filter_modes: Annotated[
+            Optional[str],
+            Query(default=None, alias="filterModes", description="JSON object of filter modes"),
+        ] = None,
+        global_filter_mode: Annotated[
+            Optional[str],
+            Query(default=None, alias="globalFilterMode", description="Global filter mode"),
+        ] = None,
+        sorting: Annotated[
+            Optional[str], Query(default=None, description="JSON array of sorting rules")
+        ] = None,
     ) -> GetTorrentBlockerReportsResponseDto:
         """Get Torrent Blocker Reports"""
         ...

@@ -3,6 +3,14 @@ from typing import List, Optional, Literal, Union
 from uuid import UUID
 from pydantic import BaseModel, Field
 from pydantic.alias_generators import to_camel
+from remnawave.models.node_plugins import TorrentBlockerReportPayloadDto
+from remnawave.models.nodes import (
+    NodeNetworkInterfaceDto as NodeSystemInterfaceDto,
+    NodeSystemDto,
+    NodeSystemInfoDto,
+    NodeSystemStatsDto,
+    NodeVersionsDto,
+)
 from remnawave.enums import (
     TUsersStatus, TUserEvents, TUserHwidDevicesEvents, TServiceEvents, TNodeEvents, TErrorsEvents, TCRMEvents, TTorrentBlockerEvents, TResetPeriods
 )
@@ -225,55 +233,6 @@ class WebhookNodeConfigProfileDto(BaseModel):
     model_config = {"alias_generator": to_camel, "populate_by_name": True}
 
 
-class NodeSystemInfoDto(BaseModel):
-    arch: str
-    cpus: int
-    cpu_model: str
-    memory_total: float
-    hostname: str
-    platform: str
-    release: str
-    type: str
-    version: str
-    network_interfaces: List[str]
-
-    model_config = {"alias_generator": to_camel, "populate_by_name": True}
-
-
-class NodeSystemInterfaceDto(BaseModel):
-    interface: str
-    rx_bytes_per_sec: float
-    tx_bytes_per_sec: float
-    rx_total: float
-    tx_total: float
-
-    model_config = {"alias_generator": to_camel, "populate_by_name": True}
-
-
-class NodeSystemStatsDto(BaseModel):
-    memory_free: float
-    memory_used: float
-    uptime: float
-    load_avg: List[float]
-    interface: Optional[NodeSystemInterfaceDto] = None
-
-    model_config = {"alias_generator": to_camel, "populate_by_name": True}
-
-
-class NodeSystemDto(BaseModel):
-    info: NodeSystemInfoDto
-    stats: NodeSystemStatsDto
-
-    model_config = {"alias_generator": to_camel, "populate_by_name": True}
-
-
-class NodeVersionsDto(BaseModel):
-    xray: str
-    node: str
-
-    model_config = {"alias_generator": to_camel, "populate_by_name": True}
-
-
 class WebhookNodeDto(BaseModel):
     uuid: UUID
     name: str
@@ -371,46 +330,10 @@ class CrmEventDto(BaseModel):
 
 # ---------------- TORRENT BLOCKER EVENTS ---------------- #
 
-class TorrentBlockerActionReportDto(BaseModel):
-    blocked: bool
-    ip: str
-    block_duration: float
-    will_unblock_at: datetime
-    user_id: str
-    processed_at: datetime
-
-    model_config = {"alias_generator": to_camel, "populate_by_name": True}
-
-
-class TorrentBlockerXrayReportDto(BaseModel):
-    email: Optional[str] = None
-    level: Optional[float] = None
-    protocol: Optional[str] = None
-    network: str
-    source: Optional[str] = None
-    destination: str
-    route_target: Optional[str] = None
-    original_target: Optional[str] = None
-    inbound_tag: Optional[str] = None
-    inbound_name: Optional[str] = None
-    inbound_local: Optional[str] = None
-    outbound_tag: Optional[str] = None
-    ts: float
-
-    model_config = {"alias_generator": to_camel, "populate_by_name": True}
-
-
-class TorrentBlockerReportDetailsDto(BaseModel):
-    action_report: TorrentBlockerActionReportDto
-    xray_report: TorrentBlockerXrayReportDto
-
-    model_config = {"alias_generator": to_camel, "populate_by_name": True}
-
-
 class TorrentBlockerReportDto(BaseModel):
     node: WebhookNodeDto
     user: Optional[UserDto] = None
-    report: Optional[TorrentBlockerReportDetailsDto] = None
+    report: Optional[TorrentBlockerReportPayloadDto] = None
 
     model_config = {"alias_generator": to_camel, "populate_by_name": True}
 
