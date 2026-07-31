@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
 from remnawave.models import (
@@ -45,7 +46,7 @@ class ExternalSquadsController(BaseController):
     @get("/external-squads/{uuid}", response_class=GetExternalSquadByUuidResponseDto)
     async def get_external_squad_by_uuid(
         self,
-        uuid: str,
+        uuid: Annotated[str, Path(description="UUID of the external squad")],
     ) -> GetExternalSquadByUuidResponseDto:
         """Get external squad by uuid"""
         ...
@@ -53,7 +54,7 @@ class ExternalSquadsController(BaseController):
     @delete("/external-squads/{uuid}", response_class=DeleteExternalSquadResponseDto)
     async def delete_external_squad(
         self,
-        uuid: str,
+        uuid: Annotated[str, Path(description="UUID of the external squad")],
     ) -> DeleteExternalSquadResponseDto:
         """Delete external squad"""
         ...
@@ -61,7 +62,7 @@ class ExternalSquadsController(BaseController):
     @post("/external-squads/{uuid}/bulk-actions/add-users", response_class=AddUsersToExternalSquadResponseDto)
     async def add_users_to_external_squad(
         self,
-        uuid: str,
+        uuid: Annotated[str, Path(description="UUID of the external squad")],
     ) -> AddUsersToExternalSquadResponseDto:
         """Add all users to external squad"""
         ...
@@ -69,10 +70,11 @@ class ExternalSquadsController(BaseController):
     @delete("/external-squads/{uuid}/bulk-actions/remove-users", response_class=RemoveUsersFromExternalSquadResponseDto)
     async def remove_users_from_external_squad(
         self,
-        uuid: str,
+        uuid: Annotated[str, Path(description="UUID of the external squad")],
     ) -> RemoveUsersFromExternalSquadResponseDto:
         """Delete users from external squad"""
         ...
+
     @post("/external-squads/actions/reorder", response_class=ReorderExternalSquadsResponseDto)
     async def reorder_external_squads(
         self,

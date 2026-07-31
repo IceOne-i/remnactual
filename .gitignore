@@ -182,3 +182,4 @@ requirements.txt
 requirements.in
 test_raw.py
 tests/test_one_time.py
+/.idea

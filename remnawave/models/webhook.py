@@ -16,7 +16,7 @@ class LastConnectedNodeDto(BaseModel):
     model_config = {"alias_generator": to_camel, "populate_by_name": True}
 
 
-class InternalSquadDto(BaseModel):
+class WebhookInternalSquadDto(BaseModel):
     uuid: UUID
     name: str
 
@@ -24,7 +24,7 @@ class InternalSquadDto(BaseModel):
 
 
 
-class UserTrafficDto(BaseModel):
+class WebhookUserTrafficDto(BaseModel):
     """User traffic information for webhooks"""
     used_traffic_bytes: int
     lifetime_used_traffic_bytes: int
@@ -41,7 +41,7 @@ class BaseUserDto(BaseModel):
     short_uuid: str
     username: str
     status: TUsersStatus
-    user_traffic: UserTrafficDto
+    user_traffic: WebhookUserTrafficDto
 
     traffic_limit_bytes: int
     traffic_limit_strategy: TResetPeriods
@@ -102,7 +102,7 @@ class BaseUserDto(BaseModel):
 
 
 class UserDto(BaseUserDto):
-    active_internal_squads: List[InternalSquadDto] = Field(default_factory=list)
+    active_internal_squads: List[WebhookInternalSquadDto] = Field(default_factory=list)
     last_connected_node: Optional[LastConnectedNodeDto] = None
 
     model_config = {"alias_generator": to_camel, "populate_by_name": True}
@@ -119,11 +119,13 @@ class UserEventDto(BaseModel):
 
 class HwidUserDeviceDto(BaseModel):
     hwid: str
-    user_uuid: UUID
+    # 2.8: userUuid заменён на числовой userId
+    user_id: int
     platform: Optional[str] = None
     os_version: Optional[str] = None
     device_model: Optional[str] = None
     user_agent: Optional[str] = None
+    request_ip: Optional[str] = None
 
     created_at: datetime
     updated_at: datetime
@@ -185,14 +187,14 @@ class ConfigProfileInboundDto(BaseModel):
     model_config = {"alias_generator": to_camel, "populate_by_name": True}
 
 
-class InfraBillingHistoryDto(BaseModel):
+class WebhookInfraBillingHistoryDto(BaseModel):
     total_amount: int
     total_bills: int
 
     model_config = {"alias_generator": to_camel, "populate_by_name": True}
 
 
-class InfraBillingNodeDto(BaseModel):
+class WebhookInfraBillingNodeDto(BaseModel):
     node_uuid: UUID
     name: str
     country_code: str
@@ -200,7 +202,7 @@ class InfraBillingNodeDto(BaseModel):
     model_config = {"alias_generator": to_camel, "populate_by_name": True}
 
 
-class InfraProviderDto(BaseModel):
+class WebhookInfraProviderDto(BaseModel):
     name: str
     uuid: UUID
     favicon_link: Optional[str] = None
@@ -209,8 +211,8 @@ class InfraProviderDto(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    billing_history: Optional[InfraBillingHistoryDto] = None
-    billing_nodes: Optional[List[InfraBillingNodeDto]] = None
+    billing_history: Optional[WebhookInfraBillingHistoryDto] = None
+    billing_nodes: Optional[List[WebhookInfraBillingNodeDto]] = None
 
     model_config = {"alias_generator": to_camel, "populate_by_name": True}
 
@@ -272,7 +274,7 @@ class NodeVersionsDto(BaseModel):
     model_config = {"alias_generator": to_camel, "populate_by_name": True}
 
 
-class NodeDto(BaseModel):
+class WebhookNodeDto(BaseModel):
     uuid: UUID
     name: str
     address: str
@@ -295,6 +297,9 @@ class NodeDto(BaseModel):
     view_position: int
     country_code: str
     consumption_multiplier: float
+    node_consumption_multiplier: Optional[float] = None
+    proxy_url: Optional[str] = None
+    note: Optional[str] = None
 
     tags: List[str] = Field(default_factory=list)
 
@@ -304,7 +309,7 @@ class NodeDto(BaseModel):
     config_profile: WebhookNodeConfigProfileDto
 
     provider_uuid: Optional[UUID] = None
-    provider: Optional[InfraProviderDto] = None
+    provider: Optional[WebhookInfraProviderDto] = None
 
     active_plugin_uuid: Optional[UUID] = None
     system: Optional[NodeSystemDto] = None
@@ -324,7 +329,7 @@ class NodeDto(BaseModel):
 
 class NodeEventDto(BaseModel):
     event_name: TNodeEvents
-    data: NodeDto
+    data: WebhookNodeDto
 
     model_config = {"alias_generator": to_camel, "populate_by_name": True}
 
@@ -366,8 +371,46 @@ class CrmEventDto(BaseModel):
 
 # ---------------- TORRENT BLOCKER EVENTS ---------------- #
 
+class TorrentBlockerActionReportDto(BaseModel):
+    blocked: bool
+    ip: str
+    block_duration: float
+    will_unblock_at: datetime
+    user_id: str
+    processed_at: datetime
+
+    model_config = {"alias_generator": to_camel, "populate_by_name": True}
+
+
+class TorrentBlockerXrayReportDto(BaseModel):
+    email: Optional[str] = None
+    level: Optional[float] = None
+    protocol: Optional[str] = None
+    network: str
+    source: Optional[str] = None
+    destination: str
+    route_target: Optional[str] = None
+    original_target: Optional[str] = None
+    inbound_tag: Optional[str] = None
+    inbound_name: Optional[str] = None
+    inbound_local: Optional[str] = None
+    outbound_tag: Optional[str] = None
+    ts: float
+
+    model_config = {"alias_generator": to_camel, "populate_by_name": True}
+
+
+class TorrentBlockerReportDetailsDto(BaseModel):
+    action_report: TorrentBlockerActionReportDto
+    xray_report: TorrentBlockerXrayReportDto
+
+    model_config = {"alias_generator": to_camel, "populate_by_name": True}
+
+
 class TorrentBlockerReportDto(BaseModel):
-    node: NodeDto
+    node: WebhookNodeDto
+    user: Optional[UserDto] = None
+    report: Optional[TorrentBlockerReportDetailsDto] = None
 
     model_config = {"alias_generator": to_camel, "populate_by_name": True}
 
@@ -381,16 +424,28 @@ class TorrentBlockerEventDto(BaseModel):
 
 # ---------------- WEBHOOK PAYLOAD ---------------- #
 
+class WebhookMetaDto(BaseModel):
+    """Дополнительные данные события (`user.not_connected`, `user.expiration`)"""
+    not_connected_after_hours: Optional[float] = None
+    expiration: Optional[float] = None
+
+    model_config = {"alias_generator": to_camel, "populate_by_name": True}
+
+
 class WebhookPayloadDto(BaseModel):
     event: str
     timestamp: datetime
+    scope: Optional[str] = None
+    meta: Optional[WebhookMetaDto] = None
     data: Union[
         UserDto,
-        NodeDto,
+        WebhookNodeDto,
         HwidUserDeviceDto,
         LoginAttemptDto,
         UserHwidDeviceEventDto,
         BillingNodeDto,
+        ErrorDto,
+        TorrentBlockerReportDto,
         dict
     ]
 
@@ -412,7 +467,7 @@ class WebhookPayloadDto(BaseModel):
                 event=event,
             )
         elif event.startswith("node."):
-            data = NodeDto(**data_raw)
+            data = WebhookNodeDto(**data_raw)
         elif event.startswith("service."):
             if event.startswith("service.login_attempt"):
                 login_attempt_data = data_raw.get("loginAttempt", {})
@@ -423,6 +478,8 @@ class WebhookPayloadDto(BaseModel):
             data = ErrorDto(**data_raw)
         elif event.startswith("crm."):
             data = BillingNodeDto(**data_raw)
+        elif event.startswith("torrent_blocker."):
+            data = TorrentBlockerReportDto(**data_raw)
         else:
             data = data_raw
 
@@ -432,4 +489,24 @@ class WebhookPayloadDto(BaseModel):
         else:
             timestamp = timestamp_raw
 
-        return cls(event=event, data=data, timestamp=timestamp)
+        meta_raw = payload.get("meta")
+        meta = WebhookMetaDto(**meta_raw) if isinstance(meta_raw, dict) else None
+
+        return cls(
+            event=event,
+            data=data,
+            timestamp=timestamp,
+            scope=payload.get("scope"),
+            meta=meta,
+        )
+
+
+# ---------------- BACKWARDS-COMPATIBLE ALIASES ---------------- #
+# Эти имена конфликтовали с одноимёнными REST-моделями в remnawave.models.
+# Внутри модуля webhook они по-прежнему доступны под старыми именами.
+InternalSquadDto = WebhookInternalSquadDto
+UserTrafficDto = WebhookUserTrafficDto
+InfraBillingHistoryDto = WebhookInfraBillingHistoryDto
+InfraBillingNodeDto = WebhookInfraBillingNodeDto
+InfraProviderDto = WebhookInfraProviderDto
+NodeDto = WebhookNodeDto

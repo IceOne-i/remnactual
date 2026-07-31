@@ -4,6 +4,7 @@ from uuid import UUID
 
 from pydantic import (
     BaseModel,
+    ConfigDict,
     EmailStr,
     Field,
     RootModel,
@@ -33,6 +34,8 @@ class ActiveInternalSquadDto(BaseModel):
 
 
 class HappCrypto(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     crypto_link: str = Field(alias="cryptoLink")
 
 
@@ -222,10 +225,11 @@ class ResolveUserResponseDto(BaseModel):
 class SubscriptionRequestRecord(BaseModel):
     """Subscription request history record"""
     id: int
-    user_uuid: UUID = Field(alias="userUuid")
+    # 2.8: колонка userUuid заменена на числовой userId
+    user_id: int = Field(alias="userId")
     request_at: datetime = Field(alias="requestAt")
-    request_ip: Optional[str] = Field(alias="requestIp")
-    user_agent: Optional[str] = Field(alias="userAgent")
+    request_ip: Optional[str] = Field(None, alias="requestIp")
+    user_agent: Optional[str] = Field(None, alias="userAgent")
 
 
 class SubscriptionRequestsResponseData(BaseModel):

@@ -220,8 +220,12 @@ class CustomRapidParameters(RapidParameters):
             elif isinstance(first_body_param.annot, PydanticBody):
                 if (value := first_body_param.get_value(ba)) is not None:
                     assert isinstance(value, BaseModel)
+                    # `exclude_unset` (not `exclude_none`): the API distinguishes an absent key
+                    # from an explicit `null`, and since 2.8 several nullable fields can only be
+                    # cleared by sending `null`. Sending exactly what the caller set preserves
+                    # that distinction; server-side defaults cover the fields left untouched.
                     return "json", value.model_dump(
-                        exclude_none=True, by_alias=True, mode="json"
+                        exclude_unset=True, by_alias=True, mode="json"
                     )
             elif isinstance(first_body_param.annot, JsonBody):
                 if (value := first_body_param.get_value(ba)) is not None:

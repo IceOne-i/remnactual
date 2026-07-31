@@ -30,12 +30,18 @@ class FetchIpsProgressData(BaseModel):
     percent: float
 
 
+class IpEntry(BaseModel):
+    """IP-адрес с меткой последнего появления"""
+    ip: str
+    last_seen: datetime = Field(alias="lastSeen")
+
+
 class FetchIpsNodeResult(BaseModel):
     """Per-node IP list for a user"""
     node_uuid: UUID = Field(alias="nodeUuid")
     node_name: str = Field(alias="nodeName")
     country_code: str = Field(alias="countryCode")
-    ips: List[str]
+    ips: List[IpEntry]
 
 
 class FetchIpsResult(BaseModel):

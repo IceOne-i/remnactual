@@ -1,10 +1,14 @@
 import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
 from remnawave.enums import ResponseType
-from remnawave.models.subscriptions_settings import ResponseRule, ResponseRules
+from remnawave.models.subscriptions_settings import (
+    ResponseModificationHeader,
+    ResponseRule,
+    ResponseRules,
+)
 
 
 class NodeStatistic(BaseModel):
@@ -204,10 +208,15 @@ class DebugSrrMatcherRequestDto(BaseModel):
 
 class DebugSrrMatcherData(BaseModel):
     matched: bool
-    response_type: ResponseType = Field(alias="responseType")
-    matched_rule: Optional[ResponseRule] = Field(alias="matchedRule")
+    # Бэкенд не отдаёт responseType/matchedRule, когда ни одно правило не совпало.
+    response_type: Optional[ResponseType] = Field(None, alias="responseType")
+    matched_rule: Optional[ResponseRule] = Field(None, alias="matchedRule")
     input_headers: Dict[str, str] = Field(alias="inputHeaders")
-    output_headers: Dict[str, str] = Field(alias="outputHeaders")
+    # Контракт объявляет record<string,string>, но сервис отдаёт массив {key, value}
+    # (или пустой массив). Принимаем оба варианта.
+    output_headers: Union[List[ResponseModificationHeader], Dict[str, str]] = Field(
+        default_factory=list, alias="outputHeaders"
+    )
 
 
 class DebugSrrMatcherResponseDto(DebugSrrMatcherData):

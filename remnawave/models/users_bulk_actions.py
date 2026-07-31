@@ -16,8 +16,12 @@ TagStr = Annotated[
 
 # Request DTOs
 class BulkDeleteUsersByStatusRequestDto(BaseModel):
-    """Request to delete users by status"""
-    status: UserStatus = Field(default=UserStatus.ACTIVE)
+    """Request to delete users by status.
+
+    `status` обязателен в контракте и намеренно не имеет значения по умолчанию:
+    неявный дефолт удалял бы всех ACTIVE-пользователей.
+    """
+    status: UserStatus
 
 
 class BulkDeleteUsersRequestDto(BaseModel):
@@ -97,7 +101,9 @@ class BulkExtendExpirationDateRequestDto(BaseModel):
 
 class BulkAllUpdateUsersRequestDto(BaseModel):
     """Request to update all users"""
-    status: Optional[UserStatus] = Field(default=UserStatus.ACTIVE)
+    # Без значения по умолчанию: иначе каждый вызов bulk/all/update
+    # переводил бы ВСЕХ пользователей в ACTIVE.
+    status: Optional[UserStatus] = None
     traffic_limit_bytes: Optional[float] = Field(
         None,
         serialization_alias="trafficLimitBytes",

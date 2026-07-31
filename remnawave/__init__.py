@@ -11,7 +11,6 @@ from remnawave.controllers import (
     HostsBulkActionsController,
     HostsController,
     HWIDUserController,
-    InboundsBulkActionsController,
     InboundsController,
     InfraBillingController,
     InternalSquadsController,
@@ -25,7 +24,6 @@ from remnawave.controllers import (
     UsersBulkActionsController,
     UsersController,
     WebhookUtility,
-    XrayConfigController,
     SubscriptionRequestHistoryController,
     PasskeysController,
     ExternalSquadsController,
@@ -82,7 +80,6 @@ class RemnawaveSDK:
         self.hosts_bulk_actions = HostsBulkActionsController(self._client)
         self.hwid = HWIDUserController(self._client)
         self.inbounds = InboundsController(self._client)
-        self.inbounds_bulk_actions = InboundsBulkActionsController(self._client)
         self.infra_billing = InfraBillingController(self._client)
         self.internal_squads = InternalSquadsController(self._client)
         self.keygen = KeygenController(self._client)
@@ -96,7 +93,6 @@ class RemnawaveSDK:
         self.users = UsersController(self._client)
         self.users_bulk_actions = UsersBulkActionsController(self._client)
         self.webhook_utility = WebhookUtility()
-        self.xray_config = XrayConfigController(self._client)
         self.passkeys = PasskeysController(self._client)
         self.external_squads = ExternalSquadsController(self._client)
         self.snippets = SnippetsController(self._client)

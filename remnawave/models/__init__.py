@@ -129,12 +129,6 @@ from .inbounds import (
     InboundsByProfileData,
     InboundsResponseDto,  # Legacy alias
 )
-from .inbounds_bulk_actions import (
-    AddInboundToNodesResponseDto,
-    AddInboundToUsersResponseDto,
-    RemoveInboundFromNodesResponseDto,
-    RemoveInboundFromUsersResponseDto,
-)
 from .infra_billing import (
     CreateInfraBillingHistoryRecordRequestDto,
     CreateInfraBillingHistoryRecordResponseDto, 
@@ -154,7 +148,10 @@ from .infra_billing import (
     InfraBillingHistoryDto,
     InfraBillingNodeDto,
     InfraProviderDto,
-    NodeDto,
+    InfraBillingNodeRefDto,
+    InfraProviderRecordDto,
+    InfraProviderBillingNodeDetailsDto,
+    InfraBillingNodeSimpleDto,
     UpdateInfraBillingNodeRequestDto,
     UpdateInfraBillingNodeResponseDto,
     UpdateInfraProviderRequestDto,
@@ -214,16 +211,14 @@ from .nodes import (
     NodeBulkActionType,
     NodesBulkActionsRequestDto,
     NodesBulkActionsResponseDto,
+    BulkNodesUpdateFieldsDto,
     BulkNodesUpdateRequestDto,
     BulkNodesUpdateResponseDto,
 )
 from .nodes_usage_history import (
-    GetNodeUserUsageByRangeResponseDto,
-    GetNodesUsageByRangeResponseDto,
     GetUserAccessibleNodesResponseDto,
+    NodeActiveSquadDto,
     NodeInfoDto,
-    NodeUsageDto,
-    UserUsageDto,
 )
 from .subscription import (
     GetAllSubscriptionsResponseDto,
@@ -376,12 +371,6 @@ from .users_bulk_actions import (
     UpdateUserFields,
 )
 from .users_stats import UserUsageByRange, UserUsageByRangeResponseDto
-from .xray_config import (
-    ConfigResponseDto,  # Legacy alias
-    GetConfigResponseDto,
-    UpdateConfigRequestDto,
-    UpdateConfigResponseDto,
-)
 from .subscription_request_history import (
     GetAllSubscriptionRequestHistoryResponseDto,
     GetSubscriptionRequestHistoryStatsResponseDto,
@@ -396,13 +385,12 @@ from .webhook import (
     UserHwidDeviceEventDto,
     HwidUserDeviceDto,
     LastConnectedNodeDto,
-    InternalSquadDto,
     BaseUserDto,
     UserDto,
-    NodeDto,
+    ErrorDto,
+    BillingNodeDto,
     WebhookNodeConfigProfileDto,
     ConfigProfileInboundDto,
-    InfraProviderDto,
     LoginAttemptDto,
     ServiceEventDto,
     NodeEventDto,
@@ -410,13 +398,24 @@ from .webhook import (
     CrmEventDto,
     TorrentBlockerEventDto,
     TorrentBlockerReportDto,
+    TorrentBlockerReportDetailsDto,
+    TorrentBlockerActionReportDto,
+    TorrentBlockerXrayReportDto,
+    WebhookMetaDto,
     WebhookPayloadDto,
-    UserTrafficDto,
     NodeSystemDto,
     NodeSystemInfoDto,
     NodeSystemStatsDto,
     NodeSystemInterfaceDto,
     NodeVersionsDto,
+    # Переименованы, чтобы не затирать одноимённые REST-модели
+    WebhookInternalSquadDto,
+    WebhookUserTrafficDto,
+    WebhookInfraProviderDto,
+    WebhookInfraBillingNodeDto,
+    WebhookInfraBillingHistoryDto,
+    WebhookNodeDto,
+    NodeDto,  # алиас WebhookNodeDto, сохранён для обратной совместимости
 )
 from .passkeys import (
     DeletePasskeyRequestDto,
@@ -430,7 +429,6 @@ from .passkeys import (
     VerifyPasskeyRegistrationResponseDto,
 )
 from .metadata import (
-    GetMetadataResponseDto,
     GetUserMetadataResponseDto,
     UpsertUserMetadataRequestBodyDto,
     UpsertUserMetadataResponseDto,
@@ -496,12 +494,14 @@ from .snippets import (
     UpdateSnippetResponseDto,
 )
 from .remnawave_settings import (
-    BrandingSettings,
+    RemnawaveBrandingSettings,
+    BrandingSettings,  # алиас RemnawaveBrandingSettings (историческое имя)
     GetRemnawaveSettingsResponseDto,
     GitHubOAuth2Settings,
     GenericOAuth2Settings,
     KeycloakOAuth2Settings,
     OAuth2Settings,
+    TelegramOAuth2Settings,
     PasskeySettings,
     PasswordSettings,
     PocketIdOAuth2Settings,
@@ -575,6 +575,8 @@ __all__ = [
     "VerifyPasskeyAuthenticationResponseDto",
     "GetPasskeyAuthenticationOptionsResponseDto",
     "BrandingSettings",
+    "RemnawaveBrandingSettings",
+    "TelegramOAuth2Settings",
     # Nodes models
     "CreateNodeRequestDto",
     "CreateNodeResponseDto",
@@ -605,6 +607,7 @@ __all__ = [
     "NodeBulkActionType",
     "NodesBulkActionsRequestDto",
     "NodesBulkActionsResponseDto",
+    "BulkNodesUpdateFieldsDto",
     "BulkNodesUpdateRequestDto",
     "BulkNodesUpdateResponseDto",
     # Hosts models
@@ -703,10 +706,6 @@ __all__ = [
     "RecapThisMonth",
     "RecapTotal",
     # XRay config models
-    "ConfigResponseDto",  # Legacy alias
-    "GetConfigResponseDto",
-    "UpdateConfigRequestDto",
-    "UpdateConfigResponseDto",
     # HWID models
     "CreateHWIDUser",  # Legacy alias
     "CreateUserHwidDeviceRequestDto",
@@ -761,10 +760,6 @@ __all__ = [
     "FindAllApiTokensResponseDto",
     "GetApiTokenScopesResponseDto",
     # Inbound bulk actions models
-    "AddInboundToNodesResponseDto",
-    "AddInboundToUsersResponseDto",
-    "RemoveInboundFromNodesResponseDto",
-    "RemoveInboundFromUsersResponseDto",
     # Host bulk actions models
     "BulkDeleteHostsResponseDto",
     "BulkDisableHostsResponseDto",
@@ -873,7 +868,10 @@ __all__ = [
     "InfraBillingHistoryDto",
     "InfraBillingNodeDto",
     "InfraProviderDto",
-    "NodeDto",
+    "InfraProviderRecordDto",
+    "InfraProviderBillingNodeDetailsDto",
+    "InfraBillingNodeSimpleDto",
+    "InfraBillingNodeRefDto",
     "UpdateInfraBillingNodeRequestDto",
     "UpdateInfraBillingNodeResponseDto",
     "UpdateInfraProviderRequestDto",
@@ -899,14 +897,10 @@ __all__ = [
     "ReorderInternalSquadsResponseDto",
     "UpdateInternalSquadRequestDto",
     "UpdateInternalSquadResponseDto",
-    "GetInternalSquadAccessibleNodesResponseDto",
     # Nodes usage history models
-    "GetNodeUserUsageByRangeResponseDto",
-    "GetNodesUsageByRangeResponseDto",
     "GetUserAccessibleNodesResponseDto",
+    "NodeActiveSquadDto",
     "NodeInfoDto",
-    "NodeUsageDto",
-    "UserUsageDto",
     # Subscription request history models
     "GetAllSubscriptionRequestHistoryResponseDto",
     "GetSubscriptionRequestHistoryStatsResponseDto",
@@ -918,11 +912,12 @@ __all__ = [
     # Webhook models
      # USER
     "LastConnectedNodeDto",
-    "InternalSquadDto",
+    "WebhookInternalSquadDto",
     "BaseUserDto",
     "UserDto",
     "UserEventDto",
-    "UserTrafficDto",
+    "WebhookUserTrafficDto",
+    "WebhookMetaDto",
 
     # HWID DEVICES
     "HwidUserDeviceDto",
@@ -934,20 +929,28 @@ __all__ = [
 
     # NODE ENTITIES
     "ConfigProfileInboundDto",
-    "InfraProviderDto",
+    "WebhookInfraProviderDto",
+    "WebhookInfraBillingNodeDto",
+    "WebhookInfraBillingHistoryDto",
+    "WebhookNodeDto",
     "NodeDto",
     "WebhookNodeConfigProfileDto",
     "NodeEventDto",
 
     # ERROR EVENTS
     "CustomErrorEventDto",
+    "ErrorDto",
 
     # CRM EVENTS
     "CrmEventDto",
+    "BillingNodeDto",
 
     # TORRENT BLOCKER EVENTS
     "TorrentBlockerEventDto",
     "TorrentBlockerReportDto",
+    "TorrentBlockerReportDetailsDto",
+    "TorrentBlockerActionReportDto",
+    "TorrentBlockerXrayReportDto",
 
     # NODE SYSTEM/VERSIONS
     "NodeSystemDto",
@@ -1003,7 +1006,6 @@ __all__ = [
     
     # Remnawave settings models
     
-    "BrandingSettings",
     "GetRemnawaveSettingsResponseDto",
     "GenericOAuth2Settings",
     "GitHubOAuth2Settings",
@@ -1060,7 +1062,6 @@ __all__ = [
     "DropConnectionsResponseData",
     
     # Metadata models
-    "GetMetadataResponseDto",
     "GetUserMetadataResponseDto",
     "UpsertUserMetadataRequestBodyDto",
     "UpsertUserMetadataResponseDto",

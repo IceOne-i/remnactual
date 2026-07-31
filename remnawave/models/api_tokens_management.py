@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Annotated, List, Literal, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from remnawave.enums import Scope
 
@@ -39,7 +39,17 @@ class CreateApiTokenResponseDto(CreateApiTokenResponseData):
 
 
 class DeleteApiTokenResponseDto(BaseModel):
+    """DELETE /api/tokens/{uuid} отдаёт `{"response": true}` — голый boolean."""
+    model_config = ConfigDict(populate_by_name=True)
+
     is_deleted: bool = Field(..., alias="isDeleted")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_bare_bool(cls, data):
+        if isinstance(data, bool):
+            return {"isDeleted": data}
+        return data
 
 
 class ApiTokenDto(BaseModel):

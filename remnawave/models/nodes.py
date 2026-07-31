@@ -2,7 +2,14 @@ from datetime import datetime
 from typing import Annotated, List, Optional, Union, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, RootModel
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    RootModel,
+    StringConstraints,
+    model_serializer,
+)
 
 from remnawave.models.internal_squads import InboundsDto
 
@@ -269,16 +276,29 @@ class DeleteNodeResponseDto(BaseModel):
         return self.is_deleted
 
 
-class RestartAllNodesRequestBodyDto(BaseModel):
+class _ForceRestartBody(BaseModel):
+    """`forceRestart` обязателен в теле запроса (2.8), поэтому ключ отправляется
+    всегда — даже если вызывающий оставил значение по умолчанию."""
     model_config = ConfigDict(populate_by_name=True)
 
     force_restart: bool = Field(default=False, alias="forceRestart")
 
+    @model_serializer(mode="wrap")
+    def _always_emit_force_restart(self, handler, info):
+        data = handler(self)
+        data.setdefault(
+            "forceRestart" if info.by_alias else "force_restart", self.force_restart
+        )
+        return data
 
-class RestartNodeRequestBodyDto(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
 
-    force_restart: bool = Field(default=False, alias="forceRestart")
+class RestartAllNodesRequestBodyDto(_ForceRestartBody):
+    pass
+
+
+class RestartNodeRequestBodyDto(_ForceRestartBody):
+    pass
+
 
 class ResetNodeTrafficRequestDto(BaseModel):
     uuid: Union[str, UUID] = Field(alias="uuid")
@@ -326,9 +346,33 @@ class NodesBulkActionsResponseDto(BaseModel):
     event_sent: bool = Field(alias="eventSent")
 
 
-class BulkNodesUpdateRequestDto(NodesBulkActionsRequestDto):
-    """OpenAPI alias for bulk nodes update request"""
-    pass
+class BulkNodesUpdateFieldsDto(BaseModel):
+    """Поля, применяемые к каждой ноде в POST /nodes/bulk-actions/update"""
+    model_config = ConfigDict(populate_by_name=True)
+
+    country_code: Optional[Annotated[str, StringConstraints(max_length=2)]] = Field(
+        None, alias="countryCode"
+    )
+    consumption_multiplier: Optional[float] = Field(
+        None, alias="consumptionMultiplier", ge=0, le=100
+    )
+    node_consumption_multiplier: Optional[float] = Field(
+        None, alias="nodeConsumptionMultiplier", ge=0, le=100
+    )
+    provider_uuid: Optional[UUID] = Field(None, alias="providerUuid")
+    tags: Optional[
+        List[Annotated[str, StringConstraints(max_length=36, pattern=r"^[A-Z0-9_:]+$")]]
+    ] = Field(None, max_length=10)
+    active_plugin_uuid: Optional[UUID] = Field(None, alias="activePluginUuid")
+    note: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+
+
+class BulkNodesUpdateRequestDto(BaseModel):
+    """Request for POST /nodes/bulk-actions/update"""
+    model_config = ConfigDict(populate_by_name=True)
+
+    uuids: List[UUID] = Field(min_length=1)
+    fields: BulkNodesUpdateFieldsDto
 
 
 class BulkNodesUpdateResponseDto(NodesBulkActionsResponseDto):

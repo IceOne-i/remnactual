@@ -42,7 +42,9 @@ class CreateInternalSquadResponseDto(InternalSquadDto):
 
 class UpdateInternalSquadRequestDto(BaseModel):
     uuid: UUID
-    inbounds: List[UUID] = Field(default_factory=list)
+    # `inbounds` опционален: если ключ отправлен, бэкенд ЗАМЕНЯЕТ набор inbound'ов,
+    # поэтому пустой список стирает их все. Не отправляем, если вызывающий не задал.
+    inbounds: Optional[List[UUID]] = None
     name: Optional[Annotated[str, StringConstraints(min_length=2, max_length=30, pattern=r"^[A-Za-z0-9_\s-]+$")]] = None
 
 
@@ -93,9 +95,8 @@ class AccessibleNodeDto(BaseModel):
     country_code: Optional[str] = Field(default=None, alias="countryCode")
     config_profile_uuid: Optional[UUID] = Field(default=None, alias="configProfileUuid")
     config_profile_name: Optional[str] = Field(default=None, alias="configProfileName")
-    active_inbounds: List[Optional[UUID]] = Field(
-        default_factory=list, alias="activeInbounds"
-    )
+    # activeInbounds — список ТЕГОВ inbound'ов (строки), а не UUID
+    active_inbounds: List[str] = Field(default_factory=list, alias="activeInbounds")
 
 
 class GetInternalSquadAccessibleNodesResponseDto(BaseModel):

@@ -91,10 +91,10 @@ class PasswordSettings(BaseModel):
     enabled: bool
 
 
-class BrandingSettings(BaseModel):
+class RemnawaveBrandingSettings(BaseModel):
     """Branding settings"""
     title: Optional[str] = None
-    logo_url: Optional[HttpUrl] = Field(None, alias="logoUrl")
+    logo_url: Optional[str] = Field(None, alias="logoUrl")
 
 
 class RemnawaveSettingsData(BaseModel):
@@ -102,7 +102,7 @@ class RemnawaveSettingsData(BaseModel):
     passkey_settings: PasskeySettings | None = Field(alias="passkeySettings")
     oauth2_settings: OAuth2Settings | None = Field(alias="oauth2Settings")
     password_settings: Optional[PasswordSettings] = Field(None, alias="passwordSettings")
-    branding_settings: Optional[BrandingSettings] = Field(None, alias="brandingSettings")
+    branding_settings: Optional[RemnawaveBrandingSettings] = Field(None, alias="brandingSettings")
 
 
 class GetRemnawaveSettingsResponseDto(RemnawaveSettingsData):
@@ -115,9 +115,13 @@ class UpdateRemnawaveSettingsRequestDto(BaseModel):
     passkey_settings: Optional[PasskeySettings] = Field(None, serialization_alias="passkeySettings")
     oauth2_settings: Optional[OAuth2Settings] = Field(None, serialization_alias="oauth2Settings")
     password_settings: Optional[PasswordSettings] = Field(None, serialization_alias="passwordSettings")
-    branding_settings: Optional[BrandingSettings] = Field(None, serialization_alias="brandingSettings")
+    branding_settings: Optional[RemnawaveBrandingSettings] = Field(None, serialization_alias="brandingSettings")
 
 
 class UpdateRemnawaveSettingsResponseDto(RemnawaveSettingsData):
     """Update Remnawave settings response"""
     pass
+
+
+# Backwards-compatible alias (конфликтовал с auth.BrandingSettings)
+BrandingSettings = RemnawaveBrandingSettings

@@ -6,51 +6,17 @@ from rapid_api_client.annotations import PydanticBody
 from remnawave.models.bandwidthstats import (
     GetLegacyStatsNodesUsersUsageResponseDto,
     GetLegacyStatsUserUsageResponseDto,
-    GetNodeUserUsageByRangeResponseDto,
-    GetNodesRealtimeUsageResponseDto,
-    GetNodesUsageByRangeResponseDto,
-    GetStatsNodesRealtimeUsageResponseDto,
     GetStatsNodesUsageResponseDto,
     GetStatsNodeUsersUsageResponseDto,
     GetStatsNodesUsersUsageRequestDto,
     GetStatsNodesUsersUsageResponseDto,
     GetStatsUserUsageResponseDto,
-    GetUserUsageByRangeResponseDto,
 )
 from remnawave.rapid import BaseController, get, post
 
 
 class BandWidthStatsController(BaseController):
-    # ============ Legacy Endpoints (Deprecated) ============
-
-    @get("/bandwidth-stats/users/{userUuid}/legacy", response_class=GetUserUsageByRangeResponseDto)
-    async def get_user_usage_legacy_old(
-        self,
-        user_uuid: Annotated[str, Path(description="UUID of the user", alias="userUuid")],
-        start: Annotated[str, Query(description="Start date")],
-        end: Annotated[str, Query(description="End date")],
-    ) -> GetUserUsageByRangeResponseDto:
-        """Get User Usage by Range (Legacy - Deprecated)"""
-        ...
-
-    @get("/bandwidth-stats/nodes/{nodeUuid}/users/legacy", response_class=GetNodeUserUsageByRangeResponseDto)
-    async def get_node_user_usage_legacy_old(
-        self,
-        node_uuid: Annotated[str, Path(description="UUID of the node", alias="nodeUuid")],
-        start: Annotated[str, Query(description="Start date")],
-        end: Annotated[str, Query(description="End date")],
-    ) -> GetNodeUserUsageByRangeResponseDto:
-        """Get Node User Usage by Range and Node UUID (Legacy - Deprecated)"""
-        ...
-
-    # ============ New Stats Endpoints ============
-    
-    @get("/bandwidth-stats/nodes/realtime", response_class=GetStatsNodesRealtimeUsageResponseDto)
-    async def get_nodes_realtime_usage(
-        self,
-    ) -> GetStatsNodesRealtimeUsageResponseDto:
-        """Get Nodes Realtime Usage"""
-        ...
+    # ============ Stats Endpoints ============
 
     @get("/bandwidth-stats/nodes/{uuid}/users/legacy", response_class=GetLegacyStatsNodesUsersUsageResponseDto)
     async def get_node_users_usage_legacy_stats(

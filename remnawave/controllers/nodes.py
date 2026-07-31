@@ -99,9 +99,11 @@ class NodesController(BaseController):
     async def restart_node(
         self,
         uuid: Annotated[str, Path(description="Node UUID")],
-        body: Annotated[RestartNodeRequestBodyDto | None, PydanticBody()] = None,
+        body: Annotated[RestartNodeRequestBodyDto, PydanticBody()] = RestartNodeRequestBodyDto(
+            force_restart=False
+        ),
     ) -> RestartNodeResponseDto:
-        """Restart Node"""
+        """Restart Node. `forceRestart` обязателен в теле запроса (2.8)."""
         ...
 
     @post("/nodes/actions/restart-all", response_class=RestartAllNodesResponseDto)
@@ -126,14 +128,6 @@ class NodesController(BaseController):
         uuid: Annotated[str, Path(description="UUID of the node")],
     ) -> ResetNodeTrafficResponseDto:
         """Reset traffic for individual node"""
-        ...
-        
-    @post("/nodes/actions/reset-traffic", response_class=ResetNodeTrafficResponseDto)
-    async def reset_traffic_all_nodes(
-        self,
-        body: Annotated[ResetNodeTrafficRequestDto, PydanticBody()],
-    ) -> ResetNodeTrafficResponseDto:
-        """Reset Traffic All Nodes"""
         ...
         
     @post("/nodes/bulk-actions/profile-modification", response_class=ProfileModificationResponseDto)

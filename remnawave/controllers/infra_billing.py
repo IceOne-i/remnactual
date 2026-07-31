@@ -1,6 +1,6 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
-from rapid_api_client import Path
+from rapid_api_client import Path, Query
 from rapid_api_client.annotations import PydanticBody
 
 from remnawave.models import (
@@ -72,7 +72,17 @@ class InfraBillingController(BaseController):
         ...
 
     @get("/infra-billing/history", response_class=GetInfraBillingHistoryRecordsResponseDto)
-    async def get_infra_billing_history_records(self) -> GetInfraBillingHistoryRecordsResponseDto:
+    async def get_infra_billing_history_records(
+        self,
+        start: Annotated[
+            Optional[int],
+            Query(default=None, description="Offset for pagination (default 0)"),
+        ] = None,
+        size: Annotated[
+            Optional[int],
+            Query(default=None, description="Page size, 1..500 (default 50)"),
+        ] = None,
+    ) -> GetInfraBillingHistoryRecordsResponseDto:
         """Get infra billing history"""
         ...
 
