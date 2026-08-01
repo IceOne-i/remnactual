@@ -6,7 +6,7 @@ Asynchronous Python client for the **[Remnawave](https://remna.st)** panel API, 
 > [!IMPORTANT]
 > **This is a fork of [`remnawave/python-sdk`](https://github.com/remnawave/python-sdk).**
 > It is maintained independently and is **not** published to PyPI under the `remnawave` name.
-> The fork exists to track the Remnawave 2.8.x API closely and to fix the divergences that
+> The fork exists to track the Remnawave 3.x API closely and to fix the divergences that
 > the migration from 2.7.x left behind — see [What this fork changes](#what-this-fork-changes).
 > Attribution for the original work is at the [bottom of this file](#credits).
 
@@ -16,10 +16,15 @@ Asynchronous Python client for the **[Remnawave](https://remna.st)** panel API, 
 
 | SDK version | Remnawave panel | Backend contract |
 | ----------- | --------------- | ---------------- |
-| 2.8.1       | >= 2.8.0        | `@remnawave/backend-contract` 2.8.35 |
+| 3.0.0       | >= 3.0.0        | `@remnawave/backend-contract` 3.0.0 |
+| 2.8.1       | >= 2.8.0, < 3.0 | `@remnawave/backend-contract` 2.8.35 |
 
 Every endpoint, request body and response model in this fork is verified against
-`libs/contract` of [`remnawave/backend`](https://github.com/remnawave/backend) at tag `2.8.1`.
+`libs/contract` of [`remnawave/backend`](https://github.com/remnawave/backend) at tag `3.0.0`.
+
+> Remnawave 3.0 is **not** backwards compatible with 2.8 — users are identified by a numeric
+> `id` instead of a `uuid`, `/api/ip-control` became `/api/connections`, and many endpoints
+> answer with an empty body. Pin `2.8.1` if your panel is still on the 2.8 line.
 
 **Requirements:** Python >= 3.11, < 3.15.
 
@@ -32,7 +37,7 @@ pip install git+https://github.com/IceOne-i/remnactual.git@production
 A specific branch or tag:
 
 ```bash
-pip install "git+https://github.com/IceOne-i/remnactual.git@fix/api-2.8-compliance"
+pip install "git+https://github.com/IceOne-i/remnactual.git@feat/api-3.0"
 ```
 
 ## Quick start
@@ -56,7 +61,8 @@ async def main() -> None:
     page: GetAllUsersResponseDto = await sdk.users.get_all_users(start=0, size=50)
     print(f"total: {page.total}")
     for user in page.users:
-        print(user.username, user.status, user.expire_at)
+        # 3.0: users are identified by a numeric id; there is no `uuid` field any more
+        print(user.id, user.username, user.status, user.expire_at)
 
 
 asyncio.run(main())
@@ -97,7 +103,7 @@ when missing.
 
 | Attribute | Covers |
 | --- | --- |
-| `sdk.users` | CRUD, lookups by uuid/id/short-uuid/username/telegram/email/tag, actions, tags, `stream` (cursor pagination), accessible nodes |
+| `sdk.users` | CRUD, lookups by id / short-uuid / username, actions (incl. `extend`), tags, `stream` (cursor pagination + filters), accessible nodes |
 | `sdk.users_bulk_actions` | `bulk/*` and `bulk/all/*` operations |
 | `sdk.nodes` | CRUD, enable/disable/restart, reorder, reset traffic, bulk actions, tags |
 | `sdk.hosts` / `sdk.hosts_bulk_actions` | CRUD, reorder, tags, bulk enable/disable/delete/update |
@@ -109,11 +115,11 @@ when missing.
 | `sdk.subscriptions_settings` / `sdk.subscriptions_template` / `sdk.subscription_page_config` | Subscription settings, templates, subscription page configs |
 | `sdk.subscription_request_history` | Request history and its stats |
 | `sdk.hwid` | HWID devices, stats, top users |
-| `sdk.ip_control` | Fetch IPs jobs, drop connections |
+| `sdk.connections` | Per-user / per-node connection jobs, drop connections (was `sdk.ip_control`) |
 | `sdk.node_plugins` | Node plugins, executor, torrent-blocker reports |
 | `sdk.infra_billing` | Providers, billing nodes, billing history |
 | `sdk.bandwidthstats` | Per-node and per-user bandwidth stats (incl. legacy endpoints) |
-| `sdk.system` | Stats, health, metrics, recap, x25519, SRR matcher |
+| `sdk.system` | Stats, digest, HTTP counters, health, metrics, recap, x25519, SRR matcher |
 | `sdk.auth` / `sdk.passkeys` / `sdk.api_tokens_management` | Login, OAuth2, passkeys, scoped API tokens |
 | `sdk.remnawave_settings` / `sdk.snippets` / `sdk.keygen` / `sdk.metadata` | Panel settings, snippets, pubkey, user/node metadata |
 | `sdk.webhook_utility` | Webhook signature validation and payload parsing |
@@ -121,19 +127,33 @@ when missing.
 ## Request bodies and `null`
 
 Request models are serialized with `model_dump(exclude_unset=True)`, i.e. **exactly the fields
-you set are sent**. This matters in 2.8, where several fields can only be cleared by sending an
-explicit `null`:
+you set are sent**. Several fields can only be cleared by sending an explicit `null`:
 
 ```python
-from remnawave.models import UpdateUserRequestDto
+from remnawave.models import UpdateUserBodyDto
 
 # `telegram_id` is cleared, `email` is left untouched
 await sdk.users.update_user(
-    UpdateUserRequestDto(uuid=user_uuid, telegram_id=None)
+    UpdateUserBodyDto(id=user_id, telegram_id=None)
 )
 ```
 
 Fields you do not pass are omitted from the payload, so the server's own defaults apply.
+
+## Endpoints without a response body
+
+In 3.0, 43 endpoints answer `204 No Content` or `202 Accepted` with an empty body: every
+`DELETE`, the asynchronous bulk operations, node restarts, squad membership changes and the
+plugin executor. Their SDK methods return `None` — success is "no exception raised", and
+affected-row counts are no longer reported by the API.
+
+```python
+await sdk.users.delete_user(user_id)          # -> None (204)
+await sdk.users_bulk_actions.bulk_delete_users(
+    BulkDeleteUsersBodyDto(user_ids=[1, 2, 3])
+)                                             # -> None (204)
+await sdk.nodes.restart_node(node_uuid, RestartNodeBodyDto(force_restart=True))  # -> None (202)
+```
 
 ## Error handling
 
@@ -144,7 +164,7 @@ the `httpCode` declared for that error code in the backend contract.
 from remnawave.exceptions import ApiError, NotFoundError, ConflictError
 
 try:
-    user = await sdk.users.get_user_by_uuid(uuid)
+    user = await sdk.users.get_user_by_id(user_id)
 except NotFoundError as e:
     print(e.code, e.message)      # A025 User not found
 except ConflictError:
@@ -172,39 +192,46 @@ if payload is None:
 if sdk.webhook_utility.is_user_event(payload.event):
     user = payload.data
     if payload.event == "user.expiration":
-        # 2.8: single event replacing user.expires_in_*; hours are in meta
+        # single event replacing user.expires_in_*; hours are in meta
         print(payload.meta.expiration)
 ```
 
 ## What this fork changes
 
-Relative to upstream at the time of forking, this branch aligns the SDK with the 2.8 contract:
+This fork tracks the Remnawave API closely and fixes the divergences each upstream migration
+left behind.
 
-- **Removed endpoints that no longer exist in 2.8** — `GET/PUT /xray`, `POST /inbounds/bulk/*`,
-  `GET /sub/outline/...`, `POST /nodes/actions/reset-traffic`, `POST /auth/oauth2/tg/callback`,
-  `GET /bandwidth-stats/nodes/realtime`.
-- **`userUuid` → `userId` (number)** in HWID devices and subscription request history,
-  plus the new `requestIp` field.
-- **Hosts / nodes** — `tags[]`, `pinnedPeerCertSha256`, `verifyPeerCertByName`,
-  `mihomoIpVersion`, `note`, `proxyUrl`, `nodeConsumptionMultiplier`; node `system`/`versions`
-  objects replace the flat `xrayVersion`/`cpuCount`/… fields (kept as read-only properties).
-- **Subscriptions** — `hwidCheckup` replaces `isHwidLimited`; `resolvedProxyConfigs` replaces
-  `rawHosts`.
-- **Response rules** — `encryption` (age1 / age1pq1), `disableHwidCheck`, `excludeHostsByTags`,
-  `additionalExtendedClientsRegex`.
-- **Nodes restart** — `forceRestart` is always sent in the request body.
-- **Infra billing** — custom billing nodes (nullable `nodeUuid`/`node`), `billedAt`,
-  list-shaped responses for history create/delete.
-- **Error codes** regenerated from the contract (229 codes), and exceptions mapped from the
-  declared `httpCode`.
-- **Name collisions resolved** in `remnawave.models` — webhook models are prefixed `Webhook*`
-  (old names remain available inside `remnawave.models.webhook`), and the duplicate
-  `GetMetadataResponseDto` that silently broke `GET /api/system/metadata` is gone.
-- **Serialization** switched from `exclude_none` to `exclude_unset`, so explicit `null` reaches
-  the API.
+### Migration to 3.0
 
-Some of these are breaking changes for code written against the pre-2.8 SDK; they are
-intentional, because the previous behaviour could not work against a 2.8 panel.
+- **Users are identified by a numeric `id`.** The `uuid` field is gone from the user model, all
+  `{uuid}` path params became `{userId}` (integers), and bulk bodies take `userIds`.
+- **`/api/ip-control` became `/api/connections`** — `sdk.ip_control` is now `sdk.connections`,
+  with `by-user` / `by-node` jobs and `drop`.
+- **43 endpoints answer with an empty body** (204/202) and their methods return `None`;
+  the `Delete*ResponseDto` / `Bulk*ResponseDto` models were removed.
+- **Removed upstream, removed here** — `GET /users/by-email`, `/by-tag`, `/by-telegram-id`,
+  `/by-id`, both legacy bandwidth-stats endpoints, the `docs` object of `GET /tokens`, and the
+  `profileTitle` / `profileUpdateInterval` / `supportLink` / `isProfileWebpageUrlEnabled` /
+  `happAnnounce` / `happRouting` subscription settings (they moved to response headers).
+- **Added** — `POST /users/{userId}/actions/extend`, `POST /tokens/ott`,
+  `GET /system/stats/digest`, `GET /system/stats/http`, `POST /bandwidth-stats/nodes/usage`,
+  internal-squad usage stats and targeted squad membership bulk actions,
+  `GET /subscriptions/by-id/{userId}`.
+- **Renamed** — `keygen` returns `secretKey` instead of `pubKey`; external squads split
+  `responseHeaders` into `responseHeadersAdd` / `responseHeadersRemove`; request models follow
+  the contract's `*BodyDto` naming, with the old `*RequestDto` names kept as aliases.
+
+### Earlier: 2.8 compliance
+
+- Removed the endpoints 2.8 dropped (`/xray`, `/inbounds/bulk/*`, `/sub/outline/...`,
+  `POST /nodes/actions/reset-traffic`, `POST /auth/oauth2/tg/callback`,
+  `GET /bandwidth-stats/nodes/realtime`).
+- `userUuid` → `userId` in HWID devices and subscription request history; `hwidCheckup`
+  replaced `isHwidLimited`; `resolvedProxyConfigs` replaced `rawHosts`.
+- Error codes regenerated from the contract, exceptions mapped from the declared `httpCode`.
+- Name collisions in `remnawave.models` resolved (webhook models are prefixed `Webhook*`).
+- Serialization switched from `exclude_none` to `exclude_unset`, so an explicit `null` reaches
+  the API; keys the contract requires unconditionally are always emitted.
 
 ## Development
 
@@ -212,8 +239,8 @@ intentional, because the previous behaviour could not work against a 2.8 panel.
 pip install -e .
 pip install pytest pytest-asyncio pytest-mock python-dotenv pytz
 
-# offline tests (2.8 contract regressions, models, enums, controller surface)
-pytest tests/test_2_8_compliance.py tests/test_models_validation.py \
+# offline tests (3.0 contract regressions, models, enums, controller surface)
+pytest tests/test_3_0_compliance.py tests/test_models_validation.py \
        tests/test_enums.py tests/test_controllers_completeness.py
 
 # full suite — requires a live panel

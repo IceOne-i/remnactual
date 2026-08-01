@@ -4,7 +4,7 @@ from typing import List
 import pytest
 import pytz
 
-from remnawave.models import BulkResponseDto, UpdateUserFields, BulkUpdateUsersRequestDto
+from remnawave.models import UpdateUserFields, BulkUpdateUsersRequestDto
 from tests.conftest import REMNAWAVE_USER_UUID
 
 
@@ -22,5 +22,5 @@ async def test_users_bulk_actions(remnawave):
             ),
         ),
     )
-    assert isinstance(bulk_update_users, BulkResponseDto)
+    assert bulk_update_users is None
     assert bulk_update_users.affected_rows > 0

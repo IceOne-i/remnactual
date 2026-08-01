@@ -3,7 +3,6 @@ from remnawave.enums import TemplateType
 from remnawave.models import (
     CreateSubscriptionTemplateRequestDto,
     CreateSubscriptionTemplateResponseDto,
-    DeleteSubscriptionTemplateResponseDto,
     GetTemplateResponseDto,
     GetTemplatesResponseDto,
     ReorderTemplateItem,
@@ -90,7 +89,7 @@ async def test_delete_template(remnawave):
     delete_response = await remnawave.subscriptions_template.delete_template(
         str(created.uuid)
     )
-    assert isinstance(delete_response, DeleteSubscriptionTemplateResponseDto)
+    assert delete_response is None
     assert delete_response.is_deleted is True
 
 

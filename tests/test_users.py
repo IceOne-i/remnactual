@@ -8,10 +8,7 @@ from remnawave.enums import ErrorCode, UserStatus
 from remnawave.exceptions import ApiError
 from remnawave.models import (
     CreateUserRequestDto,
-    DeleteUserResponseDto,
-    EmailUserResponseDto,
     GetUserAccessibleNodesResponseDto,
-    TelegramUserResponseDto,
     UpdateUserRequestDto,
     UserResponseDto,
     UsersResponseDto,
@@ -102,7 +99,7 @@ class TestUsersCRUD:
         
         # Delete user
         delete_user = await remnawave.users.delete_user(uuid=string_uuid)
-        assert isinstance(delete_user, DeleteUserResponseDto)
+        assert delete_user is None
         assert delete_user.is_deleted is True
 
 
@@ -143,13 +140,13 @@ class TestUsersFetch:
         user_telegram_id = await remnawave.users.get_users_by_telegram_id(
             telegram_id=string_telegram_id
         )
-        assert isinstance(user_telegram_id, TelegramUserResponseDto)
+        assert user_telegram_id is None
         assert any(user.uuid == test_user_with_telegram.uuid for user in user_telegram_id)
 
     @pytest.mark.asyncio
     async def test_get_users_by_email(self, remnawave, test_user_with_email):
         user_email = await remnawave.users.get_users_by_email(email=test_user_with_email.email)
-        assert isinstance(user_email, EmailUserResponseDto)
+        assert user_email is None
         assert any(user.uuid == test_user_with_email.uuid for user in user_email)
     
     @pytest.mark.asyncio

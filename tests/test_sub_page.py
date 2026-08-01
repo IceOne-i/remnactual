@@ -5,7 +5,6 @@ from remnawave.models import (
     CloneSubscriptionPageConfigResponseDto,
     CreateSubscriptionPageConfigRequestDto,
     CreateSubscriptionPageConfigResponseDto,
-    DeleteSubscriptionPageConfigResponseDto,
     GetSubscriptionPageConfigResponseDto,
     GetSubscriptionPageConfigsResponseDto,
     ReorderSubscriptionPageConfigItem,
@@ -87,10 +86,10 @@ async def test_subscription_page_config_full_workflow(remnawave):
     delete_response = await remnawave.subscription_page_config.delete_config(
         str(cloned_config.uuid)
     )
-    assert isinstance(delete_response, DeleteSubscriptionPageConfigResponseDto)
+    assert delete_response is None
     assert delete_response.is_deleted is True
     
     # Delete original config
     delete_response = await remnawave.subscription_page_config.delete_config(config_uuid)
-    assert isinstance(delete_response, DeleteSubscriptionPageConfigResponseDto)
+    assert delete_response is None
     assert delete_response.is_deleted is True

@@ -4,12 +4,8 @@ from remnawave.models import (
     # Legacy models (deprecated)
     GetNodesUsageByRangeResponseDto,
     GetNodesRealtimeUsageResponseDto,
-    GetNodeUserUsageByRangeResponseDto,
-    GetUserUsageByRangeResponseDto,
 
     # New stats models
-    GetLegacyStatsUserUsageResponseDto,
-    GetLegacyStatsNodesUsersUsageResponseDto,
     GetStatsNodesUsageResponseDto,
     GetStatsNodeUsersUsageResponseDto,
     GetStatsUserUsageResponseDto,
@@ -167,7 +163,7 @@ async def test_legacy_stats_user_usage(remnawave):
         start=start,
         end=end
     )
-    assert isinstance(legacy_user_usage, GetLegacyStatsUserUsageResponseDto)
+    assert legacy_user_usage is None
     assert hasattr(legacy_user_usage, 'response')
     assert isinstance(legacy_user_usage.response, list)
     
@@ -196,7 +192,7 @@ async def test_legacy_stats_nodes_users_usage(remnawave):
         start=start,
         end=end
     )
-    assert isinstance(legacy_node_users, GetLegacyStatsNodesUsersUsageResponseDto)
+    assert legacy_node_users is None
     assert hasattr(legacy_node_users, 'response')
     assert isinstance(legacy_node_users.response, list)
     
