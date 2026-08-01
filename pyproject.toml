@@ -1,5 +1,5 @@
 [project]
-name = "remnawave"
+name = "remnactual"
 version = "3.0.0"
 description = "A Python SDK for interacting with the Remnawave API v3.x."
 license = { text = "MIT" }
@@ -50,6 +50,9 @@ log_cli_level = "INFO"
 xfail_strict = true
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.poetry]
+packages = [{ include = "remnawave" }]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

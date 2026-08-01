@@ -5,7 +5,8 @@ Asynchronous Python client for the **[Remnawave](https://remna.st)** panel API, 
 
 > [!IMPORTANT]
 > **This is a fork of [`remnawave/python-sdk`](https://github.com/remnawave/python-sdk).**
-> It is maintained independently and is **not** published to PyPI under the `remnawave` name.
+> It is published to PyPI as **`remnactual`** (the upstream `remnawave` project belongs to the
+> Remnawave community). The import name is unchanged — `import remnawave`.
 > The fork exists to track the Remnawave 3.x API closely and to fix the divergences that
 > the migration from 2.7.x left behind — see [What this fork changes](#what-this-fork-changes).
 > Attribution for the original work is at the [bottom of this file](#credits).
@@ -31,10 +32,16 @@ Every endpoint, request body and response model in this fork is verified against
 ## Installation
 
 ```bash
-pip install git+https://github.com/IceOne-i/remnactual.git@production
+pip install remnactual
 ```
 
-A specific branch or tag:
+The import name stays `remnawave`:
+
+```python
+from remnawave import RemnawaveSDK
+```
+
+A specific branch straight from git:
 
 ```bash
 pip install "git+https://github.com/IceOne-i/remnactual.git@feat/api-3.0"

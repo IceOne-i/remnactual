@@ -1,51 +1,100 @@
 name: Publish Python Package
 
-# ОТКЛЮЧЕНО. Форк не владеет проектом `remnawave` на PyPI, поэтому автопубликация
-# при пуше в production невозможна. Запускается только вручную.
-# Чтобы включить обратно: вернуть блок
-#   push:
-#     branches:
-#       - production
-# и убедиться, что `name` в pyproject.toml указывает на проект PyPI,
-# к которому у репозитория есть права публикации.
+# Публикация на PyPI через Trusted Publishing (OIDC) — секреты и токены не нужны.
+#
+# Разовая настройка на стороне PyPI (Account → Publishing → Add a new pending publisher):
+#   PyPI Project Name: remnactual
+#   Owner:             IceOne-i
+#   Repository name:   remnactual
+#   Workflow name:     upload.yml
+#   Environment name:  pypi
+#
+# Релиз: обновить version в pyproject.toml, затем создать GitHub Release с тегом
+# vX.Y.Z (тег обязан совпадать с version — workflow это проверяет).
+
 on:
+  release:
+    types: [published]
   workflow_dispatch:
+    inputs:
+      target:
+        description: Where to publish
+        type: choice
+        options: [testpypi, pypi]
+        default: testpypi
 
 permissions:
-  contents: write
-  id-token: write
-  packages: write
-  
+  contents: read
+
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        if: ${{ !contains(github.event.head_commit.message, '[skip publish]') }}
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
-          fetch-depth: 0 
+          python-version: "3.12"
 
-      - name: Pull latest changes
-        if: ${{ !contains(github.event.head_commit.message, '[skip publish]') }}
-        run: git pull origin production --tags --force
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip build twine
 
-      - name: Set up Python
-        if: ${{ !contains(github.event.head_commit.message, '[skip publish]') }}
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies
-        if: ${{ !contains(github.event.head_commit.message, '[skip publish]') }}
+      - name: Check that the tag matches the project version
+        if: github.event_name == 'release'
         run: |
-          python -m pip install --upgrade pip
-          pip install build wheel
+          version="$(python -c 'import tomllib,pathlib; print(tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"])')"
+          tag="${GITHUB_REF_NAME#v}"
+          echo "pyproject version: $version | tag: $tag"
+          if [ "$version" != "$tag" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match pyproject version $version"
+            exit 1
+          fi
 
-      - name: Build package
-        if: ${{ !contains(github.event.head_commit.message, '[skip publish]') }}
+      - name: Run the offline test suite
+        run: |
+          python -m pip install -e .
+          python -m pip install pytest pytest-asyncio pytest-mock python-dotenv pytz
+          python -m pytest -p no:cacheprovider -q \
+            tests/test_3_0_compliance.py tests/test_models_validation.py \
+            tests/test_enums.py tests/test_controllers_completeness.py
+
+      - name: Build distributions
         run: python -m build
 
-      - name: Publish package
-        if: ${{ !contains(github.event.head_commit.message, '[skip publish]') }}
-        uses: pypa/gh-action-pypi-publish@v1.12.4
+      - name: Validate metadata
+        run: python -m twine check dist/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish-testpypi:
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi'
+    runs-on: ubuntu-latest
+    environment: testpypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish-pypi:
+    needs: build
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
