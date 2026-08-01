@@ -8,25 +8,25 @@ from remnawave.models._serialization import AlwaysEmitModel
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Fetch IPs – step 1: start the job
+# Connections by user – step 1: start the job
 # ─────────────────────────────────────────────────────────────────────────────
 
-class FetchIpsJobData(BaseModel):
-    """Returned job ID after requesting IP fetch"""
+class ConnectionsByUserJobData(BaseModel):
+    """Returned job ID after requesting the connections of a user"""
     job_id: str = Field(alias="jobId")
 
 
-class FetchIpsResponseDto(FetchIpsJobData):
-    """Response for POST /api/ip-control/fetch-ips/{uuid}"""
+class ConnectionsByUserResponseDto(ConnectionsByUserJobData):
+    """Response for POST /api/connections/by-user/{userId}"""
     pass
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Fetch IPs – step 2: poll the job result
+# Connections by user – step 2: poll the job result
 # ─────────────────────────────────────────────────────────────────────────────
 
-class FetchIpsProgressData(BaseModel):
-    """Progress information for an IP-fetch job"""
+class ConnectionsProgressData(BaseModel):
+    """Progress information for a connections job"""
     total: int
     completed: int
     percent: float
@@ -38,7 +38,7 @@ class IpEntry(BaseModel):
     last_seen: datetime = Field(alias="lastSeen")
 
 
-class FetchIpsNodeResult(BaseModel):
+class ConnectionsByUserNodeResult(BaseModel):
     """Per-node IP list for a user"""
     node_uuid: UUID = Field(alias="nodeUuid")
     node_name: str = Field(alias="nodeName")
@@ -46,24 +46,23 @@ class FetchIpsNodeResult(BaseModel):
     ips: List[IpEntry]
 
 
-class FetchIpsResult(BaseModel):
+class ConnectionsByUserResult(BaseModel):
     """Full result payload when the job is completed"""
     success: bool
-    user_uuid: UUID = Field(alias="userUuid")
-    user_id: str = Field(alias="userId")
-    nodes: List[FetchIpsNodeResult]
+    user_id: int = Field(alias="userId")
+    nodes: List[ConnectionsByUserNodeResult]
 
 
-class FetchIpsResultData(BaseModel):
+class ConnectionsByUserResultData(BaseModel):
     """Job state + optional result"""
     is_completed: bool = Field(alias="isCompleted")
     is_failed: bool = Field(alias="isFailed")
-    progress: FetchIpsProgressData
-    result: Optional[FetchIpsResult] = None
+    progress: ConnectionsProgressData
+    result: Optional[ConnectionsByUserResult] = None
 
 
-class FetchIpsResultResponseDto(FetchIpsResultData):
-    """Response for GET /api/ip-control/fetch-ips/result/{jobId}"""
+class ConnectionsByUserResultResponseDto(ConnectionsByUserResultData):
+    """Response for GET /api/connections/by-user/{jobId}"""
     pass
 
 
@@ -71,16 +70,16 @@ class FetchIpsResultResponseDto(FetchIpsResultData):
 # Drop Connections request – discriminated unions for dropBy / targetNodes
 # ─────────────────────────────────────────────────────────────────────────────
 
-class DropByUserUuids(AlwaysEmitModel):
-    """Drop connections for specific user UUIDs"""
+class DropByUserIds(AlwaysEmitModel):
+    """Drop connections for specific user IDs"""
     __always_emit__ = ("by",)
 
-    by: Literal["userUuids"] = "userUuids"
-    user_uuids: List[UUID] = Field(
+    by: Literal["userIds"] = "userIds"
+    user_ids: List[int] = Field(
         ...,
-        serialization_alias="userUuids",
+        serialization_alias="userIds",
         min_length=1,
-        description="List of user UUIDs whose connections should be dropped",
+        description="List of user IDs whose connections should be dropped",
     )
 
 
@@ -93,13 +92,13 @@ class DropByIpAddresses(AlwaysEmitModel):
         ...,
         serialization_alias="ipAddresses",
         min_length=1,
-        description="List of IP addresses to disconnect",
+        description="List of IP addresses (IPv4 or IPv6) to disconnect",
     )
 
 
 # Discriminated union – use `by` field as the discriminator
 DropBy = Annotated[
-    Union[DropByUserUuids, DropByIpAddresses],
+    Union[DropByUserIds, DropByIpAddresses],
     Field(discriminator="by"),
 ]
 
@@ -131,57 +130,8 @@ TargetNodes = Annotated[
 ]
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Fetch Users IPs – step 1: start the job
-# ─────────────────────────────────────────────────────────────────────────────
-
-class FetchUsersIpsJobData(BaseModel):
-    """Returned job ID after requesting users IP fetch"""
-    job_id: str = Field(alias="jobId")
-
-
-class FetchUsersIpsResponseDto(FetchUsersIpsJobData):
-    """Response for POST /api/ip-control/fetch-users-ips/{nodeUuid}"""
-    pass
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Fetch Users IPs – step 2: poll the job result
-# ─────────────────────────────────────────────────────────────────────────────
-
-class FetchUsersIpsUserIp(BaseModel):
-    """IP entry with last seen timestamp"""
-    ip: str
-    last_seen: datetime = Field(alias="lastSeen")
-
-
-class FetchUsersIpsUser(BaseModel):
-    """Per-user IP list"""
-    user_id: str = Field(alias="userId")
-    ips: List[FetchUsersIpsUserIp]
-
-
-class FetchUsersIpsResult(BaseModel):
-    """Full result payload when the job is completed"""
-    success: bool
-    node_uuid: UUID = Field(alias="nodeUuid")
-    users: List[FetchUsersIpsUser]
-
-
-class FetchUsersIpsResultData(BaseModel):
-    """Job state + optional result"""
-    is_completed: bool = Field(alias="isCompleted")
-    is_failed: bool = Field(alias="isFailed")
-    result: Optional[FetchUsersIpsResult] = None
-
-
-class FetchUsersIpsResultResponseDto(FetchUsersIpsResultData):
-    """Response for GET /api/ip-control/fetch-users-ips/result/{jobId}"""
-    pass
-
-
-class DropConnectionsRequestDto(BaseModel):
-    """Request body for POST /api/ip-control/drop-connections"""
+class DropConnectionsBodyDto(BaseModel):
+    """Request body for POST /api/connections/drop"""
     drop_by: DropBy = Field(
         ...,
         serialization_alias="dropBy",
@@ -195,14 +145,74 @@ class DropConnectionsRequestDto(BaseModel):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Drop Connections response
+# Connections by node – step 1: start the job
 # ─────────────────────────────────────────────────────────────────────────────
 
-class DropConnectionsResponseData(BaseModel):
-    """Payload confirming the drop-connections event was sent"""
-    event_sent: bool = Field(alias="eventSent")
+class ConnectionsByNodeJobData(BaseModel):
+    """Returned job ID after requesting the connections of a node"""
+    job_id: str = Field(alias="jobId")
 
 
-class DropConnectionsResponseDto(DropConnectionsResponseData):
-    """Response for POST /api/ip-control/drop-connections"""
+class ConnectionsByNodeResponseDto(ConnectionsByNodeJobData):
+    """Response for POST /api/connections/by-node/{nodeUuid}"""
     pass
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Connections by node – step 2: poll the job result
+# ─────────────────────────────────────────────────────────────────────────────
+
+class ConnectionsByNodeUserIp(BaseModel):
+    """IP entry with last seen timestamp"""
+    ip: str
+    last_seen: datetime = Field(alias="lastSeen")
+
+
+class ConnectionsByNodeUser(BaseModel):
+    """Per-user IP list"""
+    user_id: int = Field(alias="userId")
+    ips: List[ConnectionsByNodeUserIp]
+
+
+class ConnectionsByNodeResult(BaseModel):
+    """Full result payload when the job is completed"""
+    success: bool
+    node_uuid: UUID = Field(alias="nodeUuid")
+    users: List[ConnectionsByNodeUser]
+
+
+class ConnectionsByNodeResultData(BaseModel):
+    """Job state + optional result"""
+    is_completed: bool = Field(alias="isCompleted")
+    is_failed: bool = Field(alias="isFailed")
+    result: Optional[ConnectionsByNodeResult] = None
+
+
+class ConnectionsByNodeResultResponseDto(ConnectionsByNodeResultData):
+    """Response for GET /api/connections/by-node/{jobId}"""
+    pass
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Обратная совместимость: старые имена (2.8, /api/ip-control) — алиасы
+# ─────────────────────────────────────────────────────────────────────────────
+
+FetchIpsJobData = ConnectionsByUserJobData
+FetchIpsResponseDto = ConnectionsByUserResponseDto
+FetchIpsProgressData = ConnectionsProgressData
+FetchIpsNodeResult = ConnectionsByUserNodeResult
+FetchIpsResult = ConnectionsByUserResult
+FetchIpsResultData = ConnectionsByUserResultData
+FetchIpsResultResponseDto = ConnectionsByUserResultResponseDto
+
+FetchUsersIpsJobData = ConnectionsByNodeJobData
+FetchUsersIpsResponseDto = ConnectionsByNodeResponseDto
+FetchUsersIpsUserIp = ConnectionsByNodeUserIp
+FetchUsersIpsUser = ConnectionsByNodeUser
+FetchUsersIpsResult = ConnectionsByNodeResult
+FetchUsersIpsResultData = ConnectionsByNodeResultData
+FetchUsersIpsResultResponseDto = ConnectionsByNodeResultResponseDto
+
+# ВНИМАНИЕ: тело запроса изменилось — `userUuids` (UUID) → `userIds` (числа).
+DropByUserUuids = DropByUserIds
+DropConnectionsRequestDto = DropConnectionsBodyDto

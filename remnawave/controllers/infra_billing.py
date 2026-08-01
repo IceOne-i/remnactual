@@ -4,22 +4,19 @@ from rapid_api_client import Path, Query
 from rapid_api_client.annotations import PydanticBody
 
 from remnawave.models import (
-    CreateInfraBillingHistoryRecordRequestDto,
+    CreateInfraBillingHistoryRecordBodyDto,
     CreateInfraBillingHistoryRecordResponseDto,
-    CreateInfraBillingNodeRequestDto,
+    CreateInfraBillingNodeBodyDto,
     CreateInfraBillingNodeResponseDto,
-    CreateInfraProviderRequestDto,
+    CreateInfraProviderBodyDto,
     CreateInfraProviderResponseDto,
-    DeleteInfraBillingHistoryRecordByUuidResponseDto,
-    DeleteInfraBillingNodeByUuidResponseDto,
-    DeleteInfraProviderByUuidResponseDto,
     GetInfraBillingHistoryRecordsResponseDto,
     GetInfraBillingNodesResponseDto,
     GetInfraProvidersResponseDto,
-    GetInfraProviderByUuidResponseDto,
-    UpdateInfraBillingNodeRequestDto,
+    GetInfraProviderResponseDto,
+    UpdateInfraBillingNodeBodyDto,
     UpdateInfraBillingNodeResponseDto,
-    UpdateInfraProviderRequestDto,
+    UpdateInfraProviderBodyDto,
     UpdateInfraProviderResponseDto,
 )
 from remnawave.rapid import BaseController, delete, get, patch, post
@@ -34,7 +31,7 @@ class InfraBillingController(BaseController):
     @post("/infra-billing/providers", response_class=CreateInfraProviderResponseDto)
     async def create_infra_provider(
         self,
-        body: Annotated[CreateInfraProviderRequestDto, PydanticBody()],
+        body: Annotated[CreateInfraProviderBodyDto, PydanticBody()],
     ) -> CreateInfraProviderResponseDto:
         """Create infra provider"""
         ...
@@ -42,31 +39,31 @@ class InfraBillingController(BaseController):
     @patch("/infra-billing/providers", response_class=UpdateInfraProviderResponseDto)
     async def update_infra_provider(
         self,
-        body: Annotated[UpdateInfraProviderRequestDto, PydanticBody()],
+        body: Annotated[UpdateInfraProviderBodyDto, PydanticBody()],
     ) -> UpdateInfraProviderResponseDto:
         """Update infra provider"""
         ...
 
-    @get("/infra-billing/providers/{uuid}", response_class=GetInfraProviderByUuidResponseDto)
+    @get("/infra-billing/providers/{uuid}", response_class=GetInfraProviderResponseDto)
     async def get_infra_provider_by_uuid(
         self,
         uuid: Annotated[str, Path(description="UUID of the infra provider")],
-    ) -> GetInfraProviderByUuidResponseDto:
+    ) -> GetInfraProviderResponseDto:
         """Get infra provider by uuid"""
         ...
 
-    @delete("/infra-billing/providers/{uuid}", response_class=DeleteInfraProviderByUuidResponseDto)
+    @delete("/infra-billing/providers/{uuid}", response_class=None)
     async def delete_infra_provider_by_uuid(
         self,
         uuid: Annotated[str, Path(description="UUID of the infra provider")],
-    ) -> DeleteInfraProviderByUuidResponseDto:
-        """Delete infra provider by uuid"""
+    ) -> None:
+        """Delete infra provider by uuid (204, без тела)"""
         ...
 
     @post("/infra-billing/history", response_class=CreateInfraBillingHistoryRecordResponseDto)
     async def create_infra_billing_history_record(
         self,
-        body: Annotated[CreateInfraBillingHistoryRecordRequestDto, PydanticBody()],
+        body: Annotated[CreateInfraBillingHistoryRecordBodyDto, PydanticBody()],
     ) -> CreateInfraBillingHistoryRecordResponseDto:
         """Create infra billing history"""
         ...
@@ -80,18 +77,18 @@ class InfraBillingController(BaseController):
         ] = None,
         size: Annotated[
             Optional[int],
-            Query(default=None, description="Page size, 1..500 (default 50)"),
+            Query(default=None, ge=1, le=500, description="Page size, 1..500 (default 50)"),
         ] = None,
     ) -> GetInfraBillingHistoryRecordsResponseDto:
         """Get infra billing history"""
         ...
 
-    @delete("/infra-billing/history/{uuid}", response_class=DeleteInfraBillingHistoryRecordByUuidResponseDto)
+    @delete("/infra-billing/history/{uuid}", response_class=None)
     async def delete_infra_billing_history_record_by_uuid(
         self,
         uuid: Annotated[str, Path(description="UUID of the billing history record")],
-    ) -> DeleteInfraBillingHistoryRecordByUuidResponseDto:
-        """Delete infra billing history"""
+    ) -> None:
+        """Delete infra billing history (204, без тела)"""
         ...
 
     @get("/infra-billing/nodes", response_class=GetInfraBillingNodesResponseDto)
@@ -102,7 +99,7 @@ class InfraBillingController(BaseController):
     @patch("/infra-billing/nodes", response_class=UpdateInfraBillingNodeResponseDto)
     async def update_infra_billing_node(
         self,
-        body: Annotated[UpdateInfraBillingNodeRequestDto, PydanticBody()],
+        body: Annotated[UpdateInfraBillingNodeBodyDto, PydanticBody()],
     ) -> UpdateInfraBillingNodeResponseDto:
         """Update infra billing nodes"""
         ...
@@ -110,15 +107,15 @@ class InfraBillingController(BaseController):
     @post("/infra-billing/nodes", response_class=CreateInfraBillingNodeResponseDto)
     async def create_infra_billing_node(
         self,
-        body: Annotated[CreateInfraBillingNodeRequestDto, PydanticBody()],
+        body: Annotated[CreateInfraBillingNodeBodyDto, PydanticBody()],
     ) -> CreateInfraBillingNodeResponseDto:
         """Create infra billing node"""
         ...
 
-    @delete("/infra-billing/nodes/{uuid}", response_class=DeleteInfraBillingNodeByUuidResponseDto)
+    @delete("/infra-billing/nodes/{uuid}", response_class=None)
     async def delete_infra_billing_node_by_uuid(
         self,
         uuid: Annotated[str, Path(description="UUID of the infra billing node")],
-    ) -> DeleteInfraBillingNodeByUuidResponseDto:
-        """Delete infra billing node"""
+    ) -> None:
+        """Delete infra billing node (204, без тела)"""
         ...

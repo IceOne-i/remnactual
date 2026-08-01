@@ -3,31 +3,31 @@ from typing import Annotated
 from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
-from remnawave.models import (
+from remnawave.models.metadata import (
     GetNodeMetadataResponseDto,
     GetUserMetadataResponseDto,
-    UpsertNodeMetadataRequestBodyDto,
+    UpsertNodeMetadataBodyDto,
     UpsertNodeMetadataResponseDto,
-    UpsertUserMetadataRequestBodyDto,
+    UpsertUserMetadataBodyDto,
     UpsertUserMetadataResponseDto,
 )
 from remnawave.rapid import BaseController, get, put
 
 
 class MetadataController(BaseController):
-    @get("/metadata/user/{uuid}", response_class=GetUserMetadataResponseDto)
+    @get("/metadata/user/{userId}", response_class=GetUserMetadataResponseDto)
     async def get_user_metadata(
         self,
-        uuid: Annotated[str, Path(description="User UUID")],
+        user_id: Annotated[int, Path(description="User ID", alias="userId")],
     ) -> GetUserMetadataResponseDto:
         """Get user metadata"""
         ...
 
-    @put("/metadata/user/{uuid}", response_class=UpsertUserMetadataResponseDto)
+    @put("/metadata/user/{userId}", response_class=UpsertUserMetadataResponseDto)
     async def upsert_user_metadata(
         self,
-        uuid: Annotated[str, Path(description="User UUID")],
-        body: Annotated[UpsertUserMetadataRequestBodyDto, PydanticBody()],
+        user_id: Annotated[int, Path(description="User ID", alias="userId")],
+        body: Annotated[UpsertUserMetadataBodyDto, PydanticBody()],
     ) -> UpsertUserMetadataResponseDto:
         """Update or create User Metadata"""
         ...
@@ -44,7 +44,7 @@ class MetadataController(BaseController):
     async def upsert_node_metadata(
         self,
         uuid: Annotated[str, Path(description="Node UUID")],
-        body: Annotated[UpsertNodeMetadataRequestBodyDto, PydanticBody()],
+        body: Annotated[UpsertNodeMetadataBodyDto, PydanticBody()],
     ) -> UpsertNodeMetadataResponseDto:
         """Update or create Node Metadata"""
         ...

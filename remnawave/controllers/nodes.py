@@ -4,151 +4,142 @@ from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
 from remnawave.models import (
-    CreateNodeRequestDto,
-    CreateNodeResponseDto,
-    DeleteNodeResponseDto,
-    DisableNodeResponseDto,
-    EnableNodeResponseDto,
-    GetAllNodesResponseDto,
-    GetAllNodesTagsResponseDto,
-    GetOneNodeResponseDto,
-    ReorderNodeRequestDto,
-    ReorderNodeResponseDto,
-    RestartAllNodesResponseDto,
-    RestartNodeResponseDto,
-    UpdateNodeRequestDto,
-    UpdateNodeResponseDto,
-    RestartAllNodesRequestBodyDto,
-    RestartNodeRequestBodyDto,
-    ResetNodeTrafficResponseDto,
-    ProfileModificationRequestDto,
-    ProfileModificationResponseDto,
-    NodesBulkActionsRequestDto,
-    NodesBulkActionsResponseDto,
-    BulkNodesUpdateRequestDto,
-    BulkNodesUpdateResponseDto,
+    BulkNodesActionsBodyDto,
+    BulkNodesUpdateBodyDto,
+    CreateNodeBodyDto,
+    GetNodesResponseDto,
+    GetNodesTagsResponseDto,
+    NodeResponseDto,
+    ProfileModificationBodyDto,
+    ReorderNodesBodyDto,
+    ReorderNodesResponseDto,
+    RestartAllNodesBodyDto,
+    RestartNodeBodyDto,
+    UpdateNodeBodyDto,
 )
 from remnawave.rapid import BaseController, delete, get, patch, post
 
 
 class NodesController(BaseController):
-    @get("/nodes/tags", response_class=GetAllNodesTagsResponseDto)
+    @get("/nodes/tags", response_class=GetNodesTagsResponseDto)
     async def get_all_nodes_tags(
         self,
-    ) -> GetAllNodesTagsResponseDto:
-        """Get all nodes tags"""
+    ) -> GetNodesTagsResponseDto:
+        """Get nodes tags"""
         ...
 
-    @post("/nodes", response_class=CreateNodeResponseDto)
+    @post("/nodes", response_class=NodeResponseDto)
     async def create_node(
         self,
-        body: Annotated[CreateNodeRequestDto, PydanticBody()],
-    ) -> CreateNodeResponseDto:
-        """Create Node"""
+        body: Annotated[CreateNodeBodyDto, PydanticBody()],
+    ) -> NodeResponseDto:
+        """Create a new node (201)"""
         ...
 
-    @get("/nodes", response_class=GetAllNodesResponseDto)
+    @get("/nodes", response_class=GetNodesResponseDto)
     async def get_all_nodes(
         self,
-    ) -> GetAllNodesResponseDto:
-        """Get All Nodes"""
+    ) -> GetNodesResponseDto:
+        """Get nodes"""
         ...
 
-    @get("/nodes/{uuid}", response_class=GetOneNodeResponseDto)
+    @get("/nodes/{uuid}", response_class=NodeResponseDto)
     async def get_one_node(
         self,
         uuid: Annotated[str, Path(description="Node UUID")],
-    ) -> GetOneNodeResponseDto:
-        """Get One Node"""
+    ) -> NodeResponseDto:
+        """Get node by UUID"""
         ...
 
-    @delete("/nodes/{uuid}", response_class=DeleteNodeResponseDto)
+    @delete("/nodes/{uuid}", response_class=None)
     async def delete_node(
         self,
         uuid: Annotated[str, Path(description="Node UUID")],
-    ) -> DeleteNodeResponseDto:
-        """Delete Node"""
+    ) -> None:
+        """Delete a node. Отвечает 204 без тела."""
         ...
 
-    @patch("/nodes", response_class=UpdateNodeResponseDto)
+    @patch("/nodes", response_class=NodeResponseDto)
     async def update_node(
         self,
-        body: Annotated[UpdateNodeRequestDto, PydanticBody()],
-    ) -> UpdateNodeResponseDto:
-        """Update Node"""
+        body: Annotated[UpdateNodeBodyDto, PydanticBody()],
+    ) -> NodeResponseDto:
+        """Update node"""
         ...
 
-    @post("/nodes/{uuid}/actions/enable", response_class=EnableNodeResponseDto)
+    @post("/nodes/{uuid}/actions/enable", response_class=NodeResponseDto)
     async def enable_node(
         self,
         uuid: Annotated[str, Path(description="Node UUID")],
-    ) -> EnableNodeResponseDto:
-        """Enable Node"""
+    ) -> NodeResponseDto:
+        """Enable a node"""
         ...
 
-    @post("/nodes/{uuid}/actions/disable", response_class=DisableNodeResponseDto)
+    @post("/nodes/{uuid}/actions/disable", response_class=NodeResponseDto)
     async def disable_node(
         self,
         uuid: Annotated[str, Path(description="Node UUID")],
-    ) -> DisableNodeResponseDto:
-        """Disable Node"""
+    ) -> NodeResponseDto:
+        """Disable a node"""
         ...
 
-    @post("/nodes/{uuid}/actions/restart", response_class=RestartNodeResponseDto)
+    @post("/nodes/{uuid}/actions/restart", response_class=None)
     async def restart_node(
         self,
         uuid: Annotated[str, Path(description="Node UUID")],
-        body: Annotated[RestartNodeRequestBodyDto, PydanticBody()] = RestartNodeRequestBodyDto(
+        body: Annotated[RestartNodeBodyDto, PydanticBody()] = RestartNodeBodyDto(
             force_restart=False
         ),
-    ) -> RestartNodeResponseDto:
-        """Restart Node. `forceRestart` обязателен в теле запроса (2.8)."""
+    ) -> None:
+        """Restart node. `forceRestart` обязателен в теле запроса.
+        Отвечает 202 без тела."""
         ...
 
-    @post("/nodes/actions/restart-all", response_class=RestartAllNodesResponseDto)
+    @post("/nodes/actions/restart-all", response_class=None)
     async def restart_all_nodes(
         self,
-        body: Annotated[RestartAllNodesRequestBodyDto, PydanticBody()],
-    ) -> RestartAllNodesResponseDto:
-        """Restart All Nodes"""
+        body: Annotated[RestartAllNodesBodyDto, PydanticBody()],
+    ) -> None:
+        """Restart all nodes. Отвечает 202 без тела."""
         ...
 
-    @post("/nodes/actions/reorder", response_class=ReorderNodeResponseDto)
+    @post("/nodes/actions/reorder", response_class=ReorderNodesResponseDto)
     async def reorder_nodes(
         self,
-        body: Annotated[ReorderNodeRequestDto, PydanticBody()],
-    ) -> ReorderNodeResponseDto:
-        """Reorder Nodes"""
+        body: Annotated[ReorderNodesBodyDto, PydanticBody()],
+    ) -> ReorderNodesResponseDto:
+        """Reorder nodes"""
         ...
-    
-    @post("/nodes/{uuid}/actions/reset-traffic", response_class=ResetNodeTrafficResponseDto)
+
+    @post("/nodes/{uuid}/actions/reset-traffic", response_class=None)
     async def reset_node_traffic(
         self,
         uuid: Annotated[str, Path(description="UUID of the node")],
-    ) -> ResetNodeTrafficResponseDto:
-        """Reset traffic for individual node"""
+    ) -> None:
+        """Reset Node Traffic. Отвечает 204 без тела."""
         ...
-        
-    @post("/nodes/bulk-actions/profile-modification", response_class=ProfileModificationResponseDto)
+
+    @post("/nodes/bulk-actions/profile-modification", response_class=None)
     async def profile_modification(
         self,
-        body: Annotated[ProfileModificationRequestDto, PydanticBody()],
-    ) -> ProfileModificationResponseDto:
-        """Modify Inbounds & Profile for many nodes"""
+        body: Annotated[ProfileModificationBodyDto, PydanticBody()],
+    ) -> None:
+        """Modify Inbounds & Profile for many nodes. Отвечает 204 без тела."""
         ...
 
-    @post("/nodes/bulk-actions", response_class=NodesBulkActionsResponseDto)
+    @post("/nodes/bulk-actions", response_class=None)
     async def nodes_bulk_actions(
         self,
-        body: Annotated[NodesBulkActionsRequestDto, PydanticBody()],
-    ) -> NodesBulkActionsResponseDto:
-        """Perform actions for many nodes (ENABLE, DISABLE, RESTART, RESET_TRAFFIC)"""
+        body: Annotated[BulkNodesActionsBodyDto, PydanticBody()],
+    ) -> None:
+        """Perform actions for many nodes (ENABLE, DISABLE, RESTART, RESET_TRAFFIC).
+        Отвечает 204 без тела."""
         ...
 
-    @post("/nodes/bulk-actions/update", response_class=BulkNodesUpdateResponseDto)
+    @post("/nodes/bulk-actions/update", response_class=None)
     async def bulk_nodes_update(
         self,
-        body: Annotated[BulkNodesUpdateRequestDto, PydanticBody()],
-    ) -> BulkNodesUpdateResponseDto:
-        """Update many nodes"""
+        body: Annotated[BulkNodesUpdateBodyDto, PydanticBody()],
+    ) -> None:
+        """Update many nodes. Отвечает 204 без тела."""
         ...

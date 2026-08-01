@@ -1,4 +1,4 @@
-from typing import Annotated, Any, List
+from typing import Annotated, Any, Dict, List
 
 from pydantic import BaseModel, StringConstraints
 
@@ -31,23 +31,28 @@ class UpdateSnippetResponseDto(SnippetsData):
     pass
 
 
-class DeleteSnippetResponseDto(SnippetsData):
-    """Delete snippet response - extends SnippetsData directly"""
-    pass
+# 3.0: DELETE /api/snippets отвечает 204 без тела — DeleteSnippetResponseDto удалён.
 
 
-class CreateSnippetRequestDto(BaseModel):
+class CreateSnippetBodyDto(BaseModel):
     """Create snippet request"""
     name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_\s-]+$")]
-    snippet: List[dict]  # Array of objects
+    snippet: List[Dict[str, Any]]  # Array of objects
 
 
-class UpdateSnippetRequestDto(BaseModel):
+class UpdateSnippetBodyDto(BaseModel):
     """Update snippet request"""
     name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_\s-]+$")]
-    snippet: List[dict]  # Array of objects
+    snippet: List[Dict[str, Any]]  # Array of objects
 
 
-class DeleteSnippetRequestDto(BaseModel):
+class DeleteSnippetBodyDto(BaseModel):
     """Delete snippet request"""
     name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_\s-]+$")]
+
+
+# ---------------- BACKWARDS-COMPATIBLE ALIASES ---------------- #
+# 3.0 переименовал тела запросов *RequestDto -> *BodyDto.
+CreateSnippetRequestDto = CreateSnippetBodyDto
+UpdateSnippetRequestDto = UpdateSnippetBodyDto
+DeleteSnippetRequestDto = DeleteSnippetBodyDto

@@ -3,50 +3,39 @@ from typing import Annotated, Optional
 from rapid_api_client import Path, Query
 from rapid_api_client.annotations import PydanticBody
 
-from remnawave.models import (
-    CreateUserRequestDto,
-    CreateUserResponseDto,
-    DeleteUserResponseDto,
-    GetAllUsersResponseDto,
+from remnawave.enums import TrafficLimitStrategy, UserStatus
+from remnawave.models.nodes_usage_history import GetUserAccessibleNodesResponseDto
+from remnawave.models.users import (
+    CreateUserBodyDto,
+    ExtendUserBodyDto,
     GetAllTagsResponseDto,
-    GetUserByIdResponseDto,
-    GetUserByShortUuidResponseDto,
-    GetUserByUsernameResponseDto,
-    GetUserByUuidResponseDto,
-    GetUserAccessibleNodesResponseDto,
+    GetAllUsersResponseDto,
     GetUserSubscriptionRequestHistoryResponseDto,
     GetUsersStreamResponseDto,
-    TelegramUserResponseDto,
-    EmailUserResponseDto,
-    TagUserResponseDto,
-    UpdateUserRequestDto,
-    UpdateUserResponseDto,
-    RevokeUserRequestDto,
-    RevokeUserSubscriptionResponseDto,
-    DisableUserResponseDto,
-    EnableUserResponseDto,
-    ResetUserTrafficResponseDto,
-    ResolveUserRequestBodyDto,
+    ResolveUserBodyDto,
     ResolveUserResponseDto,
+    RevokeUserBodyDto,
+    UpdateUserBodyDto,
+    UserResponseDto,
 )
 from remnawave.rapid import BaseController, delete, get, patch, post
 
 
 class UsersController(BaseController):
-    @post("/users", response_class=CreateUserResponseDto)
+    @post("/users", response_class=UserResponseDto)
     async def create_user(
         self,
-        body: Annotated[CreateUserRequestDto, PydanticBody()],
-    ) -> CreateUserResponseDto:
+        body: Annotated[CreateUserBodyDto, PydanticBody()],
+    ) -> UserResponseDto:
         """Create a new user"""
         ...
 
-    @patch("/users", response_class=UpdateUserResponseDto)
+    @patch("/users", response_class=UserResponseDto)
     async def update_user(
         self,
-        body: Annotated[UpdateUserRequestDto, PydanticBody()],
-    ) -> UpdateUserResponseDto:
-        """Update a user by UUID or username"""
+        body: Annotated[UpdateUserBodyDto, PydanticBody()],
+    ) -> UserResponseDto:
+        """Update a user by ID or username"""
         ...
 
     @get("/users", response_class=GetAllUsersResponseDto)
@@ -95,66 +84,49 @@ class UsersController(BaseController):
         self,
         size: Annotated[
             Optional[int],
-            Query(default=None, description="Page size, no more than 1000 (default 250)"),
+            Query(default=None, description="Page size, 1..1000 (default 250)"),
         ] = None,
         cursor: Annotated[
-            Optional[str],
+            Optional[int],
             Query(
                 default=None,
                 description="Cursor from the previous response (nextCursor). Omit on the first request",
             ),
         ] = None,
+        status: Annotated[
+            Optional[UserStatus],
+            Query(default=None, description="Status to filter users by"),
+        ] = None,
+        traffic_limit_strategy: Annotated[
+            Optional[TrafficLimitStrategy],
+            Query(
+                default=None,
+                alias="trafficLimitStrategy",
+                description="Traffic limit strategy to filter users by",
+            ),
+        ] = None,
+        telegram_id: Annotated[
+            Optional[int],
+            Query(default=None, alias="telegramId", description="Telegram ID to filter users by"),
+        ] = None,
+        email: Annotated[
+            Optional[str],
+            Query(default=None, description="Email to filter users by"),
+        ] = None,
+        tag: Annotated[
+            Optional[str],
+            Query(default=None, description="Tag to filter users by"),
+        ] = None,
+        external_squad_uuid: Annotated[
+            Optional[str],
+            Query(
+                default=None,
+                alias="externalSquadUuid",
+                description="External squad UUID to filter users by",
+            ),
+        ] = None,
     ) -> GetUsersStreamResponseDto:
-        """Get all users using cursor-based (keyset) pagination"""
-        ...
-
-    @delete("/users/{uuid}", response_class=DeleteUserResponseDto)
-    async def delete_user(
-        self,
-        uuid: Annotated[str, Path(description="UUID of the user")],
-    ) -> DeleteUserResponseDto:
-        """Delete user"""
-        ...
-
-    @post("/users/{uuid}/actions/revoke", response_class=RevokeUserSubscriptionResponseDto)
-    async def revoke_user_subscription(
-        self,
-        uuid: Annotated[str, Path(description="UUID of the user")],
-        body: Annotated[Optional[RevokeUserRequestDto], PydanticBody()] = None,
-    ) -> RevokeUserSubscriptionResponseDto:
-        """Revoke User Subscription"""
-        ...
-
-    @post("/users/{uuid}/actions/disable", response_class=DisableUserResponseDto)
-    async def disable_user(
-        self,
-        uuid: Annotated[str, Path(description="UUID of the user")],
-    ) -> DisableUserResponseDto:
-        """Disable User"""
-        ...
-
-    @post("/users/{uuid}/actions/enable", response_class=EnableUserResponseDto)
-    async def enable_user(
-        self,
-        uuid: Annotated[str, Path(description="UUID of the user")],
-    ) -> EnableUserResponseDto:
-        """Enable User"""
-        ...
-
-    @post("/users/{uuid}/actions/reset-traffic", response_class=ResetUserTrafficResponseDto)
-    async def reset_user_traffic(
-        self,
-        uuid: Annotated[str, Path(description="UUID of the user")],
-    ) -> ResetUserTrafficResponseDto:
-        """Reset User Traffic"""
-        ...
-
-    @get("/users/{uuid}", response_class=GetUserByUuidResponseDto)
-    async def get_user_by_uuid(
-        self,
-        uuid: Annotated[str, Path(description="UUID of the user")],
-    ) -> GetUserByUuidResponseDto:
-        """Get user by UUID"""
+        """Get all users using cursor-based (keyset) pagination with filtering options"""
         ...
 
     @get("/users/tags", response_class=GetAllTagsResponseDto)
@@ -164,85 +136,103 @@ class UsersController(BaseController):
         """Get all existing user tags"""
         ...
 
-    @get(
-        "/users/{uuid}/accessible-nodes",
-        response_class=GetUserAccessibleNodesResponseDto,
-    )
+    @post("/users/resolve", response_class=ResolveUserResponseDto)
+    async def resolve_user(
+        self,
+        body: Annotated[ResolveUserBodyDto, PydanticBody()],
+    ) -> ResolveUserResponseDto:
+        """Resolve user by any identifier (id, shortUuid, username)"""
+        ...
+
+    @get("/users/by-short-uuid/{shortUuid}", response_class=UserResponseDto)
+    async def get_user_by_short_uuid(
+        self,
+        short_uuid: Annotated[str, Path(description="Short UUID of the user", alias="shortUuid")],
+    ) -> UserResponseDto:
+        """Get user by Short UUID"""
+        ...
+
+    @get("/users/by-username/{username}", response_class=UserResponseDto)
+    async def get_user_by_username(
+        self,
+        username: Annotated[str, Path(description="Username of the user")],
+    ) -> UserResponseDto:
+        """Get user by username"""
+        ...
+
+    @get("/users/{userId}", response_class=UserResponseDto)
+    async def get_user_by_id(
+        self,
+        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+    ) -> UserResponseDto:
+        """Get user by ID"""
+        ...
+
+    @delete("/users/{userId}", response_class=None)
+    async def delete_user(
+        self,
+        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+    ) -> None:
+        """Delete user (204 No Content)"""
+        ...
+
+    @get("/users/{userId}/accessible-nodes", response_class=GetUserAccessibleNodesResponseDto)
     async def get_user_accessible_nodes(
         self,
-        uuid: Annotated[str, Path(description="UUID of the user")],
+        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
     ) -> GetUserAccessibleNodesResponseDto:
         """Get user accessible nodes"""
         ...
 
     @get(
-        "/users/{uuid}/subscription-request-history", 
-        response_class=GetUserSubscriptionRequestHistoryResponseDto
+        "/users/{userId}/subscription-request-history",
+        response_class=GetUserSubscriptionRequestHistoryResponseDto,
     )
     async def get_user_subscription_request_history(
         self,
-        uuid: Annotated[str, Path(description="UUID of the user")],
+        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
     ) -> GetUserSubscriptionRequestHistoryResponseDto:
         """Get user subscription request history, recent 24 records"""
         ...
 
-    # ИСПРАВЛЕНО: убран alias, используется short_uuid
-    @get("/users/by-short-uuid/{shortUuid}", response_class=GetUserByShortUuidResponseDto)
-    async def get_user_by_short_uuid(
+    @post("/users/{userId}/actions/revoke", response_class=UserResponseDto)
+    async def revoke_user_subscription(
         self,
-        short_uuid: Annotated[str, Path(description="Short UUID of the user", alias="shortUuid")],
-    ) -> GetUserByShortUuidResponseDto:
-        """Get user by Short UUID"""
+        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+        body: Annotated[Optional[RevokeUserBodyDto], PydanticBody()] = None,
+    ) -> UserResponseDto:
+        """Revoke User Subscription"""
         ...
 
-    @get("/users/by-username/{username}", response_class=GetUserByUsernameResponseDto)
-    async def get_user_by_username(
+    @post("/users/{userId}/actions/disable", response_class=UserResponseDto)
+    async def disable_user(
         self,
-        username: Annotated[str, Path(description="Username of the user")],
-    ) -> GetUserByUsernameResponseDto:
-        """Get user by username"""
+        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+    ) -> UserResponseDto:
+        """Disable User"""
         ...
 
-    @get("/users/by-id/{id}", response_class=GetUserByIdResponseDto)
-    async def get_user_by_id(
+    @post("/users/{userId}/actions/enable", response_class=UserResponseDto)
+    async def enable_user(
         self,
-        id: Annotated[str, Path(description="ID of the user")],
-    ) -> GetUserByIdResponseDto:
-        """Get user by ID"""
+        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+    ) -> UserResponseDto:
+        """Enable User"""
         ...
 
-    # ИСПРАВЛЕНО: убран alias, используется telegram_id
-    @get(
-        "/users/by-telegram-id/{telegramId}",
-        response_class=TelegramUserResponseDto,
-    )
-    async def get_users_by_telegram_id(
+    @post("/users/{userId}/actions/reset-traffic", response_class=UserResponseDto)
+    async def reset_user_traffic(
         self,
-        telegram_id: Annotated[str, Path(description="Telegram ID of the user", alias="telegramId")],
-    ) -> TelegramUserResponseDto:
-        """Get Users By Telegram ID"""
+        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+    ) -> UserResponseDto:
+        """Reset User Traffic"""
         ...
 
-    @get("/users/by-email/{email}", response_class=EmailUserResponseDto)
-    async def get_users_by_email(
+    @post("/users/{userId}/actions/extend", response_class=UserResponseDto)
+    async def extend_user_expiration_date(
         self,
-        email: Annotated[str, Path(description="Email of the user")],
-    ) -> EmailUserResponseDto:
-        """Get Users By Email"""
-        ...
-
-    @get("/users/by-tag/{tag}", response_class=TagUserResponseDto)
-    async def get_users_by_tag(
-        self,
-        tag: Annotated[str, Path(description="Tag of the user")],
-    ) -> TagUserResponseDto:
-        """Get Users By Tag"""
-        ...
-
-    @post("/users/resolve", response_class=ResolveUserResponseDto)
-    async def resolve_user(
-        self,
-        body: Annotated[ResolveUserRequestBodyDto, PydanticBody()],
-    ) -> ResolveUserResponseDto:
-        """Resolve user by any identifier (uuid, id, shortUuid, username)"""
+        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+        body: Annotated[ExtendUserBodyDto, PydanticBody()],
+    ) -> UserResponseDto:
+        """Extend user expiration date by the given number of days"""
         ...

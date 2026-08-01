@@ -7,7 +7,6 @@ from pydantic import (
     ConfigDict,
     EmailStr,
     Field,
-    RootModel,
     StringConstraints,
     model_validator,
 )
@@ -30,6 +29,7 @@ class UserLastConnectedNodeDto(BaseModel):
 
 
 class ActiveInternalSquadDto(BaseModel):
+    """`BaseInternalSquadSchema` контракта 3.0."""
     uuid: UUID
     name: str
 
@@ -40,15 +40,18 @@ class HappCrypto(BaseModel):
     crypto_link: str = Field(alias="cryptoLink")
 
 
-class CreateUserRequestDto(BaseModel):
-    """Request DTO for creating a user"""
+class CreateUserBodyDto(BaseModel):
+    """Тело `POST /api/users` (`CreateUserCommand.RequestBodySchema`).
+
+    3.0: поле `uuid` удалено — идентификатор пользователя выдаёт панель (числовой `id`).
+    """
     # Required fields
     username: Annotated[
-        str, 
+        str,
         StringConstraints(pattern=r"^[a-zA-Z0-9_-]+$", min_length=3, max_length=36)
     ] = Field(..., description="Unique username for the user")
     expire_at: datetime = Field(..., serialization_alias="expireAt", description="Account expiration date")
-    
+
     # Optional fields with defaults
     status: UserStatus = Field(default=UserStatus.ACTIVE, description="User account status")
     traffic_limit_strategy: TrafficLimitStrategy = Field(
@@ -56,7 +59,7 @@ class CreateUserRequestDto(BaseModel):
         serialization_alias="trafficLimitStrategy",
         description="Traffic reset strategy"
     )
-    
+
     # Optional fields
     short_uuid: Optional[str] = Field(None, serialization_alias="shortUuid")
     trojan_password: Optional[Annotated[str, StringConstraints(min_length=8, max_length=32)]] = Field(
@@ -77,22 +80,21 @@ class CreateUserRequestDto(BaseModel):
     email: Optional[EmailStr] = None
     hwid_device_limit: Optional[int] = Field(None, serialization_alias="hwidDeviceLimit", ge=0)
     active_internal_squads: Optional[List[UUID]] = Field(None, serialization_alias="activeInternalSquads")
-    uuid: Optional[UUID] = Field(
-        None, 
-        description="Optional. Pass UUID to create user with specific UUID, otherwise it will be generated automatically."
-    )
     external_squad_uuid: Optional[UUID] = Field(None, serialization_alias="externalSquadUuid")
 
 
-class UpdateUserRequestDto(BaseModel):
-    """Request DTO for updating a user"""
-    # Either username or uuid must be provided, uuid has priority
-    username: Optional[str] = Field(None, description="Username of the user")
-    uuid: Optional[UUID] = Field(
-        None, 
-        description="UUID of the user. UUID has higher priority than username"
+class UpdateUserBodyDto(BaseModel):
+    """Тело `PATCH /api/users` (`UpdateUserCommand.RequestBodySchema`).
+
+    3.0: пользователь идентифицируется числовым `id` (поле `uuid` удалено).
+    Нужно передать хотя бы одно из `id` / `username`.
+    """
+    id: Optional[int] = Field(
+        None,
+        description="ID of the user. ID has higher priority than username",
     )
-    
+    username: Optional[str] = Field(None, description="Username of the user")
+
     # Optional update fields
     # Контракт: только ACTIVE или DISABLED — LIMITED/EXPIRED выставляет сама панель
     status: Optional[Literal[UserStatus.ACTIVE, UserStatus.DISABLED]] = None
@@ -113,13 +115,13 @@ class UpdateUserRequestDto(BaseModel):
 
     @model_validator(mode="after")
     def _require_identifier(self):
-        if self.uuid is None and self.username is None:
-            raise ValueError("Either uuid or username must be provided")
+        if self.id is None and self.username is None:
+            raise ValueError("Either id or username must be provided")
         return self
 
 
 class UserTrafficDto(BaseModel):
-    """User traffic information"""
+    """`UserTrafficSchema` контракта 3.0."""
     used_traffic_bytes: float = Field(alias="usedTrafficBytes")
     lifetime_used_traffic_bytes: float = Field(alias="lifetimeUsedTrafficBytes")
     online_at: Optional[datetime] = Field(None, alias="onlineAt")
@@ -128,8 +130,13 @@ class UserTrafficDto(BaseModel):
 
 
 class UserResponseDto(BaseModel):
-    """User response DTO - обновленная структура с userTraffic"""
-    uuid: UUID
+    """`ExtendedUsersSchema` контракта 3.0 — единое тело всех ответов о пользователе.
+
+    3.0: поля `uuid`, `subLastUserAgent`, `subLastOpenedAt` удалены,
+    идентификатор пользователя — числовой `id`.
+    """
+    model_config = ConfigDict(populate_by_name=True)
+
     id: int
     short_uuid: str = Field(alias="shortUuid")
     username: str
@@ -150,46 +157,44 @@ class UserResponseDto(BaseModel):
     ss_password: str = Field(alias="ssPassword")
     last_trigger_threshold: int = Field(0, alias="lastTriggeredThreshold")
     sub_revoked_at: Optional[datetime] = Field(None, alias="subRevokedAt")
-    sub_last_user_agent: Optional[str] = Field(None, alias="subLastUserAgent")
-    sub_last_opened_at: Optional[datetime] = Field(None, alias="subLastOpenedAt")
     last_traffic_reset_at: Optional[datetime] = Field(None, alias="lastTrafficResetAt")
     created_at: datetime = Field(alias="createdAt")
     updated_at: datetime = Field(alias="updatedAt")
     subscription_url: str = Field(alias="subscriptionUrl")
     active_internal_squads: list[ActiveInternalSquadDto] = Field(alias="activeInternalSquads")
     user_traffic: UserTrafficDto = Field(alias="userTraffic")
-    
+
     @property
     def used_traffic_bytes(self) -> float:
         """Backward compatibility property"""
         return self.user_traffic.used_traffic_bytes
-    
+
     @property
     def lifetime_used_traffic_bytes(self) -> float:
         """Backward compatibility property"""
         return self.user_traffic.lifetime_used_traffic_bytes
-    
+
     @property
     def online_at(self) -> Optional[datetime]:
         """Backward compatibility property"""
         return self.user_traffic.online_at
-    
+
     @property
     def first_connected(self) -> Optional[datetime]:
         """Backward compatibility property"""
         return self.user_traffic.first_connected_at
-    
+
     @property
     def last_connected_node_uuid(self) -> Optional[UUID]:
         """Backward compatibility property"""
         return self.user_traffic.last_connected_node_uuid
-    
+
     @property
     def happ(self) -> HappCrypto:
         """Generate Happ Crypto Link"""
         crypto_link = create_happ_crypto_link(self.subscription_url)
         return HappCrypto(cryptoLink=crypto_link)
-    
+
     def happ_with_version(self, version: Literal["v3", "v4"] = "v4") -> HappCrypto:
         return self._generate_happ(version=version)
 
@@ -198,14 +203,14 @@ class UserResponseDto(BaseModel):
         return HappCrypto(cryptoLink=crypto_link)
 
 
-class RevokeUserRequestDto(BaseModel):
-    """Request DTO for revoking user subscription"""
+class RevokeUserBodyDto(BaseModel):
+    """Тело `POST /api/users/{userId}/actions/revoke`."""
     short_uuid: Optional[str] = Field(
         None,
         serialization_alias="shortUuid",
         description="Optional. If not provided, a new short UUID will be generated by Remnawave.",
-        min_length=6,
-        max_length=48,
+        min_length=16,
+        max_length=64,
     )
     revoke_only_passwords: Optional[bool] = Field(
         None,
@@ -213,35 +218,45 @@ class RevokeUserRequestDto(BaseModel):
         description="Optional. If true, only passwords will be revoked without changing the short UUID.",
     )
 
-class ResolveUserRequestBodyDto(BaseModel):
-    """Request DTO for resolving a user by any identifier"""
-    uuid: Optional[UUID] = None
+
+class ExtendUserBodyDto(BaseModel):
+    """Тело `POST /api/users/{userId}/actions/extend` (новое в 3.0)."""
+    days: int = Field(
+        ...,
+        ge=1,
+        description="The number of days to extend the expiration date.",
+    )
+
+
+class ResolveUserBodyDto(BaseModel):
+    """Тело `POST /api/users/resolve`.
+
+    3.0: идентификатор `uuid` удалён — ровно одно из `id` / `shortUuid` / `username`.
+    """
     id: Optional[int] = None
     short_uuid: Optional[str] = Field(None, serialization_alias="shortUuid")
     username: Optional[str] = None
 
     @model_validator(mode="after")
     def _exactly_one_identifier(self):
-        provided = [self.uuid, self.id, self.short_uuid, self.username]
+        provided = [self.id, self.short_uuid, self.username]
         if sum(v is not None for v in provided) != 1:
             raise ValueError(
-                "Exactly one of uuid, id, short_uuid or username must be provided"
+                "Exactly one of id, short_uuid or username must be provided"
             )
         return self
 
 
 class ResolveUserResponseDto(BaseModel):
-    """Response DTO for resolved user"""
-    uuid: UUID
-    username: str
+    """Ответ `POST /api/users/resolve` (3.0: без `uuid`)."""
     id: int
+    username: str
     short_uuid: str = Field(alias="shortUuid")
 
 
 class SubscriptionRequestRecord(BaseModel):
     """Subscription request history record"""
     id: int
-    # 2.8: колонка userUuid заменена на числовой userId
     user_id: int = Field(alias="userId")
     request_at: datetime = Field(alias="requestAt")
     request_ip: Optional[str] = Field(None, alias="requestIp")
@@ -252,61 +267,6 @@ class SubscriptionRequestsResponseData(BaseModel):
     """Subscription requests response data"""
     total: int
     records: List[SubscriptionRequestRecord]
-
-
-class CreateUserResponseDto(UserResponseDto):
-    """Response for create user"""
-    pass
-
-
-class UpdateUserResponseDto(UserResponseDto):
-    """Response for update user"""
-    pass
-
-
-class GetUserByUuidResponseDto(UserResponseDto):
-    """Response for get user by UUID"""
-    pass
-
-
-class GetUserByShortUuidResponseDto(UserResponseDto):
-    """Response for get user by short UUID"""
-    pass
-
-
-class GetUserByUsernameResponseDto(UserResponseDto):
-    """Response for get user by username"""
-    pass
-
-
-class GetUserByIdResponseDto(UserResponseDto):
-    """Response for get user by ID"""
-    pass
-
-
-class DisableUserResponseDto(UserResponseDto):
-    """Response for disable user"""
-    pass
-
-
-class EnableUserResponseDto(UserResponseDto):
-    """Response for enable user"""
-    pass
-
-
-class ResetUserTrafficResponseDto(UserResponseDto):
-    """Response for reset user traffic"""
-    pass
-
-
-class RevokeUserSubscriptionResponseDto(UserResponseDto):
-    """Response for revoke user subscription"""
-    pass
-
-
-class ActivateAllInboundsResponseDto(UserResponseDto):
-    """Response for activate all inbounds"""
-    pass
 
 
 class UsersResponseDto(BaseModel):
@@ -356,57 +316,25 @@ class GetUserSubscriptionRequestHistoryResponseDto(SubscriptionRequestsResponseD
     pass
 
 
-class DeleteUserResponseDto(BaseModel):
-    """Response for delete user"""
-    is_deleted: bool = Field(alias="isDeleted")
+# ─────────────────────────────────────────────────────────────────────────────
+# Обратная совместимость: имена моделей до 3.0.
+# Тела запросов переименованы `*RequestDto` → `*BodyDto`, а все ответы об одном
+# пользователе схлопнуты в `UserResponseDto` (`UserResponseSchema` контракта).
+# ─────────────────────────────────────────────────────────────────────────────
+CreateUserRequestDto = CreateUserBodyDto
+UpdateUserRequestDto = UpdateUserBodyDto
+RevokeUserRequestDto = RevokeUserBodyDto
+ResolveUserRequestBodyDto = ResolveUserBodyDto
 
-
-class EmailUserResponseDto(RootModel[list[UserResponseDto]]):
-    """Response for get users by email"""
-    def __iter__(self):
-        return iter(self.root)
-
-    def __getitem__(self, item):
-        return self.root[item]
-    
-    def __bool__(self):
-        """Return True if list is not empty"""
-        return bool(self.root)
-    
-    def __len__(self):
-        """Return length of list"""
-        return len(self.root)
-
-
-class TagUserResponseDto(RootModel[list[UserResponseDto]]):
-    """Response for get users by tag"""
-    def __iter__(self):
-        return iter(self.root)
-
-    def __getitem__(self, item):
-        return self.root[item]
-    
-    def __bool__(self):
-        """Return True if list is not empty"""
-        return bool(self.root)
-    
-    def __len__(self):
-        """Return length of list"""
-        return len(self.root)
-
-
-class TelegramUserResponseDto(RootModel[list[UserResponseDto]]):
-    """Response for get users by telegram ID"""
-    def __iter__(self):
-        return iter(self.root)
-
-    def __getitem__(self, item):
-        return self.root[item]
-    
-    def __bool__(self):
-        """Return True if list is not empty"""
-        return bool(self.root)
-    
-    def __len__(self):
-        """Return length of list"""
-        return len(self.root)
+CreateUserResponseDto = UserResponseDto
+UpdateUserResponseDto = UserResponseDto
+GetUserByUuidResponseDto = UserResponseDto
+GetUserByIdResponseDto = UserResponseDto
+GetUserByShortUuidResponseDto = UserResponseDto
+GetUserByUsernameResponseDto = UserResponseDto
+DisableUserResponseDto = UserResponseDto
+EnableUserResponseDto = UserResponseDto
+ResetUserTrafficResponseDto = UserResponseDto
+RevokeUserSubscriptionResponseDto = UserResponseDto
+ExtendUserResponseDto = UserResponseDto
+ActivateAllInboundsResponseDto = UserResponseDto

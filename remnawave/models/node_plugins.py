@@ -6,7 +6,8 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 
 class TorrentBlockerUserDto(BaseModel):
-    uuid: UUID
+    """3.0: у пользователя больше нет `uuid`, отчёт ссылается на него через `userId`."""
+
     username: str
 
 
@@ -58,7 +59,7 @@ class TorrentBlockerReportRecordDto(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: float
-    user_id: float = Field(alias="userId")
+    user_id: int = Field(alias="userId")
     node_id: float = Field(alias="nodeId")
     user: TorrentBlockerUserDto
     node: TorrentBlockerNodeDto
@@ -75,10 +76,6 @@ class GetTorrentBlockerReportsResponseDto(TorrentBlockerReportsData):
     pass
 
 
-class TruncateTorrentBlockerReportsResponseDto(TorrentBlockerReportsData):
-    pass
-
-
 class TorrentBlockerStatsDto(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
@@ -89,7 +86,11 @@ class TorrentBlockerStatsDto(BaseModel):
 
 
 class TorrentBlockerTopUserDto(BaseModel):
-    uuid: UUID
+    """3.0: `uuid` заменён на числовой `userId`."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    user_id: int = Field(alias="userId")
     color: str
     username: str
     total: float
@@ -133,7 +134,7 @@ class GetNodePluginResponseDto(NodePluginDto):
     pass
 
 
-class UpdateNodePluginRequestDto(BaseModel):
+class UpdateNodePluginBodyDto(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     uuid: UUID
@@ -147,13 +148,7 @@ class UpdateNodePluginResponseDto(NodePluginDto):
     pass
 
 
-class DeleteNodePluginResponseDto(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    is_deleted: bool = Field(alias="isDeleted")
-
-
-class CreateNodePluginRequestDto(BaseModel):
+class CreateNodePluginBodyDto(BaseModel):
     name: Annotated[str, StringConstraints(min_length=2, max_length=30, pattern=r"^[A-Za-z0-9_\s-]+$")]
 
 
@@ -168,7 +163,7 @@ class ReorderNodePluginItem(BaseModel):
     uuid: UUID
 
 
-class ReorderNodePluginsRequestDto(BaseModel):
+class ReorderNodePluginsBodyDto(BaseModel):
     items: List[ReorderNodePluginItem]
 
 
@@ -176,7 +171,7 @@ class ReorderNodePluginsResponseDto(GetNodePluginsResponseDto):
     pass
 
 
-class CloneNodePluginRequestDto(BaseModel):
+class CloneNodePluginBodyDto(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     clone_from_uuid: UUID = Field(alias="cloneFromUuid")
@@ -222,14 +217,16 @@ class TargetSpecificNodesDto(BaseModel):
 PluginTargetNodesDto = Union[TargetAllNodesDto, TargetSpecificNodesDto]
 
 
-class PluginExecutorRequestDto(BaseModel):
+class PluginExecutorBodyDto(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     command: PluginCommandDto
     target_nodes: PluginTargetNodesDto = Field(alias="targetNodes")
 
 
-class PluginExecutorResponseDto(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    event_sent: bool = Field(alias="eventSent")
+# Legacy aliases (имена 2.8)
+UpdateNodePluginRequestDto = UpdateNodePluginBodyDto
+CreateNodePluginRequestDto = CreateNodePluginBodyDto
+ReorderNodePluginsRequestDto = ReorderNodePluginsBodyDto
+CloneNodePluginRequestDto = CloneNodePluginBodyDto
+PluginExecutorRequestDto = PluginExecutorBodyDto

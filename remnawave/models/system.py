@@ -211,7 +211,7 @@ class GetX25519KeyPairResponseDto(BaseModel):
 GenerateX25519ResponseDto = GetX25519KeyPairResponseDto
 
 
-class DebugSrrMatcherRequestDto(BaseModel):
+class DebugSrrMatcherBodyDto(BaseModel):
     response_rules: ResponseRules = Field(serialization_alias="responseRules")
 
 
@@ -252,6 +252,49 @@ class GetRecapResponseDto(BaseModel):
     init_date: datetime.datetime = Field(alias="initDate")
 
 
+# ============ Stats Digest (3.0) ============
+
+
+class StatsDigestUsers(BaseModel):
+    """Users created/expired inside the requested range"""
+    created_count: float = Field(alias="createdCount")
+    expired_count: float = Field(alias="expiredCount")
+
+
+class StatsDigestTraffic(BaseModel):
+    """Traffic totals for the requested range"""
+    total_bytes: str = Field(alias="totalBytes")
+    by_users_created_in_range_bytes: str = Field(alias="byUsersCreatedInRangeBytes")
+
+
+class StatsDigestHwidDevices(BaseModel):
+    """HWID devices created inside the requested range"""
+    created_count: float = Field(alias="createdCount")
+
+
+class GetStatsDigestResponseDto(BaseModel):
+    """Aggregated statistics for a datetime range [start, end)"""
+    users: StatsDigestUsers
+    traffic: StatsDigestTraffic
+    hwid_devices: StatsDigestHwidDevices = Field(alias="hwidDevices")
+
+
+# ============ HTTP Stats (3.0) ============
+
+
+class HttpStatsRoute(BaseModel):
+    """Request counter for a single route"""
+    method: str
+    route: str
+    count: int
+
+
+class GetHttpStatsResponseDto(BaseModel):
+    """Per-route HTTP request counters"""
+    routes: List[HttpStatsRoute]
+    total: int
+
+
 class BuildInfo(BaseModel):
     """Build information"""
     time: str
@@ -287,3 +330,8 @@ class MetadataResponse(BaseModel):
 class GetMetadataResponseDto(MetadataResponse):
     """Get metadata response"""
     pass
+
+
+# ============ Backwards-compatible aliases (pre-3.0 names) ============
+
+DebugSrrMatcherRequestDto = DebugSrrMatcherBodyDto

@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 from remnawave.enums import TemplateType
-from remnawave.models import CustomRemarksDto, HwidSettingsDto
+from remnawave.models.subscriptions_settings import CustomRemarksDto, HwidSettingsDto
 
 
 class ExternalSquadInfoDto(BaseModel):
@@ -21,18 +21,18 @@ class ExternalSquadTemplateDto(BaseModel):
 
 
 class ExternalSquadSubscriptionSettingsDto(BaseModel):
-    """External squad subscription settings"""
+    """External squad subscription settings.
+
+    3.0: контракт оставил только три ключа. `profileTitle`, `supportLink`,
+    `profileUpdateInterval`, `isProfileWebpageUrlEnabled`, `happAnnounce` и `happRouting`
+    переехали в кастомные заголовки ответа подписки и здесь больше не принимаются.
+    """
     model_config = ConfigDict(populate_by_name=True)
 
-    profile_title: Optional[str] = Field(None, alias="profileTitle")
-    support_link: Optional[str] = Field(None, alias="supportLink")
-    profile_update_interval: Optional[int] = Field(None, alias="profileUpdateInterval", ge=1)
-    is_profile_webpage_url_enabled: Optional[bool] = Field(None, alias="isProfileWebpageUrlEnabled")
     serve_json_at_base_subscription: Optional[bool] = Field(None, alias="serveJsonAtBaseSubscription")
     is_show_custom_remarks: Optional[bool] = Field(None, alias="isShowCustomRemarks")
-    happ_announce: Optional[str] = Field(None, alias="happAnnounce")
-    happ_routing: Optional[str] = Field(None, alias="happRouting")
     randomize_hosts: Optional[bool] = Field(None, alias="randomizeHosts")
+
 
 class ExternalSquadHostOverridesDto(BaseModel):
     """External squad host overrides"""
@@ -51,7 +51,9 @@ class ExternalSquadDto(BaseModel):
     templates: List[ExternalSquadTemplateDto]
     subscription_settings: Optional[ExternalSquadSubscriptionSettingsDto] = Field(None, alias="subscriptionSettings")
     host_overrides: Optional[ExternalSquadHostOverridesDto] = Field(None, alias="hostOverrides")
-    response_headers: Optional[Dict[str, str]] = Field(None, alias="responseHeaders")
+    # 3.0: единый `responseHeaders` разделён на добавляемые и удаляемые заголовки
+    response_headers_add: Dict[str, str] = Field(default_factory=dict, alias="responseHeadersAdd")
+    response_headers_remove: List[str] = Field(default_factory=list, alias="responseHeadersRemove")
     hwid_settings: Optional[HwidSettingsDto] = Field(None, alias="hwidSettings")
     custom_remarks: Optional[CustomRemarksDto] = Field(None, alias="customRemarks")
     subpage_config_uuid: Optional[UUID] = Field(None, alias="subpageConfigUuid")
@@ -71,7 +73,7 @@ class GetExternalSquadByUuidResponseDto(ExternalSquadDto):
     pass
 
 
-class CreateExternalSquadRequestDto(BaseModel):
+class CreateExternalSquadBodyDto(BaseModel):
     """Request to create external squad"""
     model_config = ConfigDict(populate_by_name=True)
 
@@ -83,7 +85,7 @@ class CreateExternalSquadResponseDto(ExternalSquadDto):
     pass
 
 
-class UpdateExternalSquadRequestDto(BaseModel):
+class UpdateExternalSquadBodyDto(BaseModel):
     """Request to update external squad"""
     model_config = ConfigDict(populate_by_name=True)
 
@@ -94,18 +96,15 @@ class UpdateExternalSquadRequestDto(BaseModel):
     host_overrides: Optional[ExternalSquadHostOverridesDto] = Field(None, alias="hostOverrides")
     hwid_settings: Optional[HwidSettingsDto] = Field(None, alias="hwidSettings")
     custom_remarks: Optional[CustomRemarksDto] = Field(None, alias="customRemarks")
-    response_headers: Optional[Dict[str, str]] = Field(None, alias="responseHeaders")
+    # 3.0: `responseHeaders` заменён парой add/remove
+    response_headers_add: Optional[Dict[str, str]] = Field(None, alias="responseHeadersAdd")
+    response_headers_remove: Optional[List[str]] = Field(None, alias="responseHeadersRemove")
     subpage_config_uuid: Optional[UUID] = Field(None, alias="subpageConfigUuid")
 
 
 class UpdateExternalSquadResponseDto(ExternalSquadDto):
     """Response after updating external squad"""
     pass
-
-
-class DeleteExternalSquadResponseDto(BaseModel):
-    """Response after deleting external squad"""
-    is_deleted: bool = Field(alias="isDeleted")
 
 
 class ReorderExternalSquadItem(BaseModel):
@@ -115,7 +114,7 @@ class ReorderExternalSquadItem(BaseModel):
     uuid: UUID
 
 
-class ReorderExternalSquadsRequestDto(BaseModel):
+class ReorderExternalSquadsBodyDto(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     items: List[ReorderExternalSquadItem]
@@ -127,11 +126,7 @@ class ReorderExternalSquadsResponseDto(BaseModel):
     external_squads: List[ExternalSquadDto] = Field(alias="externalSquads")
 
 
-class AddUsersToExternalSquadResponseDto(BaseModel):
-    """Response after adding users to external squad"""
-    event_sent: bool = Field(alias="eventSent")
-
-
-class RemoveUsersFromExternalSquadResponseDto(BaseModel):
-    """Response after removing users from external squad"""
-    event_sent: bool = Field(alias="eventSent")
+# --- Совместимость с именами 2.8 ------------------------------------------------
+CreateExternalSquadRequestDto = CreateExternalSquadBodyDto
+UpdateExternalSquadRequestDto = UpdateExternalSquadBodyDto
+ReorderExternalSquadsRequestDto = ReorderExternalSquadsBodyDto

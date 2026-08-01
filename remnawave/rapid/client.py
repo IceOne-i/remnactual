@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from http import HTTPStatus
 from inspect import BoundArguments, Signature
-from typing import Any, Dict, Mapping, Self, Tuple, Type
+from typing import Any, Dict, Mapping, Optional, Self, Tuple, Type
 
 import httpx
 import orjson
@@ -58,14 +59,22 @@ class BaseController(RapidApi):
     def _handle_response(
         self,
         response: Response,
-        response_class: Type[Response | str | bytes | BM] | TypeAdapter[T] = Response,
-    ) -> Response | str | bytes | BM | T:
+        response_class: Optional[Type[Response | str | bytes | BM] | TypeAdapter[T]] = Response,
+    ) -> Optional[Response | str | bytes | BM | T]:
         # Ошибки разбираем ДО короткого замыкания на сырой Response, иначе
         # эндпоинт без явного response_class молча вернул бы 4xx/5xx как объект.
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as e:
             handle_api_error(e.response)
+
+        # 3.0: 204 No Content и 202 Accepted приходят с пустым телом.
+        # `response_class=None` — явное объявление такого эндпоинта в контроллере.
+        if response_class is None or response.status_code in (
+            HTTPStatus.ACCEPTED,
+            HTTPStatus.NO_CONTENT,
+        ):
+            return None
 
         if response_class is Response:
             return response

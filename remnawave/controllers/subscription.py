@@ -3,7 +3,7 @@ from typing import Annotated
 from rapid_api_client import Path
 
 from remnawave.enums import ClientType
-from remnawave.models import GetSubscriptionInfoResponseDto
+from remnawave.models.subscription import GetSubscriptionInfoResponseDto
 from remnawave.rapid import BaseController, get
 
 

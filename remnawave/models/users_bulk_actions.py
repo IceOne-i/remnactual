@@ -14,9 +14,13 @@ TagStr = Annotated[
 ]
 
 
-# Request DTOs
-class BulkDeleteUsersByStatusRequestDto(BaseModel):
-    """Request to delete users by status.
+# ─────────────────────────────────────────────────────────────────────────────
+# Тела запросов.
+# 3.0: пользователи адресуются числовыми `userIds` вместо `uuids`, а все
+# bulk-эндпоинты отвечают 202/204 с пустым телом — response-моделей больше нет.
+# ─────────────────────────────────────────────────────────────────────────────
+class BulkDeleteUsersByStatusBodyDto(BaseModel):
+    """Тело `POST /api/users/bulk/delete-by-status`.
 
     `status` обязателен в контракте и намеренно не имеет значения по умолчанию:
     неявный дефолт удалял бы всех ACTIVE-пользователей.
@@ -24,19 +28,25 @@ class BulkDeleteUsersByStatusRequestDto(BaseModel):
     status: UserStatus
 
 
-class BulkDeleteUsersRequestDto(BaseModel):
-    """Request to delete users by UUIDs"""
-    uuids: List[UUID] = Field(min_length=1, max_length=500)
+class BulkDeleteUsersBodyDto(BaseModel):
+    """Тело `POST /api/users/bulk/delete`"""
+    user_ids: List[int] = Field(
+        serialization_alias="userIds", min_length=1, max_length=500
+    )
 
 
-class BulkRevokeUsersSubscriptionRequestDto(BaseModel):
-    """Request to revoke users subscription"""
-    uuids: List[UUID] = Field(min_length=1, max_length=500)
+class BulkRevokeUsersSubscriptionBodyDto(BaseModel):
+    """Тело `POST /api/users/bulk/revoke-subscription`"""
+    user_ids: List[int] = Field(
+        serialization_alias="userIds", min_length=1, max_length=500
+    )
 
 
-class BulkResetTrafficUsersRequestDto(BaseModel):
-    """Request to reset traffic for users"""
-    uuids: List[UUID] = Field(min_length=1, max_length=500)
+class BulkResetTrafficUsersBodyDto(BaseModel):
+    """Тело `POST /api/users/bulk/reset-traffic`"""
+    user_ids: List[int] = Field(
+        serialization_alias="userIds", min_length=1, max_length=500
+    )
 
 
 class UpdateUserFields(BaseModel):
@@ -49,12 +59,12 @@ class UpdateUserFields(BaseModel):
         description="Traffic limit in bytes. 0 - unlimited"
     )
     traffic_limit_strategy: Optional[TrafficLimitStrategy] = Field(
-        None, 
+        None,
         serialization_alias="trafficLimitStrategy",
         description="Traffic limit reset strategy"
     )
     expire_at: Optional[datetime] = Field(
-        None, 
+        None,
         serialization_alias="expireAt",
         description="Expiration date: 2025-01-17T15:38:45.065Z"
     )
@@ -66,8 +76,8 @@ class UpdateUserFields(BaseModel):
         description="Tag for user. Must be uppercase, alphanumeric, and can include underscores. Max length 16 characters."
     )
     hwid_device_limit: Optional[int] = Field(
-        None, 
-        serialization_alias="hwidDeviceLimit", 
+        None,
+        serialization_alias="hwidDeviceLimit",
         ge=0
     )
     external_squad_uuid: Optional[UUID] = Field(
@@ -77,21 +87,27 @@ class UpdateUserFields(BaseModel):
     )
 
 
-class BulkUpdateUsersRequestDto(BaseModel):
-    """Request to bulk update users"""
-    uuids: List[UUID] = Field(min_length=1, max_length=500)
+class BulkUpdateUsersBodyDto(BaseModel):
+    """Тело `POST /api/users/bulk/update`"""
+    user_ids: List[int] = Field(
+        serialization_alias="userIds", min_length=1, max_length=500
+    )
     fields: UpdateUserFields
 
 
-class BulkUpdateUsersSquadsRequestDto(BaseModel):
-    """Request to update users internal squads"""
-    uuids: List[UUID] = Field(min_length=1, max_length=500)
+class BulkUpdateUsersSquadsBodyDto(BaseModel):
+    """Тело `POST /api/users/bulk/update-squads`"""
+    user_ids: List[int] = Field(
+        serialization_alias="userIds", min_length=1, max_length=500
+    )
     active_internal_squads: List[UUID] = Field(serialization_alias="activeInternalSquads")
 
 
-class BulkExtendExpirationDateRequestDto(BaseModel):
-    """Request to extend expiration date for selected users"""
-    uuids: List[UUID] = Field(min_length=1, max_length=500)
+class BulkExtendExpirationDateBodyDto(BaseModel):
+    """Тело `POST /api/users/bulk/extend-expiration-date`"""
+    user_ids: List[int] = Field(
+        serialization_alias="userIds", min_length=1, max_length=500
+    )
     extend_days: int = Field(
         serialization_alias="extendDays",
         ge=1,
@@ -99,8 +115,8 @@ class BulkExtendExpirationDateRequestDto(BaseModel):
     )
 
 
-class BulkAllUpdateUsersRequestDto(BaseModel):
-    """Request to update all users"""
+class BulkAllUpdateUsersBodyDto(BaseModel):
+    """Тело `POST /api/users/bulk/all/update`"""
     # Без значения по умолчанию: иначе каждый вызов bulk/all/update
     # переводил бы ВСЕХ пользователей в ACTIVE.
     status: Optional[UserStatus] = None
@@ -128,82 +144,30 @@ class BulkAllUpdateUsersRequestDto(BaseModel):
         description="Tag for user. Must be uppercase, alphanumeric, and can include underscores. Max length 16 characters."
     )
     hwid_device_limit: Optional[int] = Field(
-        None, 
-        serialization_alias="hwidDeviceLimit", 
+        None,
+        serialization_alias="hwidDeviceLimit",
         ge=0
     )
 
 
-class BulkAllExtendExpirationDateRequestDto(BaseModel):
-    """Request to extend expiration date for all users"""
+class BulkAllExtendExpirationDateBodyDto(BaseModel):
+    """Тело `POST /api/users/bulk/all/extend-expiration-date`"""
     extend_days: int = Field(
         serialization_alias="extendDays",
         ge=1
     )
 
 
-# Base Response DTOs (без обертки response)
-class BulkResponseData(BaseModel):
-    """Common bulk response with affected rows"""
-    affected_rows: float = Field(alias="affectedRows")
-
-
-class BulkEventResponseData(BaseModel):
-    """Common bulk response with event sent flag"""
-    event_sent: bool = Field(alias="eventSent")
-
-
-# Response DTOs - наследуются от базовых
-class BulkDeleteUsersByStatusResponseDto(BulkResponseData):
-    """Response for bulk delete by status"""
-    pass
-
-
-class BulkDeleteUsersResponseDto(BulkResponseData):
-    """Response for bulk delete users"""
-    pass
-
-
-class BulkRevokeUsersSubscriptionResponseDto(BulkResponseData):
-    """Response for bulk revoke subscription"""
-    pass
-
-
-class BulkResetTrafficUsersResponseDto(BulkResponseData):
-    """Response for bulk reset traffic"""
-    pass
-
-
-class BulkUpdateUsersResponseDto(BulkResponseData):
-    """Response for bulk update users"""
-    pass
-
-
-class BulkUpdateUsersSquadsResponseDto(BulkResponseData):
-    """Response for bulk update squads"""
-    pass
-
-
-class BulkExtendExpirationDateResponseDto(BulkResponseData):
-    """Response for bulk extend expiration date"""
-    pass
-
-
-class BulkAllUpdateUsersResponseDto(BulkEventResponseData):
-    """Response for bulk update all users"""
-    pass
-
-
-class BulkAllResetTrafficUsersResponseDto(BulkEventResponseData):
-    """Response for bulk reset all users traffic"""
-    pass
-
-
-class BulkAllExtendExpirationDateResponseDto(BulkEventResponseData):
-    """Response for bulk extend all users expiration date"""
-    pass
-
-
-# Legacy compatibility
-BulkResponseDto = BulkResponseData
-BulkUpdateUsersInternalSquadsRequestDto = BulkUpdateUsersSquadsRequestDto
+# ─────────────────────────────────────────────────────────────────────────────
+# Обратная совместимость: имена тел запросов до 3.0.
+# ─────────────────────────────────────────────────────────────────────────────
+BulkDeleteUsersByStatusRequestDto = BulkDeleteUsersByStatusBodyDto
+BulkDeleteUsersRequestDto = BulkDeleteUsersBodyDto
+BulkRevokeUsersSubscriptionRequestDto = BulkRevokeUsersSubscriptionBodyDto
+BulkResetTrafficUsersRequestDto = BulkResetTrafficUsersBodyDto
+BulkUpdateUsersRequestDto = BulkUpdateUsersBodyDto
+BulkUpdateUsersSquadsRequestDto = BulkUpdateUsersSquadsBodyDto
+BulkUpdateUsersInternalSquadsRequestDto = BulkUpdateUsersSquadsBodyDto
+BulkExtendExpirationDateRequestDto = BulkExtendExpirationDateBodyDto
+BulkAllUpdateUsersRequestDto = BulkAllUpdateUsersBodyDto
+BulkAllExtendExpirationDateRequestDto = BulkAllExtendExpirationDateBodyDto

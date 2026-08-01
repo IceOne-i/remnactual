@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Annotated, Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 
 class InboundDto(BaseModel):
@@ -31,7 +31,7 @@ class ConfigProfileDto(BaseModel):
     updated_at: datetime = Field(alias="updatedAt")
 
 
-class CreateConfigProfileRequestDto(BaseModel):
+class CreateConfigProfileBodyDto(BaseModel):
     name: Annotated[str, StringConstraints(min_length=2, max_length=30, pattern=r"^[A-Za-z0-9_\s-]+$")]
     config: Dict[str, Any]
 
@@ -40,7 +40,7 @@ class CreateConfigProfileResponseDto(ConfigProfileDto):
     pass
 
 
-class UpdateConfigProfileRequestDto(BaseModel):
+class UpdateConfigProfileBodyDto(BaseModel):
     uuid: UUID
     name: Optional[Annotated[str, StringConstraints(min_length=2, max_length=30, pattern=r"^[A-Za-z0-9_\s-]+$")]] = None
     config: Optional[Dict[str, Any]] = None
@@ -55,7 +55,7 @@ class GetAllConfigProfilesResponsePaginated(BaseModel):
     config_profiles: List[ConfigProfileDto] = Field(alias="configProfiles")
 
 
-class GetAllConfigProfilesResponseDto(GetAllConfigProfilesResponsePaginated):
+class GetConfigProfilesResponseDto(GetAllConfigProfilesResponsePaginated):
     pass
 
 
@@ -63,8 +63,12 @@ class GetConfigProfileByUuidResponseDto(ConfigProfileDto):
     pass
 
 
-class DeleteConfigProfileResponseDto(BaseModel):
-    is_deleted: bool = Field(alias="isDeleted")
+class GetComputedConfigProfileByUuidResponseDto(ConfigProfileDto):
+    pass
+
+
+# 3.0: DELETE /api/config-profiles/{uuid} отвечает 204 без тела —
+# DeleteConfigProfileResponseDto удалён.
 
 
 # GetAllInboundsResponseDto / GetInboundsByProfileUuidResponseDto живут в
@@ -72,13 +76,24 @@ class DeleteConfigProfileResponseDto(BaseModel):
 
 
 class ReorderConfigProfileItem(BaseModel):
-    view_position: int = Field(serialization_alias="viewPosition")
+    model_config = ConfigDict(populate_by_name=True)
+
+    view_position: int = Field(alias="viewPosition")
     uuid: UUID
 
 
-class ReorderConfigProfilesRequestDto(BaseModel):
+class ReorderConfigProfilesBodyDto(BaseModel):
     items: List[ReorderConfigProfileItem]
 
 
 class ReorderConfigProfilesResponseDto(GetAllConfigProfilesResponsePaginated):
     pass
+
+
+# ---------------- BACKWARDS-COMPATIBLE ALIASES ---------------- #
+# 3.0 переименовал тела запросов в *BodyDto, а список профилей — в
+# GetConfigProfilesResponseDto. Старые имена сохранены как алиасы.
+CreateConfigProfileRequestDto = CreateConfigProfileBodyDto
+UpdateConfigProfileRequestDto = UpdateConfigProfileBodyDto
+ReorderConfigProfilesRequestDto = ReorderConfigProfilesBodyDto
+GetAllConfigProfilesResponseDto = GetConfigProfilesResponseDto

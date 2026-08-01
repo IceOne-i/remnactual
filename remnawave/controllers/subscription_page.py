@@ -3,16 +3,15 @@ from typing import Annotated
 from rapid_api_client.annotations import Path, PydanticBody
 
 from remnawave.models import (
-    CloneSubscriptionPageConfigRequestDto,
+    CloneSubscriptionPageConfigBodyDto,
     CloneSubscriptionPageConfigResponseDto,
-    CreateSubscriptionPageConfigRequestDto,
+    CreateSubscriptionPageConfigBodyDto,
     CreateSubscriptionPageConfigResponseDto,
-    DeleteSubscriptionPageConfigResponseDto,
     GetSubscriptionPageConfigResponseDto,
     GetSubscriptionPageConfigsResponseDto,
-    ReorderSubscriptionPageConfigsRequestDto,
+    ReorderSubscriptionPageConfigsBodyDto,
     ReorderSubscriptionPageConfigsResponseDto,
-    UpdateSubscriptionPageConfigRequestDto,
+    UpdateSubscriptionPageConfigBodyDto,
     UpdateSubscriptionPageConfigResponseDto,
 )
 from remnawave.rapid import BaseController, delete, get, patch, post
@@ -27,15 +26,18 @@ class SubscriptionPageConfigController(BaseController):
     @post("/subscription-page-configs", response_class=CreateSubscriptionPageConfigResponseDto)
     async def create_config(
         self,
-        body: Annotated[CreateSubscriptionPageConfigRequestDto, PydanticBody()],
+        body: Annotated[CreateSubscriptionPageConfigBodyDto, PydanticBody()],
     ) -> CreateSubscriptionPageConfigResponseDto:
-        """Create subscription page config"""
+        """Create subscription page config.
+
+        3.0: отвечает 201 Created, тело ответа сохранено.
+        """
         ...
 
     @patch("/subscription-page-configs", response_class=UpdateSubscriptionPageConfigResponseDto)
     async def update_config(
         self,
-        body: Annotated[UpdateSubscriptionPageConfigRequestDto, PydanticBody()],
+        body: Annotated[UpdateSubscriptionPageConfigBodyDto, PydanticBody()],
     ) -> UpdateSubscriptionPageConfigResponseDto:
         """Update subscription page config"""
         ...
@@ -48,26 +50,35 @@ class SubscriptionPageConfigController(BaseController):
         """Get subscription page config by uuid"""
         ...
 
-    @delete("/subscription-page-configs/{uuid}", response_class=DeleteSubscriptionPageConfigResponseDto)
+    @delete("/subscription-page-configs/{uuid}", response_class=None)
     async def delete_config(
         self,
         uuid: Annotated[str, Path(description="Subscription page config UUID")],
-    ) -> DeleteSubscriptionPageConfigResponseDto:
-        """Delete subscription page config"""
+    ) -> None:
+        """Delete subscription page config.
+
+        3.0: отвечает 204 No Content без тела, поэтому метод возвращает ``None``.
+        """
         ...
 
-    @post("/subscription-page-configs/actions/reorder", response_class=ReorderSubscriptionPageConfigsResponseDto)
+    @post(
+        "/subscription-page-configs/actions/reorder",
+        response_class=ReorderSubscriptionPageConfigsResponseDto,
+    )
     async def reorder_configs(
         self,
-        body: Annotated[ReorderSubscriptionPageConfigsRequestDto, PydanticBody()],
+        body: Annotated[ReorderSubscriptionPageConfigsBodyDto, PydanticBody()],
     ) -> ReorderSubscriptionPageConfigsResponseDto:
         """Reorder subscription page configs"""
         ...
 
-    @post("/subscription-page-configs/actions/clone", response_class=CloneSubscriptionPageConfigResponseDto)
+    @post(
+        "/subscription-page-configs/actions/clone",
+        response_class=CloneSubscriptionPageConfigResponseDto,
+    )
     async def clone_config(
         self,
-        body: Annotated[CloneSubscriptionPageConfigRequestDto, PydanticBody()],
+        body: Annotated[CloneSubscriptionPageConfigBodyDto, PydanticBody()],
     ) -> CloneSubscriptionPageConfigResponseDto:
         """Clone subscription page config"""
         ...

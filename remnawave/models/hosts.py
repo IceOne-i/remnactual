@@ -8,13 +8,16 @@ from remnawave.enums import ALPN, MihomoIpVersion, SecurityLayer, SubscriptionTy
 # Tag for a single host tag entry: uppercase alphanumeric, underscores and colons, max 36 chars
 HostTag = Annotated[str, StringConstraints(max_length=36, pattern=r"^[A-Z0-9_:]+$")]
 
+# `remark` в 3.0 расширен с 40 до 100 символов (CreateHostCommand/UpdateHostCommand)
+HostRemark = Annotated[str, StringConstraints(min_length=1, max_length=100)]
+
 
 class ReorderHostItem(BaseModel):
     view_position: int = Field(serialization_alias="viewPosition")
     uuid: UUID
 
 
-class ReorderHostRequestDto(BaseModel):
+class ReorderHostsBodyDto(BaseModel):
     hosts: List[ReorderHostItem]
 
 
@@ -28,10 +31,10 @@ class CreateHostInboundData(BaseModel):
     config_profile_inbound_uuid: UUID = Field(serialization_alias="configProfileInboundUuid")
 
 
-class UpdateHostRequestDto(BaseModel):
+class UpdateHostBodyDto(BaseModel):
     uuid: UUID
     inbound: Optional[CreateHostInboundData] = None
-    remark: Annotated[Optional[str], StringConstraints(max_length=40)] = None
+    remark: Optional[HostRemark] = None
     address: Optional[str] = None
     port: Optional[int] = None
     path: Optional[str] = None
@@ -152,9 +155,9 @@ class HostResponseDto(BaseModel):
         return self.security_layer == SecurityLayer.NONE
 
 
-class CreateHostRequestDto(BaseModel):
+class CreateHostBodyDto(BaseModel):
     inbound: CreateHostInboundData
-    remark: Annotated[str, StringConstraints(min_length=1, max_length=40)]
+    remark: HostRemark
     address: str
     port: int
     path: Optional[str] = None
@@ -239,22 +242,13 @@ class CreateHostRequestDto(BaseModel):
         super().__init__(**data)
 
 
-class GetAllHostTagsResponseDto(BaseModel):
+class GetHostsTagsResponseDto(BaseModel):
+    """GET /hosts/tags → 200 `{ "response": { "tags": [...] } }`"""
     tags: List[str]
 
 
-# Response wrappers - обернуты в response
-class CreateHostResponseDto(HostResponseDto):
-    """Create host response"""
-    pass
-
-
-class UpdateHostResponseDto(CreateHostResponseDto):
-    """Update host response"""
-    pass
-
-
-class GetAllHostsResponseDto(RootModel[List[HostResponseDto]]):
+class GetHostsResponseDto(RootModel[List[HostResponseDto]]):
+    """GET /hosts → 200, список хостов."""
     root: List[HostResponseDto]
 
     def __iter__(self):
@@ -262,34 +256,34 @@ class GetAllHostsResponseDto(RootModel[List[HostResponseDto]]):
 
     def __getitem__(self, item):
         return self.root[item]
-    
+
     def __bool__(self):
         """Return True if list is not empty"""
         return bool(self.root)
-    
+
     def __len__(self):
         """Return length of list"""
         return len(self.root)
 
 
-class GetOneHostResponseDto(HostResponseDto):
-    """Get one host response"""
-    pass
-
-
-class ReorderHostResponseDto(BaseModel):
-    """Reorder hosts response"""
+class ReorderHostsResponseDto(BaseModel):
+    """POST /hosts/actions/reorder → 200 `{ "response": { "isUpdated": bool } }`"""
     is_updated: bool = Field(alias="isUpdated", default=True)
 
 
-class DeleteHostResponseDto(BaseModel):
-    """Delete host response"""
-    is_deleted: bool = Field(alias="isDeleted")
-    
-class HostsResponseDto(HostResponseDto):
-    """Host response data with backward compatibility properties"""
-    
-    @property
-    def allow_insecure(self) -> bool:
-        """Backward compatibility property"""
-        return self.security_layer == SecurityLayer.NONE
+# ─────────────────────────────────────────────────────────────────────────────
+# Legacy aliases (имена до 3.0) — импорты продолжают работать
+# ─────────────────────────────────────────────────────────────────────────────
+CreateHostRequestDto = CreateHostBodyDto
+UpdateHostRequestDto = UpdateHostBodyDto
+ReorderHostRequestDto = ReorderHostsBodyDto
+ReorderHostResponseDto = ReorderHostsResponseDto
+GetAllHostsResponseDto = GetHostsResponseDto
+GetAllHostTagsResponseDto = GetHostsTagsResponseDto
+
+# POST /hosts (201), PATCH /hosts (200) и GET /hosts/{uuid} (200) отдают один и тот же
+# `HostResponseSchema`, поэтому отдельных моделей у них больше нет.
+CreateHostResponseDto = HostResponseDto
+UpdateHostResponseDto = HostResponseDto
+GetOneHostResponseDto = HostResponseDto
+HostsResponseDto = HostResponseDto

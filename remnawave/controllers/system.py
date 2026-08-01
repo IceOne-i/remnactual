@@ -1,14 +1,16 @@
 from typing import Annotated, Optional
 
 from rapid_api_client import PydanticBody, Query
-from remnawave.models import (
+from remnawave.models.system import (
     GetBandwidthStatsResponseDto,
     GetNodesStatisticsResponseDto,
     GetStatsResponseDto,
+    GetHttpStatsResponseDto,
     GetNodesMetricsResponseDto,
     GetRemnawaveHealthResponseDto,
+    GetStatsDigestResponseDto,
     GetX25519KeyPairResponseDto,
-    DebugSrrMatcherRequestDto,
+    DebugSrrMatcherBodyDto,
     DebugSrrMatcherResponseDto,
     GetMetadataResponseDto,
     GetRecapResponseDto,
@@ -81,7 +83,7 @@ class SystemController(BaseController):
     @post("/system/testers/srr-matcher", response_class=DebugSrrMatcherResponseDto)
     async def debug_srr_matcher(
         self,
-        body: Annotated[DebugSrrMatcherRequestDto, PydanticBody()],
+        body: Annotated[DebugSrrMatcherBodyDto, PydanticBody()],
     ) -> DebugSrrMatcherResponseDto:
         """Test SRR Matcher"""
         ...
@@ -91,4 +93,28 @@ class SystemController(BaseController):
         self,
     ) -> GetRecapResponseDto:
         """Get Recap"""
+        ...
+
+    @get("/system/stats/digest", response_class=GetStatsDigestResponseDto)
+    async def get_stats_digest(
+        self,
+        start: Annotated[
+            str,
+            Query(description="Start of the range, ISO 8601 datetime with timezone "
+                              "(e.g. 2026-07-15T00:00:00Z). Inclusive."),
+        ],
+        end: Annotated[
+            str,
+            Query(description="End of the range, ISO 8601 datetime with timezone "
+                              "(e.g. 2026-07-16T00:00:00Z). Exclusive."),
+        ],
+    ) -> GetStatsDigestResponseDto:
+        """Get Stats Digest"""
+        ...
+
+    @get("/system/stats/http", response_class=GetHttpStatsResponseDto)
+    async def get_http_stats(
+        self,
+    ) -> GetHttpStatsResponseDto:
+        """Get HTTP Stats"""
         ...

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from remnawave.models._serialization import AlwaysEmitModel
 
@@ -33,7 +33,7 @@ class InternalSquadDto(BaseModel):
     updated_at: datetime = Field(alias="updatedAt")
 
 
-class CreateInternalSquadRequestDto(AlwaysEmitModel):
+class CreateInternalSquadBodyDto(AlwaysEmitModel):
     # `inbounds` обязателен в контракте, поэтому ключ уходит всегда
     __always_emit__ = ("inbounds",)
 
@@ -45,7 +45,7 @@ class CreateInternalSquadResponseDto(InternalSquadDto):
     pass
 
 
-class UpdateInternalSquadRequestDto(BaseModel):
+class UpdateInternalSquadBodyDto(BaseModel):
     uuid: UUID
     # `inbounds` опционален: если ключ отправлен, бэкенд ЗАМЕНЯЕТ набор inbound'ов,
     # поэтому пустой список стирает их все. Не отправляем, если вызывающий не задал.
@@ -57,33 +57,31 @@ class UpdateInternalSquadResponseDto(InternalSquadDto):
     pass
 
 
-class GetAllInternalSquadsResponse(BaseModel):
+class GetInternalSquadsResponse(BaseModel):
     total: float
     internal_squads: List[InternalSquadDto] = Field(alias="internalSquads")
 
 
-class GetAllInternalSquadsResponseDto(GetAllInternalSquadsResponse):
+class GetInternalSquadsResponseDto(GetInternalSquadsResponse):
     pass
 
 
-class GetInternalSquadByUuidResponseDto(InternalSquadDto):
+class GetInternalSquadResponseDto(InternalSquadDto):
     pass
 
 
-class DeleteInternalSquadResponseDto(BaseModel):
-    is_deleted: bool = Field(alias="isDeleted")
+class AddManyUsersToInternalSquadBodyDto(BaseModel):
+    """Тело POST /internal-squads/{uuid}/bulk-actions/add-many-users (3.0)."""
+    model_config = ConfigDict(populate_by_name=True)
+
+    user_ids: List[int] = Field(alias="userIds", min_length=1, max_length=1000)
 
 
-class BulkActionsResponseDto(BaseModel):
-    event_sent: bool = Field(alias="eventSent")
+class DeleteManyUsersFromInternalSquadBodyDto(BaseModel):
+    """Тело DELETE /internal-squads/{uuid}/bulk-actions/remove-many-users (3.0)."""
+    model_config = ConfigDict(populate_by_name=True)
 
-
-class AddUsersToInternalSquadResponseDto(BulkActionsResponseDto):
-    pass
-
-
-class DeleteUsersFromInternalSquadResponseDto(BulkActionsResponseDto):
-    pass
+    user_ids: List[int] = Field(alias="userIds", min_length=1, max_length=1000)
 
 
 class AccessibleNodeDto(BaseModel):
@@ -101,14 +99,27 @@ class GetInternalSquadAccessibleNodesResponseDto(BaseModel):
     accessible_nodes: List[AccessibleNodeDto] = Field(alias="accessibleNodes")
 
 
+# Трафик внутреннего сквада (GET /bandwidth-stats/internal-squads/{uuid}/usage)
+# живёт под префиксом /bandwidth-stats и описан в remnawave/models/bandwidthstats.py.
+
+
 class ReorderInternalSquadItem(BaseModel):
     view_position: int = Field(serialization_alias="viewPosition")
     uuid: UUID
 
 
-class ReorderInternalSquadsRequestDto(BaseModel):
+class ReorderInternalSquadsBodyDto(BaseModel):
     items: List[ReorderInternalSquadItem]
 
 
-class ReorderInternalSquadsResponseDto(GetAllInternalSquadsResponse):
+class ReorderInternalSquadsResponseDto(GetInternalSquadsResponse):
     pass
+
+
+# --- Совместимость с именами 2.8 ------------------------------------------------
+CreateInternalSquadRequestDto = CreateInternalSquadBodyDto
+UpdateInternalSquadRequestDto = UpdateInternalSquadBodyDto
+ReorderInternalSquadsRequestDto = ReorderInternalSquadsBodyDto
+GetAllInternalSquadsResponse = GetInternalSquadsResponse
+GetAllInternalSquadsResponseDto = GetInternalSquadsResponseDto
+GetInternalSquadByUuidResponseDto = GetInternalSquadResponseDto

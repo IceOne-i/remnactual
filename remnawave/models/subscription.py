@@ -180,6 +180,8 @@ class TlsSecurityOptions(BaseModel):
     server_name: Optional[str] = Field(..., alias="serverName")
     ech_config_list: Optional[str] = Field(..., alias="echConfigList")
     ech_force_query: Optional[str] = Field(..., alias="echForceQuery")
+    #: 3.0: новое поле `echSockopt`
+    ech_sockopt: Optional[Any] = Field(None, alias="echSockopt")
 
 
 class RealitySecurityOptions(BaseModel):
@@ -264,7 +266,10 @@ class RawSubscriptionResponse(BaseModel):
 class GetRawSubscriptionByShortUuidResponseDto(RawSubscriptionResponse):
     pass
 
-# Legacy alias for backward compatibility
+# ─────────────────────────────────────────────────────────────────────────────
+# Subscription info (`SubscriptionInfoSchema`)
+# ─────────────────────────────────────────────────────────────────────────────
+
 class UserSubscription(BaseModel):
     short_uuid: str = Field(alias="shortUuid")
     username: str
@@ -281,22 +286,20 @@ class UserSubscription(BaseModel):
     is_active: bool = Field(alias="isActive")
 
 
-class SubscriptionInfoData(BaseModel):
+class SubscriptionInfoDto(BaseModel):
+    """`SubscriptionInfoSchema` контракта 3.0 — общее тело всех ответов о подписке."""
     is_found: bool = Field(alias="isFound")
     user: UserSubscription
     links: List[str]
     ss_conf_links: Dict[str, str] = Field(alias="ssConfLinks")
     subscription_url: str = Field(alias="subscriptionUrl")
+
+
+class SubscriptionInfoData(SubscriptionInfoDto):
     happ: HappCrypto
 
 
-class GetSubscriptionInfoResponseDto(BaseModel):
-    is_found: bool = Field(alias="isFound")
-    user: UserSubscription
-    links: List[str]
-    ss_conf_links: Dict[str, str] = Field(alias="ssConfLinks")
-    subscription_url: str = Field(alias="subscriptionUrl")
-    
+class GetSubscriptionInfoResponseDto(SubscriptionInfoDto):
     @property
     def happ(self) -> HappCrypto:
         """Generate HAPP link on the fly"""
@@ -304,12 +307,9 @@ class GetSubscriptionInfoResponseDto(BaseModel):
         return HappCrypto(crypto_link=crypto_link)
 
 
-class SubscriptionWithoutHapp(BaseModel):
-    is_found: bool = Field(alias="isFound")
-    user: UserSubscription
-    links: List[str]
-    ss_conf_links: Dict[str, str] = Field(alias="ssConfLinks")
-    subscription_url: str = Field(alias="subscriptionUrl")
+class SubscriptionWithoutHapp(SubscriptionInfoDto):
+    """Элемент списка `GET /api/subscriptions`."""
+    pass
 
 
 class GetAllSubscriptionsResponseDto(BaseModel):
@@ -317,23 +317,20 @@ class GetAllSubscriptionsResponseDto(BaseModel):
     total: float
 
 
-class GetSubscriptionByUsernameResponseDto(BaseModel):
-    is_found: bool = Field(alias="isFound")
-    user: UserSubscription
-    links: List[str]
-    ss_conf_links: Dict[str, str] = Field(alias="ssConfLinks")
-    subscription_url: str = Field(alias="subscriptionUrl")
-
-
-class GetSubscriptionByShortUUIDResponseDto(GetSubscriptionByUsernameResponseDto):
+class GetSubscriptionByUsernameResponseDto(SubscriptionInfoDto):
     pass
 
 
-class GetSubscriptionByUUIDResponseDto(GetSubscriptionByUsernameResponseDto):
+class GetSubscriptionByShortUuidProtectedResponseDto(SubscriptionInfoDto):
     pass
 
 
-class GetConnectionKeysByUuidResponseDto(BaseModel):
+class GetSubscriptionByIdResponseDto(SubscriptionInfoDto):
+    """Ответ `GET /api/subscriptions/by-id/{userId}` (3.0, заменил `by-uuid/{uuid}`)."""
+    pass
+
+
+class GetConnectionKeysByUserIdResponseDto(BaseModel):
     enabled_keys: List[str] = Field(alias="enabledKeys")
     hidden_keys: List[str] = Field(alias="hiddenKeys")
     disabled_keys: List[str] = Field(alias="disabledKeys")
@@ -344,5 +341,9 @@ class GetConnectionKeysByUuidResponseDto(BaseModel):
         return self.enabled_keys
 
 
-# Legacy alias for backward compatibility
+# Legacy aliases for backward compatibility
 SubscriptionInfoResponseDto = GetSubscriptionInfoResponseDto
+GetSubscriptionsResponseDto = GetAllSubscriptionsResponseDto
+GetSubscriptionByShortUUIDResponseDto = GetSubscriptionByShortUuidProtectedResponseDto
+GetSubscriptionByUUIDResponseDto = GetSubscriptionByIdResponseDto
+GetConnectionKeysByUuidResponseDto = GetConnectionKeysByUserIdResponseDto

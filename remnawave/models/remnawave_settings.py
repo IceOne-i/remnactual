@@ -31,6 +31,7 @@ class PocketIdOAuth2Settings(BaseModel):
     enabled: bool
     client_id: str | None = Field(alias="clientId")
     client_secret: str | None = Field(alias="clientSecret")
+    frontend_domain: str | None = Field(alias="frontendDomain")
     plain_domain: str | None = Field(alias="plainDomain")
     allowed_emails: List[str] = Field(alias="allowedEmails")
 
@@ -97,6 +98,8 @@ class OAuth2Settings(BaseModel):
 
 class TelegramAuthSettings(BaseModel):
     """Telegram authentication settings"""
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool
     client_id: str | None = Field(alias="clientId")
     client_secret: str | None = Field(alias="clientSecret")
@@ -135,8 +138,8 @@ class GetRemnawaveSettingsResponseDto(RemnawaveSettingsData):
     pass
 
 
-class UpdateRemnawaveSettingsRequestDto(BaseModel):
-    """Update Remnawave settings request"""
+class UpdateRemnawaveSettingsBodyDto(BaseModel):
+    """Update Remnawave settings request body"""
     passkey_settings: Optional[PasskeySettings] = Field(None, serialization_alias="passkeySettings")
     oauth2_settings: Optional[OAuth2Settings] = Field(None, serialization_alias="oauth2Settings")
     password_settings: Optional[PasswordSettings] = Field(None, serialization_alias="passwordSettings")
@@ -150,3 +153,6 @@ class UpdateRemnawaveSettingsResponseDto(RemnawaveSettingsData):
 
 # Backwards-compatible alias (конфликтовал с auth.BrandingSettings)
 BrandingSettings = RemnawaveBrandingSettings
+
+# Legacy alias (имя 2.8)
+UpdateRemnawaveSettingsRequestDto = UpdateRemnawaveSettingsBodyDto

@@ -3,22 +3,19 @@ from typing import Annotated, Optional
 from rapid_api_client import Path, PydanticBody, Query
 
 
-from remnawave.models import (
-    CloneNodePluginRequestDto,
+from remnawave.models.node_plugins import (
+    CloneNodePluginBodyDto,
     CloneNodePluginResponseDto,
-    CreateNodePluginRequestDto,
+    CreateNodePluginBodyDto,
     CreateNodePluginResponseDto,
-    DeleteNodePluginResponseDto,
     GetNodePluginResponseDto,
     GetNodePluginsResponseDto,
     GetTorrentBlockerReportsResponseDto,
     GetTorrentBlockerReportsStatsResponseDto,
-    PluginExecutorRequestDto,
-    PluginExecutorResponseDto,
-    ReorderNodePluginsRequestDto,
+    PluginExecutorBodyDto,
+    ReorderNodePluginsBodyDto,
     ReorderNodePluginsResponseDto,
-    TruncateTorrentBlockerReportsResponseDto,
-    UpdateNodePluginRequestDto,
+    UpdateNodePluginBodyDto,
     UpdateNodePluginResponseDto,
 )
 from remnawave.rapid import BaseController, delete, get, patch, post
@@ -57,11 +54,11 @@ class NodePluginsController(BaseController):
         """Get Torrent Blocker Reports Stats"""
         ...
 
-    @delete("/node-plugins/torrent-blocker/truncate", response_class=TruncateTorrentBlockerReportsResponseDto)
+    @delete("/node-plugins/torrent-blocker/truncate", response_class=None)
     async def truncate_torrent_blocker_reports(
         self,
-    ) -> TruncateTorrentBlockerReportsResponseDto:
-        """Truncate Torrent Blocker Reports"""
+    ) -> None:
+        """Truncate Torrent Blocker Reports (204 No Content)"""
         ...
 
     @get("/node-plugins", response_class=GetNodePluginsResponseDto)
@@ -72,7 +69,7 @@ class NodePluginsController(BaseController):
     @patch("/node-plugins", response_class=UpdateNodePluginResponseDto)
     async def update_node_plugin(
         self,
-        body: Annotated[UpdateNodePluginRequestDto, PydanticBody()],
+        body: Annotated[UpdateNodePluginBodyDto, PydanticBody()],
     ) -> UpdateNodePluginResponseDto:
         """Update Node Plugin"""
         ...
@@ -80,9 +77,9 @@ class NodePluginsController(BaseController):
     @post("/node-plugins", response_class=CreateNodePluginResponseDto)
     async def create_node_plugin(
         self,
-        body: Annotated[CreateNodePluginRequestDto, PydanticBody()],
+        body: Annotated[CreateNodePluginBodyDto, PydanticBody()],
     ) -> CreateNodePluginResponseDto:
-        """Create Node Plugin"""
+        """Create Node Plugin (201 Created)"""
         ...
 
     @get("/node-plugins/{uuid}", response_class=GetNodePluginResponseDto)
@@ -93,18 +90,18 @@ class NodePluginsController(BaseController):
         """Get Node Plugin by uuid"""
         ...
 
-    @delete("/node-plugins/{uuid}", response_class=DeleteNodePluginResponseDto)
+    @delete("/node-plugins/{uuid}", response_class=None)
     async def delete_node_plugin(
         self,
         uuid: Annotated[str, Path(description="Node plugin UUID")],
-    ) -> DeleteNodePluginResponseDto:
-        """Delete Node Plugin"""
+    ) -> None:
+        """Delete Node Plugin (204 No Content)"""
         ...
 
     @post("/node-plugins/actions/reorder", response_class=ReorderNodePluginsResponseDto)
     async def reorder_node_plugins(
         self,
-        body: Annotated[ReorderNodePluginsRequestDto, PydanticBody()],
+        body: Annotated[ReorderNodePluginsBodyDto, PydanticBody()],
     ) -> ReorderNodePluginsResponseDto:
         """Reorder Node Plugins"""
         ...
@@ -112,15 +109,15 @@ class NodePluginsController(BaseController):
     @post("/node-plugins/actions/clone", response_class=CloneNodePluginResponseDto)
     async def clone_node_plugin(
         self,
-        body: Annotated[CloneNodePluginRequestDto, PydanticBody()],
+        body: Annotated[CloneNodePluginBodyDto, PydanticBody()],
     ) -> CloneNodePluginResponseDto:
         """Clone Node Plugin"""
         ...
 
-    @post("/node-plugins/executor", response_class=PluginExecutorResponseDto)
+    @post("/node-plugins/executor", response_class=None)
     async def plugin_executor(
         self,
-        body: Annotated[PluginExecutorRequestDto, PydanticBody()],
-    ) -> PluginExecutorResponseDto:
-        """Execute command on node plugins"""
+        body: Annotated[PluginExecutorBodyDto, PydanticBody()],
+    ) -> None:
+        """Execute command on node plugins (202 Accepted)"""
         ...

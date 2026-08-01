@@ -2,7 +2,7 @@ from typing import Annotated, Optional
 
 from rapid_api_client import Query
 
-from remnawave.models import (
+from remnawave.models.subscription_request_history import (
     GetAllSubscriptionRequestHistoryResponseDto,
     GetSubscriptionRequestHistoryStatsResponseDto,
 )

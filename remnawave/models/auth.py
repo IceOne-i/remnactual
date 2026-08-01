@@ -48,12 +48,12 @@ class GetStatusResponseDto(BaseModel):
     branding: BrandingSettings
 
 
-class LoginRequestDto(BaseModel):
+class LoginBodyDto(BaseModel):
     username: str
     password: str
 
 
-class RegisterRequestDto(BaseModel):
+class RegisterBodyDto(BaseModel):
     username: str
     password: Annotated[str, StringConstraints(min_length=24)]
 
@@ -84,7 +84,7 @@ class TelegramCallbackResponseDto(AuthTokenResponseData):
 
 
 # OAuth2 Authorization models
-class OAuth2AuthorizeRequestDto(BaseModel):
+class OAuth2AuthorizeBodyDto(BaseModel):
     """Request to initiate OAuth2 authorization"""
     provider: OAuth2Provider
 
@@ -95,7 +95,7 @@ class OAuth2AuthorizeResponseDto(BaseModel):
 
 
 # OAuth2 Callback models
-class OAuth2CallbackRequestDto(BaseModel):
+class OAuth2CallbackBodyDto(BaseModel):
     """Request for OAuth2 callback"""
     provider: OAuth2Provider
     code: str
@@ -117,7 +117,7 @@ class GetPasskeyAuthenticationOptionsResponseDto(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
-class VerifyPasskeyAuthenticationRequestDto(BaseModel):
+class VerifyPasskeyAuthenticationBodyDto(BaseModel):
     """Request to verify passkey authentication"""
     # Passkey authentication response is complex WebAuthn object
     response: Dict[str, Any]
@@ -127,6 +127,15 @@ class VerifyPasskeyAuthenticationResponseDto(BaseModel):
     """Response with access token after successful passkey authentication"""
     access_token: str = Field(alias="accessToken")
 
-# Legacy alias for backward compatibility
+
+# ---------------- BACKWARDS-COMPATIBLE ALIASES ---------------- #
+# 3.0 переименовал тела запросов *RequestDto -> *BodyDto.
+LoginRequestDto = LoginBodyDto
+RegisterRequestDto = RegisterBodyDto
+OAuth2AuthorizeRequestDto = OAuth2AuthorizeBodyDto
+OAuth2CallbackRequestDto = OAuth2CallbackBodyDto
+VerifyPasskeyAuthenticationRequestDto = VerifyPasskeyAuthenticationBodyDto
+
+# Legacy aliases (v2.8 и раньше)
 StatusResponseDto = GetStatusResponseDto
 LoginTelegramRequestDto = TelegramCallbackRequestDto
