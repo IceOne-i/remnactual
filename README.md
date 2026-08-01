@@ -242,23 +242,28 @@ left behind.
 
 ## Development
 
+The project is managed with [uv](https://docs.astral.sh/uv/) — there is no lock file, because
+a library should resolve against whatever its consumers already have.
+
 ```bash
-pip install -e .
-pip install pytest pytest-asyncio pytest-mock python-dotenv pytz
+uv sync --group dev
 
 # offline tests (3.0 contract regressions, models, enums, controller surface)
-pytest tests/test_3_0_compliance.py tests/test_models_validation.py \
-       tests/test_enums.py tests/test_controllers_completeness.py
+uv run pytest tests/test_3_0_compliance.py tests/test_models_validation.py \
+              tests/test_enums.py tests/test_controllers_completeness.py
 
 # full suite — requires a live panel
 #   REMNAWAVE_BASE_URL, REMNAWAVE_TOKEN and the REMNAWAVE_* fixtures in tests/conftest.py
-pytest
+uv run pytest
+
+# build locally — the version comes from the git tag
+uv build
 ```
 
 ## Releasing
 
 The version lives in exactly one place: **the git tag**. `pyproject.toml` carries no version
-number — `poetry-dynamic-versioning` derives it from `git describe` at build time, so a release
+number — `hatch-vcs` derives it from `git describe` at build time, so a release
 is a single action:
 
 ```bash

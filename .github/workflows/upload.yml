@@ -9,6 +9,8 @@ name: Publish Python Package
 #   Workflow name:     upload.yml
 #   Environment name:  pypi
 #
+# Сборка и проверки идут через uv; poetry в проекте не используется.
+#
 # Версия НЕ хранится в репозитории: poetry-dynamic-versioning выводит её из
 # git-тега. Единственное действие для релиза — повесить тег на коммит и запушить.
 # Пуш в ветку без тега публикацию не запускает.
@@ -40,26 +42,19 @@ jobs:
           # поэтому нужны вся история и теги
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12"
-
-      - name: Install build tooling
-        run: python -m pip install --upgrade pip build twine
+          enable-cache: true
 
       - name: Run the offline test suite
         run: |
-          python -m pip install -e .
-          python -m pip install pytest pytest-asyncio pytest-mock python-dotenv pytz
-          python -m pytest -p no:cacheprovider -q \
-            tests/test_3_0_compliance.py tests/test_models_validation.py \
-            tests/test_enums.py tests/test_controllers_completeness.py
+          uv run --group dev pytest -p no:cacheprovider -q             tests/test_3_0_compliance.py tests/test_models_validation.py             tests/test_enums.py tests/test_controllers_completeness.py
 
       - name: Build distributions
-        run: python -m build
+        run: uv build
 
       - name: Validate metadata
-        run: python -m twine check dist/*
+        run: uv run --group dev twine check dist/*
 
       - name: Check that the built version equals the tag
         if: startsWith(github.ref, 'refs/tags/')
