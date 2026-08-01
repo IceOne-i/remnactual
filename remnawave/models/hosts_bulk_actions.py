@@ -38,9 +38,9 @@ class UpdateManyHostsBodyDto(BaseModel):
     shuffle_host: Optional[bool] = Field(None, serialization_alias="shuffleHost")
     mihomo_x25519: Optional[bool] = Field(None, serialization_alias="mihomoX25519")
     mihomo_ip_version: Optional[MihomoIpVersion] = Field(None, serialization_alias="mihomoIpVersion")
-    xhttp_extra_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="xhttpExtraParams")
-    mux_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="muxParams")
-    sockopt_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="sockoptParams")
+    xhttp_extra_params: Optional[Any] = Field(None, serialization_alias="xhttpExtraParams")
+    mux_params: Optional[Any] = Field(None, serialization_alias="muxParams")
+    sockopt_params: Optional[Any] = Field(None, serialization_alias="sockoptParams")
     final_mask: Optional[Any] = Field(None, serialization_alias="finalMask")
     nodes: Optional[List[UUID]] = None
     xray_json_template_uuid: Optional[UUID] = Field(None, serialization_alias="xrayJsonTemplateUuid")

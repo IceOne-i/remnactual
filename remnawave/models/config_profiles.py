@@ -24,7 +24,7 @@ class ConfigProfileDto(BaseModel):
     uuid: UUID
     name: str
     view_position: int = Field(alias="viewPosition")
-    config: Dict[str, Any]
+    config: Any
     inbounds: List[InboundDto]
     nodes: List[NodesProfileDto] = []
     created_at: datetime = Field(alias="createdAt")
@@ -33,7 +33,7 @@ class ConfigProfileDto(BaseModel):
 
 class CreateConfigProfileBodyDto(BaseModel):
     name: Annotated[str, StringConstraints(min_length=2, max_length=30, pattern=r"^[A-Za-z0-9_\s-]+$")]
-    config: Dict[str, Any]
+    config: Any
 
 
 class CreateConfigProfileResponseDto(ConfigProfileDto):

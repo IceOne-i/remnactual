@@ -55,9 +55,9 @@ class UpdateHostBodyDto(BaseModel):
     shuffle_host: Optional[bool] = Field(None, serialization_alias="shuffleHost")
     mihomo_x25519: Optional[bool] = Field(None, serialization_alias="mihomoX25519")
     mihomo_ip_version: Optional[MihomoIpVersion] = Field(None, serialization_alias="mihomoIpVersion")
-    xhttp_extra_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="xhttpExtraParams")
-    mux_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="muxParams")
-    sockopt_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="sockoptParams")
+    xhttp_extra_params: Optional[Any] = Field(None, serialization_alias="xhttpExtraParams")
+    mux_params: Optional[Any] = Field(None, serialization_alias="muxParams")
+    sockopt_params: Optional[Any] = Field(None, serialization_alias="sockoptParams")
     final_mask: Optional[Any] = Field(None, serialization_alias="finalMask")
     nodes: Optional[List[UUID]] = None
     xray_json_template_uuid: Optional[UUID] = Field(None, serialization_alias="xrayJsonTemplateUuid")
@@ -108,9 +108,9 @@ class HostResponseDto(BaseModel):
     host: str | None = Field(alias="host")
     alpn: str | None = Field(alias="alpn")
     fingerprint: str | None = Field(alias="fingerprint")
-    xhttp_extra_params: Dict[str, Any] | None = Field(None, alias="xhttpExtraParams")
-    mux_params: Dict[str, Any] | None = Field(alias="muxParams")
-    sockopt_params: Dict[str, Any] | None = Field(alias="sockoptParams")
+    xhttp_extra_params: Any | None = Field(None, alias="xhttpExtraParams")
+    mux_params: Any | None = Field(alias="muxParams")
+    sockopt_params: Any | None = Field(alias="sockoptParams")
     final_mask: Any | None = Field(None, alias="finalMask")
     inbound: HostInboundData
     server_description: str | None = Field(alias="serverDescription")
@@ -165,9 +165,9 @@ class CreateHostBodyDto(BaseModel):
     host: Optional[str] = None
     alpn: Optional[ALPN] = None
     fingerprint: Optional[str] = None
-    xhttp_extra_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="xhttpExtraParams")
-    mux_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="muxParams")
-    sockopt_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="sockoptParams")
+    xhttp_extra_params: Optional[Any] = Field(None, serialization_alias="xhttpExtraParams")
+    mux_params: Optional[Any] = Field(None, serialization_alias="muxParams")
+    sockopt_params: Optional[Any] = Field(None, serialization_alias="sockoptParams")
     final_mask: Optional[Any] = Field(None, serialization_alias="finalMask")
     server_description: Optional[str] = Field(None, serialization_alias="serverDescription", max_length=30)
     tags: Optional[List[HostTag]] = Field(None, serialization_alias="tags", max_length=10)

@@ -12,55 +12,6 @@ from remnawave.models import (
 )
 from tests.utils import generate_date_range, generate_isoformat_range
 
-@pytest.mark.asyncio
-async def test_legacy_user_usage(remnawave):
-    """Test legacy user usage endpoint (deprecated)"""
-    # Get first user
-    users = await remnawave.users.get_all_users()
-    if not users.users:
-        pytest.skip("No users available for testing")
-    
-    user_uuid = str(users.users[0].uuid)
-    start, end = generate_date_range()
-    
-    user_usage = await remnawave.bandwidthstats.get_user_usage_legacy_stats(
-        uuid=user_uuid,
-        start=start,
-        end=end
-    )
-    assert hasattr(user_usage, 'root')
-    assert isinstance(user_usage.root, list)
-    if user_usage.root:
-        first_item = user_usage.root[0]
-        assert hasattr(first_item, 'user_uuid')
-        assert hasattr(first_item, 'node_uuid')
-
-
-@pytest.mark.asyncio
-async def test_legacy_node_user_usage(remnawave):
-    """Test legacy node user usage endpoint (deprecated)"""
-    # Get first node
-    nodes = await remnawave.nodes.get_all_nodes()
-    if not nodes:
-        pytest.skip("No nodes available for testing")
-    
-    node_uuid = str(nodes[0].uuid)
-    start, end = generate_date_range()
-    
-    node_user_usage = await remnawave.bandwidthstats.get_node_users_usage_legacy_stats(
-        uuid=node_uuid,
-        start=start,
-        end=end
-    )
-    assert hasattr(node_user_usage, 'root')
-    assert isinstance(node_user_usage.root, list)
-    if node_user_usage.root:
-        first_item = node_user_usage.root[0]
-        assert hasattr(first_item, 'user_uuid')
-        assert hasattr(first_item, 'username')
-        assert hasattr(first_item, 'node_uuid')
-        assert hasattr(first_item, 'total')
-    assert len(node_user_usage) >= 0
 
 
 @pytest.mark.asyncio
@@ -124,11 +75,11 @@ async def test_stats_user_usage(remnawave):
     if not users.users:
         pytest.skip("No users available for testing")
     
-    user_uuid = str(users.users[0].uuid)
+    user_id = users.users[0].id
     start, end = generate_date_range()
     
     user_usage = await remnawave.bandwidthstats.get_stats_user_usage(
-        uuid=user_uuid,
+        user_id=user_id,
         start=start,
         end=end,
         top_nodes_limit=5
@@ -147,62 +98,7 @@ async def test_stats_user_usage(remnawave):
     assert isinstance(user_usage.response.series, list)
 
 
-@pytest.mark.asyncio
-async def test_legacy_stats_user_usage(remnawave):
-    """Test legacy stats user usage endpoint"""
-    # Get first user
-    users = await remnawave.users.get_all_users()
-    if not users.users:
-        pytest.skip("No users available for testing")
-    
-    user_uuid = str(users.users[0].uuid)
-    start, end = generate_date_range()
-    
-    legacy_user_usage = await remnawave.bandwidthstats.get_user_usage_legacy_stats(
-        uuid=user_uuid,
-        start=start,
-        end=end
-    )
-    assert legacy_user_usage is None
-    assert hasattr(legacy_user_usage, 'response')
-    assert isinstance(legacy_user_usage.response, list)
-    
-    # Check structure if data exists
-    if legacy_user_usage.response:
-        first_item = legacy_user_usage.response[0]
-        assert hasattr(first_item, 'user_uuid')
-        assert hasattr(first_item, 'node_uuid')
-        assert hasattr(first_item, 'node_name')
-        assert hasattr(first_item, 'total')
 
-
-@pytest.mark.asyncio
-async def test_legacy_stats_nodes_users_usage(remnawave):
-    """Test legacy stats nodes users usage endpoint"""
-    # Get first node
-    nodes = await remnawave.nodes.get_all_nodes()
-    if not nodes:
-        pytest.skip("No nodes available for testing")
-    
-    node_uuid = str(nodes[0].uuid)
-    start, end = generate_date_range()
-    
-    legacy_node_users = await remnawave.bandwidthstats.get_node_users_usage_legacy_stats(
-        uuid=node_uuid,
-        start=start,
-        end=end
-    )
-    assert legacy_node_users is None
-    assert hasattr(legacy_node_users, 'response')
-    assert isinstance(legacy_node_users.response, list)
-    
-    # Check structure if data exists
-    if legacy_node_users.response:
-        first_item = legacy_node_users.response[0]
-        assert hasattr(first_item, 'user_uuid')
-        assert hasattr(first_item, 'username')
-        assert hasattr(first_item, 'node_uuid')
-        assert hasattr(first_item, 'total')
 
 @pytest.mark.asyncio
 async def test_bandwidth_data_structure(remnawave):
@@ -223,3 +119,10 @@ async def test_bandwidth_data_structure(remnawave):
     if stats.response.series:
         for series_item in stats.response.series:
             assert len(series_item.data) == len(stats.response.categories)
+
+
+@pytest.mark.asyncio
+async def test_legacy_endpoints_removed_in_3_0(remnawave):
+    """Обе legacy-ручки bandwidth-stats удалены в 3.0."""
+    for gone in ("get_user_usage_legacy_stats", "get_node_users_usage_legacy_stats"):
+        assert not hasattr(remnawave.bandwidthstats, gone), gone

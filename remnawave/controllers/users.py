@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated, Optional, Union
 
 from rapid_api_client import Path, Query
 from rapid_api_client.annotations import PydanticBody
@@ -87,7 +87,7 @@ class UsersController(BaseController):
             Query(default=None, description="Page size, 1..1000 (default 250)"),
         ] = None,
         cursor: Annotated[
-            Optional[int],
+            Optional[Union[int, str]],
             Query(
                 default=None,
                 description="Cursor from the previous response (nextCursor). Omit on the first request",

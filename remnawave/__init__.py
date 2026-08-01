@@ -9,6 +9,7 @@ from remnawave.controllers import (
     BandWidthStatsController,
     ConfigProfilesController,
     ConnectionsController,
+    IpControlController,
     ExternalSquadsController,
     HWIDUserController,
     HostsBulkActionsController,

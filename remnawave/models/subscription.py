@@ -296,7 +296,8 @@ class SubscriptionInfoDto(BaseModel):
 
 
 class SubscriptionInfoData(SubscriptionInfoDto):
-    happ: HappCrypto
+    """3.0 не отдаёт `happ` в теле — ссылка вычисляется на клиенте."""
+    happ: Optional[HappCrypto] = None
 
 
 class GetSubscriptionInfoResponseDto(SubscriptionInfoDto):

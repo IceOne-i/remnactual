@@ -128,3 +128,7 @@ CreateSubscriptionPageConfigRequestDto = CreateSubscriptionPageConfigBodyDto
 UpdateSubscriptionPageConfigRequestDto = UpdateSubscriptionPageConfigBodyDto
 ReorderSubscriptionPageConfigsRequestDto = ReorderSubscriptionPageConfigsBodyDto
 CloneSubscriptionPageConfigRequestDto = CloneSubscriptionPageConfigBodyDto
+
+
+# Конвенция 3.0: тела запросов называются *BodyDto
+GetSubpageConfigByShortUuidBodyDto = GetSubpageConfigByShortUuidRequestBodyDto

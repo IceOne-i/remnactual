@@ -139,3 +139,8 @@ VerifyPasskeyAuthenticationRequestDto = VerifyPasskeyAuthenticationBodyDto
 # Legacy aliases (v2.8 и раньше)
 StatusResponseDto = GetStatusResponseDto
 LoginTelegramRequestDto = TelegramCallbackRequestDto
+
+
+# Брендинг из GET /api/auth/status; имя BrandingSettings в пакете
+# занято моделью настроек панели.
+AuthBrandingSettings = BrandingSettings

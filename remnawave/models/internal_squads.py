@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, List, Optional
+from typing import Any, Annotated, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
@@ -15,7 +15,7 @@ class InboundsDto(BaseModel):
     network: Optional[str] = None
     security: Optional[str] = None
     port: Optional[float] = None
-    raw_inbound: Optional[dict] = Field(None, alias="rawInbound")
+    raw_inbound: Optional[Any] = Field(None, alias="rawInbound")
 
 
 class InfoDto(BaseModel):

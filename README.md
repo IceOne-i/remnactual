@@ -121,7 +121,7 @@ when missing.
 | `sdk.bandwidthstats` | Per-node and per-user bandwidth stats (incl. legacy endpoints) |
 | `sdk.system` | Stats, digest, HTTP counters, health, metrics, recap, x25519, SRR matcher |
 | `sdk.auth` / `sdk.passkeys` / `sdk.api_tokens_management` | Login, OAuth2, passkeys, scoped API tokens |
-| `sdk.remnawave_settings` / `sdk.snippets` / `sdk.keygen` / `sdk.metadata` | Panel settings, snippets, pubkey, user/node metadata |
+| `sdk.remnawave_settings` / `sdk.snippets` / `sdk.keygen` / `sdk.metadata` | Panel settings, snippets, node secret key, user/node metadata |
 | `sdk.webhook_utility` | Webhook signature validation and payload parsing |
 
 ## Request bodies and `null`
