@@ -9,12 +9,18 @@ name: Publish Python Package
 #   Workflow name:     upload.yml
 #   Environment name:  pypi
 #
-# Релиз: обновить version в pyproject.toml, затем создать GitHub Release с тегом
-# vX.Y.Z (тег обязан совпадать с version — workflow это проверяет).
+# Релиз: обновить version в pyproject.toml, закоммитить, затем повесить на коммит
+# тег vX.Y.Z и запушить его. Всё остальное делает workflow: проверяет, что тег
+# совпадает с version, гоняет тесты, собирает, публикует на PyPI и создаёт
+# GitHub Release. Пуш в ветку без тега публикацию НЕ запускает.
+#
+#   git commit -am "chore: release 3.0.1"
+#   git tag v3.0.1 && git push origin production --follow-tags
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       target:
@@ -40,7 +46,7 @@ jobs:
         run: python -m pip install --upgrade pip build twine
 
       - name: Check that the tag matches the project version
-        if: github.event_name == 'release'
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           version="$(python -c 'import tomllib,pathlib; print(tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"])')"
           tag="${GITHUB_REF_NAME#v}"
@@ -87,7 +93,7 @@ jobs:
 
   publish-pypi:
     needs: build
-    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
+    if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
@@ -98,3 +104,30 @@ jobs:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    # Релиз создаётся только для тега и только после успешной публикации на PyPI.
+    needs: publish-pypi
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            --verify-tag \
+            dist/*

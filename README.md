@@ -255,6 +255,28 @@ pytest tests/test_3_0_compliance.py tests/test_models_validation.py \
 pytest
 ```
 
+## Releasing
+
+Publishing is driven entirely by tags — pushing to a branch never publishes anything.
+
+```bash
+# 1. bump the version
+#    pyproject.toml: version = "3.0.1"
+git commit -am "chore: release 3.0.1"
+
+# 2. tag that commit and push the tag
+git tag v3.0.1
+git push origin production --follow-tags
+```
+
+The `Publish Python Package` workflow then verifies that the tag matches
+`project.version`, runs the offline test suite, builds the wheel and sdist, publishes to
+PyPI via Trusted Publishing (OIDC — no tokens), and finally creates the GitHub Release with
+the artifacts attached. A mismatched tag fails the build before anything is published.
+
+To rehearse without touching PyPI: Actions → *Publish Python Package* → *Run workflow* →
+target `testpypi`.
+
 ## Credits
 
 This SDK is a fork of the official
