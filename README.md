@@ -1,5 +1,22 @@
 # Remnawave Python SDK — fork
 
+[![PyPI](https://img.shields.io/pypi/v/remnactual?logo=pypi&logoColor=white&label=pypi)](https://pypi.org/project/remnactual/)
+[![Python](https://img.shields.io/pypi/pyversions/remnactual?logo=python&logoColor=white)](https://pypi.org/project/remnactual/)
+[![License](https://img.shields.io/github/license/IceOne-i/remnactual?color=44cc11)](https://github.com/IceOne-i/remnactual/blob/production/LICENSE)
+[![Publish](https://img.shields.io/github/actions/workflow/status/IceOne-i/remnactual/upload.yml?logo=githubactions&logoColor=white&label=publish)](https://github.com/IceOne-i/remnactual/actions/workflows/upload.yml)
+[![Fork of remnawave/python-sdk](https://img.shields.io/badge/fork%20of-remnawave%2Fpython--sdk-24292f?logo=github)](https://github.com/remnawave/python-sdk)
+
+[![Remnawave panel](https://img.shields.io/badge/Remnawave%20panel-%E2%89%A5%203.0.0-1f6feb)](https://remna.st)
+[![Backend contract](https://img.shields.io/badge/backend--contract-3.0.0-1f6feb)](https://github.com/remnawave/backend/tree/3.0.0/libs/contract)
+[![Endpoints](https://img.shields.io/badge/endpoints-191-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
+[![Models](https://img.shields.io/badge/models-641-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
+[![API docs](https://img.shields.io/badge/API%20docs-docs.rw-1f6feb)](https://docs.rw/api)
+
+[![Pydantic v2](https://img.shields.io/badge/pydantic-v2-e92063?logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
+[![httpx](https://img.shields.io/badge/httpx-async-0e7c86)](https://www.python-httpx.org/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+
 Asynchronous Python client for the **[Remnawave](https://remna.st)** panel API, built on
 `httpx` + `pydantic` v2, with `orjson` for fast serialization.
 
@@ -41,10 +58,10 @@ The import name stays `remnawave`:
 from remnawave import RemnawaveSDK
 ```
 
-A specific branch straight from git:
+Straight from git:
 
 ```bash
-pip install "git+https://github.com/IceOne-i/remnactual.git@feat/api-3.0"
+pip install "git+https://github.com/IceOne-i/remnactual.git@production"
 ```
 
 ## Quick start

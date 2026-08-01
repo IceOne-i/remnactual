@@ -236,6 +236,30 @@ class TestPackageSurface:
         assert models.InfraProviderDto.__module__ == "remnawave.models.infra_billing"
         assert models.UserTrafficDto.__module__ == "remnawave.models.users"
 
+    def test_readme_badges_state_the_real_numbers(self):
+        """The README's `endpoints` / `models` badges are hardcoded — keep them honest."""
+        readme = (REPO / "README.md").read_text(encoding="utf-8")
+
+        def badge(label):
+            m = re.search(rf"img\.shields\.io/badge/{label}-(\d+)-", readme)
+            assert m, f"the {label!r} badge is missing from the README"
+            return int(m.group(1))
+
+        endpoints = 0
+        for py in (REPO / "remnawave" / "controllers").glob("*.py"):
+            tree = ast.parse(py.read_text(encoding="utf-8"))
+            for fn in ast.walk(tree):
+                if not isinstance(fn, (ast.AsyncFunctionDef, ast.FunctionDef)):
+                    continue
+                for dec in fn.decorator_list:
+                    node = dec.func if isinstance(dec, ast.Call) else dec
+                    name = getattr(node, "id", None) or getattr(node, "attr", "")
+                    if name in ("get", "post", "put", "patch", "delete"):
+                        endpoints += 1
+
+        assert badge("endpoints") == endpoints
+        assert badge("models") == len(models.__all__)
+
     def test_legacy_request_dto_aliases_still_import(self):
         """Renaming *RequestDto -> *BodyDto kept backwards-compatible aliases."""
         from remnawave.models.users import CreateUserBodyDto
