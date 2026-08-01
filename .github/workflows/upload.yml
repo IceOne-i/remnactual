@@ -11,7 +11,7 @@ name: Publish Python Package
 #
 # Сборка и проверки идут через uv; poetry в проекте не используется.
 #
-# Версия НЕ хранится в репозитории: poetry-dynamic-versioning выводит её из
+# Версия НЕ хранится в репозитории: hatch-vcs выводит её из
 # git-тега. Единственное действие для релиза — повесить тег на коммит и запушить.
 # Пуш в ветку без тега публикацию не запускает.
 #
@@ -38,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # poetry-dynamic-versioning выводит версию через git describe,
+          # hatch-vcs выводит версию через git describe,
           # поэтому нужны вся история и теги
           fetch-depth: 0
 
