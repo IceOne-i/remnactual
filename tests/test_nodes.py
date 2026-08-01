@@ -65,8 +65,6 @@ async def test_nodes(remnawave):
 
     reset_traffic = await remnawave.nodes.reset_node_traffic(uuid=string_uuid)
     assert reset_traffic is None
-    assert reset_traffic.event_sent is True
 
     delete_node = await remnawave.nodes.delete_node(uuid=string_uuid)
     assert delete_node is None
-    assert delete_node.is_deleted is True

@@ -87,7 +87,6 @@ async def test_subscription_page_config_full_workflow(remnawave):
         str(cloned_config.uuid)
     )
     assert delete_response is None
-    assert delete_response.is_deleted is True
     
     # Delete original config
     delete_response = await remnawave.subscription_page_config.delete_config(config_uuid)

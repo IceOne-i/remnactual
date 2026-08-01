@@ -148,4 +148,3 @@ async def test_config_profiles(remnawave) -> None:
     # Test delete config profile
     delete_profile = await remnawave.config_profiles.delete_config_profile_by_uuid(profile_uuid)
     assert delete_profile is None
-    assert delete_profile.is_deleted is True

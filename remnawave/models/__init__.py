@@ -699,7 +699,14 @@ from .webhook import (
     WebhookUserTrafficDto,
 )
 
+# Исторические реэкспорты: эти имена были доступны из remnawave.models в 2.8
+from remnawave.enums import SubscriptionType, TemplateType
+from .nodes import NodeNetworkInterfaceDto as NodeSystemInterfaceDto
+
 __all__ = [
+    "NodeSystemInterfaceDto",
+    "SubscriptionType",
+    "TemplateType",
     "AccessibleNodeDto",
     "ActivateAllInboundsResponseDto",
     "ActiveInternalSquadDto",

@@ -172,15 +172,27 @@ class TestRenamedFields:
 # --------------------------------------------------------------------------- #
 
 class TestScopesAndErrorCodes:
-    def test_scope_families_cover_every_controller(self):
-        """Every resource that has a controller must have :*, :read and :write scopes."""
+    def test_scope_enum_matches_the_grantable_catalog(self):
+        """Set equality against the catalog the panel actually accepts.
+
+        The grantable catalog is built by `ScopeCatalogService` from controllers decorated
+        with `@ApiScopeResource` only — `auth`, `passkeys`, `api-tokens`, `remnawave-settings`
+        and the public `subscription` controller are NOT in it, so inventing scopes for them
+        makes `POST /api/tokens` fail. The fixture is derived from the 3.0 contract.
+        """
+        import json
+
         from remnawave.enums import Scope
 
-        values = {s.value for s in Scope}
-        resources = {v.split(":", 1)[0] for v in values if ":" in v}
-        for resource in resources:
-            for suffix in ("*", "read", "write"):
-                assert f"{resource}:{suffix}" in values, f"{resource}:{suffix}"
+        fixture = json.loads(
+            (pathlib.Path(__file__).parent / "fixtures" / "scopes_3.0.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        expected = set(fixture["scopes"])
+        actual = {s.value for s in Scope}
+        assert actual - expected == set(), f"scopes the panel would reject: {sorted(actual - expected)}"
+        assert expected - actual == set(), f"scopes missing from the enum: {sorted(expected - actual)}"
 
     def test_connections_scopes_replaced_ip_control(self):
         from remnawave.enums import Scope
@@ -188,14 +200,6 @@ class TestScopesAndErrorCodes:
         values = {s.value for s in Scope}
         assert "connections:*" in values
         assert not any(v.startswith("ip-control:") for v in values)
-
-    def test_auth_side_scopes_present(self):
-        """Families the 3.0 migration must not have lost."""
-        from remnawave.enums import Scope
-
-        values = {s.value for s in Scope}
-        for resource in ("api-tokens", "auth", "passkeys", "remnawave-settings", "subscription"):
-            assert f"{resource}:*" in values, resource
 
     def test_error_codes_have_status_and_message(self):
         from remnawave.enums import ErrorCode
