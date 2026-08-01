@@ -257,22 +257,27 @@ pytest
 
 ## Releasing
 
-Publishing is driven entirely by tags — pushing to a branch never publishes anything.
+The version lives in exactly one place: **the git tag**. `pyproject.toml` carries no version
+number — `poetry-dynamic-versioning` derives it from `git describe` at build time, so a release
+is a single action:
 
 ```bash
-# 1. bump the version
-#    pyproject.toml: version = "3.0.1"
-git commit -am "chore: release 3.0.1"
-
-# 2. tag that commit and push the tag
 git tag v3.0.1
-git push origin production --follow-tags
+git push origin v3.0.1
 ```
 
-The `Publish Python Package` workflow then verifies that the tag matches
-`project.version`, runs the offline test suite, builds the wheel and sdist, publishes to
-PyPI via Trusted Publishing (OIDC — no tokens), and finally creates the GitHub Release with
-the artifacts attached. A mismatched tag fails the build before anything is published.
+Pushing to a branch never publishes anything. The `Publish Python Package` workflow then builds
+the wheel and sdist (their version comes straight from the tag), runs the offline test suite,
+asserts that the built version equals the tag, publishes to PyPI via Trusted Publishing
+(OIDC — no tokens), and finally creates the GitHub Release with the artifacts attached.
+
+Between tags the version is a PEP 440 development version derived from the last tag, e.g.
+`3.0.1.post7.dev0+g1a2b3c4`, and `remnawave.__version__` reports whatever was installed:
+
+```python
+import remnawave
+print(remnawave.__version__)
+```
 
 To rehearse without touching PyPI: Actions → *Publish Python Package* → *Run workflow* →
 target `testpypi`.

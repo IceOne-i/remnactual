@@ -9,13 +9,11 @@ name: Publish Python Package
 #   Workflow name:     upload.yml
 #   Environment name:  pypi
 #
-# Релиз: обновить version в pyproject.toml, закоммитить, затем повесить на коммит
-# тег vX.Y.Z и запушить его. Всё остальное делает workflow: проверяет, что тег
-# совпадает с version, гоняет тесты, собирает, публикует на PyPI и создаёт
-# GitHub Release. Пуш в ветку без тега публикацию НЕ запускает.
+# Версия НЕ хранится в репозитории: poetry-dynamic-versioning выводит её из
+# git-тега. Единственное действие для релиза — повесить тег на коммит и запушить.
+# Пуш в ветку без тега публикацию не запускает.
 #
-#   git commit -am "chore: release 3.0.1"
-#   git tag v3.0.1 && git push origin production --follow-tags
+#   git tag v3.0.1 && git push origin v3.0.1
 
 on:
   push:
@@ -37,6 +35,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # poetry-dynamic-versioning выводит версию через git describe,
+          # поэтому нужны вся история и теги
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -44,17 +46,6 @@ jobs:
 
       - name: Install build tooling
         run: python -m pip install --upgrade pip build twine
-
-      - name: Check that the tag matches the project version
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          version="$(python -c 'import tomllib,pathlib; print(tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"])')"
-          tag="${GITHUB_REF_NAME#v}"
-          echo "pyproject version: $version | tag: $tag"
-          if [ "$version" != "$tag" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match pyproject version $version"
-            exit 1
-          fi
 
       - name: Run the offline test suite
         run: |
@@ -69,6 +60,18 @@ jobs:
 
       - name: Validate metadata
         run: python -m twine check dist/*
+
+      - name: Check that the built version equals the tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          built="$(ls dist/*.tar.gz | sed -E 's#.*/remnactual-(.+)\.tar\.gz#\1#')"
+          echo "tag: $tag | built: $built"
+          if [ "$built" != "$tag" ]; then
+            echo "::error::Built version $built does not match tag $GITHUB_REF_NAME."
+            echo "::error::A dev-suffixed version means the tag was not visible to git describe."
+            exit 1
+          fi
 
       - uses: actions/upload-artifact@v4
         with:

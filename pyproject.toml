@@ -1,6 +1,6 @@
 [project]
 name = "remnactual"
-version = "3.0.0"
+dynamic = ["version"]
 description = "A Python SDK for interacting with the Remnawave API v3.x."
 license = { text = "MIT" }
 readme = "README.md"
@@ -52,8 +52,17 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry]
+# Заглушка: реальная версия подставляется poetry-dynamic-versioning из git-тега
 packages = [{ include = "remnawave" }]
+version = "0.0.0"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+# теги вида v3.0.1 и 3.0.1 оба поддерживаются
+pattern = "default"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=2.0.0,<3.0.0", "poetry-dynamic-versioning>=1.4.0,<2.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"

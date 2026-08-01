@@ -1,7 +1,15 @@
 import logging
+from importlib.metadata import PackageNotFoundError, version as _distribution_version
 from typing import Optional
 
 import httpx
+
+try:
+    # Версия берётся из метаданных установленного дистрибутива; сам он собирается
+    # из git-тега (poetry-dynamic-versioning), в исходниках версии нет.
+    __version__ = _distribution_version("remnactual")
+except PackageNotFoundError:  # запуск из репозитория без установки
+    __version__ = "0.0.0.dev0"
 
 from remnawave.controllers import (
     APITokensManagementController,
