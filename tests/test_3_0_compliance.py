@@ -171,6 +171,55 @@ class TestRenamedFields:
 # Package surface
 # --------------------------------------------------------------------------- #
 
+class TestScopesAndErrorCodes:
+    def test_scope_families_cover_every_controller(self):
+        """Every resource that has a controller must have :*, :read and :write scopes."""
+        from remnawave.enums import Scope
+
+        values = {s.value for s in Scope}
+        resources = {v.split(":", 1)[0] for v in values if ":" in v}
+        for resource in resources:
+            for suffix in ("*", "read", "write"):
+                assert f"{resource}:{suffix}" in values, f"{resource}:{suffix}"
+
+    def test_connections_scopes_replaced_ip_control(self):
+        from remnawave.enums import Scope
+
+        values = {s.value for s in Scope}
+        assert "connections:*" in values
+        assert not any(v.startswith("ip-control:") for v in values)
+
+    def test_auth_side_scopes_present(self):
+        """Families the 3.0 migration must not have lost."""
+        from remnawave.enums import Scope
+
+        values = {s.value for s in Scope}
+        for resource in ("api-tokens", "auth", "passkeys", "remnawave-settings", "subscription"):
+            assert f"{resource}:*" in values, resource
+
+    def test_error_codes_have_status_and_message(self):
+        from remnawave.enums import ErrorCode
+        from remnawave.enums.error_code import ERROR_HTTP_CODES, ERROR_MESSAGES
+
+        for member in ErrorCode:
+            assert member.value in ERROR_HTTP_CODES
+            assert member.value in ERROR_MESSAGES
+
+    def test_new_3_0_error_codes(self):
+        from remnawave.enums import ErrorCode
+
+        for name in (
+            "GET_STATS_DIGEST_ERROR",
+            "GET_INTERNAL_SQUAD_USAGE_ERROR",
+            "ADD_MANY_USERS_TO_INTERNAL_SQUAD_ERROR",
+            "REMOVE_MANY_USERS_FROM_INTERNAL_SQUAD_ERROR",
+        ):
+            assert hasattr(ErrorCode, name), name
+        # 3.0 исправил опечатку REMNAAWAVE -> REMNAWAVE
+        assert hasattr(ErrorCode, "GET_REMNAWAVE_SETTINGS_ERROR")
+        assert not hasattr(ErrorCode, "GET_REMNAAWAVE_SETTINGS_ERROR")
+
+
 class TestPackageSurface:
     def test_all_exports_resolve(self):
         assert [n for n in models.__all__ if not hasattr(models, n)] == []

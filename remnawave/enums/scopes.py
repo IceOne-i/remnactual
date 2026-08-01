@@ -280,3 +280,48 @@ class Scope(StrEnum):
     METADATA_UPSERT_USER = "metadata:upsert-user"
     METADATA_GET_NODE = "metadata:get-node"
     METADATA_UPSERT_NODE = "metadata:upsert-node"
+
+    # API Tokens
+    API_TOKENS_ALL = "api-tokens:*"
+    API_TOKENS_READ = "api-tokens:read"
+    API_TOKENS_WRITE = "api-tokens:write"
+    API_TOKENS_CREATE = "api-tokens:create"
+    API_TOKENS_DELETE = "api-tokens:delete"
+    API_TOKENS_LIST_SCOPES = "api-tokens:list-scopes"
+    API_TOKENS_LIST = "api-tokens:list"
+    API_TOKENS_OTT = "api-tokens:ott"
+
+    # Auth
+    AUTH_ALL = "auth:*"
+    AUTH_READ = "auth:read"
+    AUTH_WRITE = "auth:write"
+    AUTH_LOGIN = "auth:login"
+    AUTH_REGISTER = "auth:register"
+    AUTH_GET_STATUS = "auth:get-status"
+    AUTH_AUTHORIZE = "auth:authorize"
+    AUTH_CALLBACK = "auth:callback"
+    AUTH_GET_AUTHENTICATION_OPTIONS = "auth:get-authentication-options"
+    AUTH_VERIFY_AUTHENTICATION = "auth:verify-authentication"
+
+    # Passkeys
+    PASSKEYS_ALL = "passkeys:*"
+    PASSKEYS_READ = "passkeys:read"
+    PASSKEYS_WRITE = "passkeys:write"
+    PASSKEYS_REGISTRATION_OPTIONS = "passkeys:registration-options"
+    PASSKEYS_VERIFY_REGISTRATION = "passkeys:verify-registration"
+    PASSKEYS_LIST = "passkeys:list"
+    PASSKEYS_DELETE = "passkeys:delete"
+    PASSKEYS_UPDATE = "passkeys:update"
+
+    # Remnawave Settings
+    REMNAWAVE_SETTINGS_ALL = "remnawave-settings:*"
+    REMNAWAVE_SETTINGS_READ = "remnawave-settings:read"
+    REMNAWAVE_SETTINGS_WRITE = "remnawave-settings:write"
+    REMNAWAVE_SETTINGS_GET = "remnawave-settings:get"
+    REMNAWAVE_SETTINGS_UPDATE = "remnawave-settings:update"
+
+    # Subscription (public)
+    SUBSCRIPTION_ALL = "subscription:*"
+    SUBSCRIPTION_READ = "subscription:read"
+    SUBSCRIPTION_WRITE = "subscription:write"
+    SUBSCRIPTION_GET = "subscription:get"
