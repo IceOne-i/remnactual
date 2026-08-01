@@ -4,31 +4,31 @@ from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
 from remnawave.models import (
-    CreateConfigProfileRequestDto,
+    CreateConfigProfileBodyDto,
     CreateConfigProfileResponseDto,
-    DeleteConfigProfileResponseDto,
-    GetAllConfigProfilesResponseDto,
     GetAllInboundsResponseDto,
+    GetComputedConfigProfileByUuidResponseDto,
     GetConfigProfileByUuidResponseDto,
+    GetConfigProfilesResponseDto,
     GetInboundsByProfileUuidResponseDto,
-    ReorderConfigProfilesRequestDto,
+    ReorderConfigProfilesBodyDto,
     ReorderConfigProfilesResponseDto,
-    UpdateConfigProfileRequestDto,
+    UpdateConfigProfileBodyDto,
     UpdateConfigProfileResponseDto,
 )
 from remnawave.rapid import BaseController, delete, get, patch, post
 
 
 class ConfigProfilesController(BaseController):
-    @get("/config-profiles", response_class=GetAllConfigProfilesResponseDto)
-    async def get_config_profiles(self) -> GetAllConfigProfilesResponseDto:
+    @get("/config-profiles", response_class=GetConfigProfilesResponseDto)
+    async def get_config_profiles(self) -> GetConfigProfilesResponseDto:
         """Get config profiles"""
         ...
 
     @post("/config-profiles", response_class=CreateConfigProfileResponseDto)
     async def create_config_profile(
         self,
-        body: Annotated[CreateConfigProfileRequestDto, PydanticBody()],
+        body: Annotated[CreateConfigProfileBodyDto, PydanticBody()],
     ) -> CreateConfigProfileResponseDto:
         """Create config profile"""
         ...
@@ -36,7 +36,7 @@ class ConfigProfilesController(BaseController):
     @patch("/config-profiles", response_class=UpdateConfigProfileResponseDto)
     async def update_config_profile(
         self,
-        body: Annotated[UpdateConfigProfileRequestDto, PydanticBody()],
+        body: Annotated[UpdateConfigProfileBodyDto, PydanticBody()],
     ) -> UpdateConfigProfileResponseDto:
         """Update Core Config in specific config profile"""
         ...
@@ -62,27 +62,33 @@ class ConfigProfilesController(BaseController):
         """Get config profile by uuid"""
         ...
 
-    @delete("/config-profiles/{uuid}", response_class=DeleteConfigProfileResponseDto)
+    @delete("/config-profiles/{uuid}", response_class=None)
     async def delete_config_profile_by_uuid(
         self,
         uuid: Annotated[str, Path(description="UUID of the config profile")],
-    ) -> DeleteConfigProfileResponseDto:
-        """Delete config profile"""
+    ) -> None:
+        """Delete config profile
+
+        Отвечает ``204 No Content`` с пустым телом — метод возвращает ``None``.
+        """
         ...
 
     @post("/config-profiles/actions/reorder", response_class=ReorderConfigProfilesResponseDto)
     async def reorder_config_profiles(
         self,
-        body: Annotated[ReorderConfigProfilesRequestDto, PydanticBody()],
+        body: Annotated[ReorderConfigProfilesBodyDto, PydanticBody()],
     ) -> ReorderConfigProfilesResponseDto:
         """Reorder config profiles"""
         ...
 
     # Get computed config profile by uuid​
-    @get("/config-profiles/{uuid}/computed-config", response_class=GetConfigProfileByUuidResponseDto)
+    @get(
+        "/config-profiles/{uuid}/computed-config",
+        response_class=GetComputedConfigProfileByUuidResponseDto,
+    )
     async def get_computed_config_profile_by_uuid(
         self,
         uuid: Annotated[str, Path(description="UUID of the config profile")],
-    ) -> GetConfigProfileByUuidResponseDto:
+    ) -> GetComputedConfigProfileByUuidResponseDto:
         """Get computed config profile by uuid"""
         ...

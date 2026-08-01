@@ -8,13 +8,16 @@ from remnawave.enums import ALPN, MihomoIpVersion, SecurityLayer, SubscriptionTy
 # Tag for a single host tag entry: uppercase alphanumeric, underscores and colons, max 36 chars
 HostTag = Annotated[str, StringConstraints(max_length=36, pattern=r"^[A-Z0-9_:]+$")]
 
+# `remark` в 3.0 расширен с 40 до 100 символов (CreateHostCommand/UpdateHostCommand)
+HostRemark = Annotated[str, StringConstraints(min_length=1, max_length=100)]
+
 
 class ReorderHostItem(BaseModel):
     view_position: int = Field(serialization_alias="viewPosition")
     uuid: UUID
 
 
-class ReorderHostRequestDto(BaseModel):
+class ReorderHostsBodyDto(BaseModel):
     hosts: List[ReorderHostItem]
 
 
@@ -28,10 +31,10 @@ class CreateHostInboundData(BaseModel):
     config_profile_inbound_uuid: UUID = Field(serialization_alias="configProfileInboundUuid")
 
 
-class UpdateHostRequestDto(BaseModel):
+class UpdateHostBodyDto(BaseModel):
     uuid: UUID
     inbound: Optional[CreateHostInboundData] = None
-    remark: Annotated[Optional[str], StringConstraints(max_length=40)] = None
+    remark: Optional[HostRemark] = None
     address: Optional[str] = None
     port: Optional[int] = None
     path: Optional[str] = None
@@ -52,9 +55,9 @@ class UpdateHostRequestDto(BaseModel):
     shuffle_host: Optional[bool] = Field(None, serialization_alias="shuffleHost")
     mihomo_x25519: Optional[bool] = Field(None, serialization_alias="mihomoX25519")
     mihomo_ip_version: Optional[MihomoIpVersion] = Field(None, serialization_alias="mihomoIpVersion")
-    xhttp_extra_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="xhttpExtraParams")
-    mux_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="muxParams")
-    sockopt_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="sockoptParams")
+    xhttp_extra_params: Optional[Any] = Field(None, serialization_alias="xhttpExtraParams")
+    mux_params: Optional[Any] = Field(None, serialization_alias="muxParams")
+    sockopt_params: Optional[Any] = Field(None, serialization_alias="sockoptParams")
     final_mask: Optional[Any] = Field(None, serialization_alias="finalMask")
     nodes: Optional[List[UUID]] = None
     xray_json_template_uuid: Optional[UUID] = Field(None, serialization_alias="xrayJsonTemplateUuid")
@@ -105,9 +108,9 @@ class HostResponseDto(BaseModel):
     host: str | None = Field(alias="host")
     alpn: str | None = Field(alias="alpn")
     fingerprint: str | None = Field(alias="fingerprint")
-    xhttp_extra_params: Dict[str, Any] | None = Field(None, alias="xhttpExtraParams")
-    mux_params: Dict[str, Any] | None = Field(alias="muxParams")
-    sockopt_params: Dict[str, Any] | None = Field(alias="sockoptParams")
+    xhttp_extra_params: Any | None = Field(None, alias="xhttpExtraParams")
+    mux_params: Any | None = Field(alias="muxParams")
+    sockopt_params: Any | None = Field(alias="sockoptParams")
     final_mask: Any | None = Field(None, alias="finalMask")
     inbound: HostInboundData
     server_description: str | None = Field(alias="serverDescription")
@@ -152,9 +155,9 @@ class HostResponseDto(BaseModel):
         return self.security_layer == SecurityLayer.NONE
 
 
-class CreateHostRequestDto(BaseModel):
+class CreateHostBodyDto(BaseModel):
     inbound: CreateHostInboundData
-    remark: Annotated[str, StringConstraints(min_length=1, max_length=40)]
+    remark: HostRemark
     address: str
     port: int
     path: Optional[str] = None
@@ -162,9 +165,9 @@ class CreateHostRequestDto(BaseModel):
     host: Optional[str] = None
     alpn: Optional[ALPN] = None
     fingerprint: Optional[str] = None
-    xhttp_extra_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="xhttpExtraParams")
-    mux_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="muxParams")
-    sockopt_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="sockoptParams")
+    xhttp_extra_params: Optional[Any] = Field(None, serialization_alias="xhttpExtraParams")
+    mux_params: Optional[Any] = Field(None, serialization_alias="muxParams")
+    sockopt_params: Optional[Any] = Field(None, serialization_alias="sockoptParams")
     final_mask: Optional[Any] = Field(None, serialization_alias="finalMask")
     server_description: Optional[str] = Field(None, serialization_alias="serverDescription", max_length=30)
     tags: Optional[List[HostTag]] = Field(None, serialization_alias="tags", max_length=10)
@@ -239,22 +242,13 @@ class CreateHostRequestDto(BaseModel):
         super().__init__(**data)
 
 
-class GetAllHostTagsResponseDto(BaseModel):
+class GetHostsTagsResponseDto(BaseModel):
+    """GET /hosts/tags → 200 `{ "response": { "tags": [...] } }`"""
     tags: List[str]
 
 
-# Response wrappers - обернуты в response
-class CreateHostResponseDto(HostResponseDto):
-    """Create host response"""
-    pass
-
-
-class UpdateHostResponseDto(CreateHostResponseDto):
-    """Update host response"""
-    pass
-
-
-class GetAllHostsResponseDto(RootModel[List[HostResponseDto]]):
+class GetHostsResponseDto(RootModel[List[HostResponseDto]]):
+    """GET /hosts → 200, список хостов."""
     root: List[HostResponseDto]
 
     def __iter__(self):
@@ -262,34 +256,34 @@ class GetAllHostsResponseDto(RootModel[List[HostResponseDto]]):
 
     def __getitem__(self, item):
         return self.root[item]
-    
+
     def __bool__(self):
         """Return True if list is not empty"""
         return bool(self.root)
-    
+
     def __len__(self):
         """Return length of list"""
         return len(self.root)
 
 
-class GetOneHostResponseDto(HostResponseDto):
-    """Get one host response"""
-    pass
-
-
-class ReorderHostResponseDto(BaseModel):
-    """Reorder hosts response"""
+class ReorderHostsResponseDto(BaseModel):
+    """POST /hosts/actions/reorder → 200 `{ "response": { "isUpdated": bool } }`"""
     is_updated: bool = Field(alias="isUpdated", default=True)
 
 
-class DeleteHostResponseDto(BaseModel):
-    """Delete host response"""
-    is_deleted: bool = Field(alias="isDeleted")
-    
-class HostsResponseDto(HostResponseDto):
-    """Host response data with backward compatibility properties"""
-    
-    @property
-    def allow_insecure(self) -> bool:
-        """Backward compatibility property"""
-        return self.security_layer == SecurityLayer.NONE
+# ─────────────────────────────────────────────────────────────────────────────
+# Legacy aliases (имена до 3.0) — импорты продолжают работать
+# ─────────────────────────────────────────────────────────────────────────────
+CreateHostRequestDto = CreateHostBodyDto
+UpdateHostRequestDto = UpdateHostBodyDto
+ReorderHostRequestDto = ReorderHostsBodyDto
+ReorderHostResponseDto = ReorderHostsResponseDto
+GetAllHostsResponseDto = GetHostsResponseDto
+GetAllHostTagsResponseDto = GetHostsTagsResponseDto
+
+# POST /hosts (201), PATCH /hosts (200) и GET /hosts/{uuid} (200) отдают один и тот же
+# `HostResponseSchema`, поэтому отдельных моделей у них больше нет.
+CreateHostResponseDto = HostResponseDto
+UpdateHostResponseDto = HostResponseDto
+GetOneHostResponseDto = HostResponseDto
+HostsResponseDto = HostResponseDto

@@ -2,10 +2,10 @@ from enum import StrEnum
 
 
 class Scope(StrEnum):
-    """API token scopes available in Remnawave API v2.8.0.
+    """API token scopes available in Remnawave API v3.0.0.
 
     Mirrors the catalog returned by ``GET /api/tokens/scopes``. Use these members
-    when creating API tokens, e.g. ``CreateApiTokenRequestDto(scopes=[Scope.USERS_READ])``.
+    when creating API tokens, e.g. ``CreateApiTokenBodyDto(scopes=[Scope.USERS_READ])``.
 
     Coarse scopes per resource: ``<resource>:*`` (``*_ALL``), ``<resource>:read``,
     ``<resource>:write``. Fine-grained per-endpoint scopes are also available.
@@ -26,16 +26,13 @@ class Scope(StrEnum):
     USERS_ACCESSIBLE_NODES = "users:accessible-nodes"
     USERS_SUBSCRIPTION_REQUEST_HISTORY = "users:subscription-request-history"
     USERS_BY_SHORT_UUID = "users:by-short-uuid"
-    USERS_BY_UUID = "users:by-uuid"
     USERS_BY_USERNAME = "users:by-username"
     USERS_BY_ID = "users:by-id"
-    USERS_BY_TELEGRAM_ID = "users:by-telegram-id"
-    USERS_BY_EMAIL = "users:by-email"
-    USERS_BY_TAG = "users:by-tag"
     USERS_REVOKE_SUBSCRIPTION = "users:revoke-subscription"
     USERS_DISABLE = "users:disable"
     USERS_ENABLE = "users:enable"
     USERS_RESET_TRAFFIC = "users:reset-traffic"
+    USERS_EXTEND = "users:extend"
     USERS_RESOLVE = "users:resolve"
     USERS_BULK_DELETE_BY_STATUS = "users:bulk-delete-by-status"
     USERS_BULK_DELETE = "users:bulk-delete"
@@ -67,7 +64,7 @@ class Scope(StrEnum):
     SUBSCRIPTIONS_LIST = "subscriptions:list"
     SUBSCRIPTIONS_BY_USERNAME = "subscriptions:by-username"
     SUBSCRIPTIONS_BY_SHORT_UUID_PROTECTED = "subscriptions:by-short-uuid-protected"
-    SUBSCRIPTIONS_BY_UUID = "subscriptions:by-uuid"
+    SUBSCRIPTIONS_BY_ID = "subscriptions:by-id"
     SUBSCRIPTIONS_RAW = "subscriptions:raw"
     SUBSCRIPTIONS_SUBPAGE_CONFIG = "subscriptions:subpage-config"
     SUBSCRIPTIONS_CONNECTION_KEYS = "subscriptions:connection-keys"
@@ -112,22 +109,23 @@ class Scope(StrEnum):
     BANDWIDTH_STATS_ALL = "bandwidth-stats:*"
     BANDWIDTH_STATS_READ = "bandwidth-stats:read"
     BANDWIDTH_STATS_WRITE = "bandwidth-stats:write"
-    BANDWIDTH_STATS_NODE_USERS_USAGE_LEGACY = "bandwidth-stats:node-users-usage-legacy"
+    BANDWIDTH_STATS_NODE_USAGE = "bandwidth-stats:node-usage"
     BANDWIDTH_STATS_NODE_USERS_USAGE = "bandwidth-stats:node-users-usage"
     BANDWIDTH_STATS_NODES_USERS_USAGE = "bandwidth-stats:nodes-users-usage"
-    BANDWIDTH_STATS_USER_USAGE_LEGACY = "bandwidth-stats:user-usage-legacy"
     BANDWIDTH_STATS_USER_USAGE = "bandwidth-stats:user-usage"
     BANDWIDTH_STATS_NODES_USAGE = "bandwidth-stats:nodes-usage"
+    BANDWIDTH_STATS_INTERNAL_SQUAD_USAGE = "bandwidth-stats:internal-squad-usage"
+    BANDWIDTH_STATS_INTERNAL_SQUAD_USER_USAGE = "bandwidth-stats:internal-squad-user-usage"
 
-    # Ip Control
-    IP_CONTROL_ALL = "ip-control:*"
-    IP_CONTROL_READ = "ip-control:read"
-    IP_CONTROL_WRITE = "ip-control:write"
-    IP_CONTROL_FETCH_IPS = "ip-control:fetch-ips"
-    IP_CONTROL_FETCH_IPS_RESULT = "ip-control:fetch-ips-result"
-    IP_CONTROL_DROP_CONNECTIONS = "ip-control:drop-connections"
-    IP_CONTROL_FETCH_USERS_IPS = "ip-control:fetch-users-ips"
-    IP_CONTROL_FETCH_USERS_IPS_RESULT = "ip-control:fetch-users-ips-result"
+    # Connections (was "ip-control" in v2.8)
+    CONNECTIONS_ALL = "connections:*"
+    CONNECTIONS_READ = "connections:read"
+    CONNECTIONS_WRITE = "connections:write"
+    CONNECTIONS_BY_USER = "connections:by-user"
+    CONNECTIONS_BY_USER_RESULT = "connections:by-user-result"
+    CONNECTIONS_BY_NODE = "connections:by-node"
+    CONNECTIONS_BY_NODE_RESULT = "connections:by-node-result"
+    CONNECTIONS_DROP = "connections:drop"
 
     # Config Profiles
     CONFIG_PROFILES_ALL = "config-profiles:*"
@@ -151,11 +149,14 @@ class Scope(StrEnum):
     INTERNAL_SQUADS_GET = "internal-squads:get"
     INTERNAL_SQUADS_CREATE = "internal-squads:create"
     INTERNAL_SQUADS_ACCESSIBLE_NODES = "internal-squads:accessible-nodes"
+    INTERNAL_SQUADS_INTERNAL_SQUAD_USAGE = "internal-squads:internal-squad-usage"
     INTERNAL_SQUADS_UPDATE = "internal-squads:update"
     INTERNAL_SQUADS_DELETE = "internal-squads:delete"
     INTERNAL_SQUADS_ADD_USERS = "internal-squads:add-users"
     INTERNAL_SQUADS_REMOVE_USERS = "internal-squads:remove-users"
     INTERNAL_SQUADS_REORDER = "internal-squads:reorder"
+    INTERNAL_SQUADS_ADD_MANY_USERS = "internal-squads:add-many-users"
+    INTERNAL_SQUADS_REMOVE_MANY_USERS = "internal-squads:remove-many-users"
 
     # External Squads
     EXTERNAL_SQUADS_ALL = "external-squads:*"
@@ -234,6 +235,8 @@ class Scope(StrEnum):
     SYSTEM_GENERATE_X25519 = "system:generate-x25519"
     SYSTEM_TEST_SRR_MATCHER = "system:test-srr-matcher"
     SYSTEM_RECAP = "system:recap"
+    SYSTEM_DIGEST = "system:digest"
+    SYSTEM_HTTP = "system:http"
 
     # Keygen
     KEYGEN_ALL = "keygen:*"

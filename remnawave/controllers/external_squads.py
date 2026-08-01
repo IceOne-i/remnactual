@@ -3,17 +3,14 @@ from typing import Annotated
 from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
-from remnawave.models import (
-    AddUsersToExternalSquadResponseDto,
-    CreateExternalSquadRequestDto,
+from remnawave.models.external_squads import (
+    CreateExternalSquadBodyDto,
     CreateExternalSquadResponseDto,
-    DeleteExternalSquadResponseDto,
     GetExternalSquadByUuidResponseDto,
     GetExternalSquadsResponseDto,
-    RemoveUsersFromExternalSquadResponseDto,
-    ReorderExternalSquadsRequestDto,
+    ReorderExternalSquadsBodyDto,
     ReorderExternalSquadsResponseDto,
-    UpdateExternalSquadRequestDto,
+    UpdateExternalSquadBodyDto,
     UpdateExternalSquadResponseDto,
 )
 from remnawave.rapid import BaseController, delete, get, patch, post
@@ -30,7 +27,7 @@ class ExternalSquadsController(BaseController):
     @post("/external-squads", response_class=CreateExternalSquadResponseDto)
     async def create_external_squad(
         self,
-        body: Annotated[CreateExternalSquadRequestDto, PydanticBody()],
+        body: Annotated[CreateExternalSquadBodyDto, PydanticBody()],
     ) -> CreateExternalSquadResponseDto:
         """Create external squad"""
         ...
@@ -38,7 +35,7 @@ class ExternalSquadsController(BaseController):
     @patch("/external-squads", response_class=UpdateExternalSquadResponseDto)
     async def update_external_squad(
         self,
-        body: Annotated[UpdateExternalSquadRequestDto, PydanticBody()],
+        body: Annotated[UpdateExternalSquadBodyDto, PydanticBody()],
     ) -> UpdateExternalSquadResponseDto:
         """Update external squad"""
         ...
@@ -51,34 +48,34 @@ class ExternalSquadsController(BaseController):
         """Get external squad by uuid"""
         ...
 
-    @delete("/external-squads/{uuid}", response_class=DeleteExternalSquadResponseDto)
+    @delete("/external-squads/{uuid}", response_class=None)
     async def delete_external_squad(
         self,
         uuid: Annotated[str, Path(description="UUID of the external squad")],
-    ) -> DeleteExternalSquadResponseDto:
-        """Delete external squad"""
+    ) -> None:
+        """Delete external squad (204, без тела)"""
         ...
 
-    @post("/external-squads/{uuid}/bulk-actions/add-users", response_class=AddUsersToExternalSquadResponseDto)
+    @post("/external-squads/{uuid}/bulk-actions/add-users", response_class=None)
     async def add_users_to_external_squad(
         self,
         uuid: Annotated[str, Path(description="UUID of the external squad")],
-    ) -> AddUsersToExternalSquadResponseDto:
-        """Add all users to external squad"""
+    ) -> None:
+        """Add all users to external squad (202, без тела)"""
         ...
 
-    @delete("/external-squads/{uuid}/bulk-actions/remove-users", response_class=RemoveUsersFromExternalSquadResponseDto)
+    @delete("/external-squads/{uuid}/bulk-actions/remove-users", response_class=None)
     async def remove_users_from_external_squad(
         self,
         uuid: Annotated[str, Path(description="UUID of the external squad")],
-    ) -> RemoveUsersFromExternalSquadResponseDto:
-        """Delete users from external squad"""
+    ) -> None:
+        """Delete users from external squad (202, без тела)"""
         ...
 
     @post("/external-squads/actions/reorder", response_class=ReorderExternalSquadsResponseDto)
     async def reorder_external_squads(
         self,
-        body: Annotated[ReorderExternalSquadsRequestDto, PydanticBody()],
+        body: Annotated[ReorderExternalSquadsBodyDto, PydanticBody()],
     ) -> ReorderExternalSquadsResponseDto:
         """Reorder external squads"""
         ...

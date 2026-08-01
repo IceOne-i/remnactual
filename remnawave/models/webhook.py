@@ -17,6 +17,13 @@ from remnawave.enums import (
 # ---------------- USER ---------------- #
 
 class LastConnectedNodeDto(BaseModel):
+    """Оставлена только для обратной совместимости.
+
+    В 3.0 панель не присылает `lastConnectedNode` в webhook-событиях (см.
+    `ExtendedUsersSchema`); последний узел доступен как
+    `user_traffic.last_connected_node_uuid`.
+    """
+
     node_name: str
     country_code: str
     connected_at: datetime
@@ -44,7 +51,7 @@ class WebhookUserTrafficDto(BaseModel):
 
 
 class BaseUserDto(BaseModel):
-    uuid: UUID
+    # 3.0: у пользователя больше нет `uuid` — идентификатор это числовой `id`.
     id: int
     short_uuid: str
     username: str
@@ -53,8 +60,6 @@ class BaseUserDto(BaseModel):
 
     traffic_limit_bytes: int
     traffic_limit_strategy: TResetPeriods
-    sub_last_user_agent: Optional[str] = None
-    sub_last_opened_at: Optional[datetime] = None
 
     expire_at: datetime
     sub_revoked_at: Optional[datetime] = None
@@ -110,8 +115,14 @@ class BaseUserDto(BaseModel):
 
 
 class UserDto(BaseUserDto):
+    """`ExtendedUsersSchema` контракта 3.0 — тело `data` во всех user-событиях.
+
+    3.0: панель больше не присылает `uuid`, `subLastUserAgent`, `subLastOpenedAt`
+    и `lastConnectedNode` — эти поля удалены.
+    Для `user.not_connected` `activeInternalSquads` всегда пуст.
+    """
+
     active_internal_squads: List[WebhookInternalSquadDto] = Field(default_factory=list)
-    last_connected_node: Optional[LastConnectedNodeDto] = None
 
     model_config = {"alias_generator": to_camel, "populate_by_name": True}
 

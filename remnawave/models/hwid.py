@@ -1,13 +1,14 @@
 from datetime import datetime
-from typing import List, Optional
-from uuid import UUID
+from typing import Annotated, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
 
-class CreateUserHwidDeviceRequestDto(BaseModel):
-    hwid: str
-    user_uuid: UUID = Field(serialization_alias="userUuid")
+class CreateUserHwidDeviceBodyDto(BaseModel):
+    """3.0: устройство привязывается к числовому `userId`, а не к `userUuid`."""
+
+    hwid: Annotated[str, StringConstraints(pattern=r"^[a-zA-Z0-9=-]{10,64}$")]
+    user_id: int = Field(serialization_alias="userId")
     platform: Optional[str] = None
     os_version: Optional[str] = Field(None, serialization_alias="osVersion")
     device_model: Optional[str] = Field(None, serialization_alias="deviceModel")
@@ -15,9 +16,13 @@ class CreateUserHwidDeviceRequestDto(BaseModel):
     request_ip: Optional[str] = Field(None, serialization_alias="requestIp")
 
 
-class DeleteUserHwidDeviceRequestDto(BaseModel):
-    user_uuid: UUID = Field(serialization_alias="userUuid")
+class DeleteUserHwidDeviceBodyDto(BaseModel):
+    user_id: int = Field(serialization_alias="userId")
     hwid: str
+
+
+class DeleteAllUserHwidDevicesBodyDto(BaseModel):
+    user_id: int = Field(serialization_alias="userId")
 
 
 class HwidDeviceDto(BaseModel):
@@ -43,6 +48,11 @@ class CreateUserHwidDeviceResponseDto(BaseModel):
 
 
 class DeleteUserHwidDeviceResponseDto(BaseModel):
+    total: float
+    devices: List[HwidDeviceDto]
+
+
+class DeleteAllUserHwidDevicesResponseDto(BaseModel):
     total: float
     devices: List[HwidDeviceDto]
 
@@ -83,15 +93,11 @@ class HwidStatisticsData(BaseModel):
         return [AppStatItem(app=app, count=count) for app, count in merged.items()]
 
 
-class GetHwidStatisticsResponseDto(HwidStatisticsData):
+class GetHwidDevicesStatsResponseDto(HwidStatisticsData):
     pass
 
-class DeleteUserAllHwidDeviceRequestDto(BaseModel):
-    user_uuid: UUID = Field(serialization_alias="userUuid")
-    
 class TopUserByHwidDevicesDto(BaseModel):
     """Top user by HWID devices"""
-    user_uuid: UUID = Field(alias="userUuid")
     id: int
     username: str
     devices_count: float = Field(alias="devicesCount")
@@ -108,7 +114,11 @@ class GetTopUsersByHwidDevicesResponseDto(TopUsersByHwidDevicesData):
     pass
 
 # Legacy aliases for backward compatibility
-CreateHWIDUser = CreateUserHwidDeviceRequestDto
+GetHwidStatisticsResponseDto = GetHwidDevicesStatsResponseDto
+CreateUserHwidDeviceRequestDto = CreateUserHwidDeviceBodyDto
+DeleteUserHwidDeviceRequestDto = DeleteUserHwidDeviceBodyDto
+DeleteUserAllHwidDeviceRequestDto = DeleteAllUserHwidDevicesBodyDto
+CreateHWIDUser = CreateUserHwidDeviceBodyDto
 HWIDUserResponseDto = HwidDeviceDto
 HWIDUserResponseDtoList = HwidDevicesData
-HWIDDeleteRequest = DeleteUserHwidDeviceRequestDto
+HWIDDeleteRequest = DeleteUserHwidDeviceBodyDto

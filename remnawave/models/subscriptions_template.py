@@ -16,7 +16,12 @@ class TemplateResponseDto(BaseModel):
 
 
 class TemplateInfoDto(BaseModel):
-    """Template info without content - used in list responses"""
+    """Template entry as returned by list endpoints.
+
+    Контракт 3.0 отдаёт в списках полную ``SubscriptionTemplateSchema``, поэтому
+    ``templateJson`` / ``encodedTemplateYaml`` здесь тоже могут прийти; они
+    объявлены необязательными для совместимости.
+    """
     uuid: UUID
     name: str
     view_position: int = Field(alias="viewPosition")
@@ -36,7 +41,7 @@ class GetTemplatesResponseDto(GetTemplatesData):
     pass
 
 
-class CreateSubscriptionTemplateRequestDto(BaseModel):
+class CreateSubscriptionTemplateBodyDto(BaseModel):
     name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_\s-]+$")]
     template_type: TemplateType = Field(serialization_alias="templateType")
 
@@ -45,7 +50,7 @@ class CreateSubscriptionTemplateResponseDto(TemplateResponseDto):
     pass
 
 
-class UpdateTemplateRequestDto(BaseModel):
+class UpdateTemplateBodyDto(BaseModel):
     uuid: UUID
     name: Optional[Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_\s-]+$")]] = None
     template_json: Optional[dict] = Field(None, serialization_alias="templateJson")
@@ -57,20 +62,13 @@ class UpdateTemplateRequestDto(BaseModel):
 class UpdateTemplateResponseDto(TemplateResponseDto):
     pass
 
-class DeleteTemplateData(BaseModel):
-    is_deleted: bool = Field(alias="isDeleted")
-
-
-class DeleteSubscriptionTemplateResponseDto(DeleteTemplateData):
-    pass
-
 
 class ReorderTemplateItem(BaseModel):
     view_position: int = Field(serialization_alias="viewPosition")
     uuid: UUID
 
 
-class ReorderSubscriptionTemplatesRequestDto(BaseModel):
+class ReorderSubscriptionTemplatesBodyDto(BaseModel):
     items: List[ReorderTemplateItem]
 
 
@@ -78,14 +76,7 @@ class ReorderSubscriptionTemplatesResponseDto(GetTemplatesData):
     pass
 
 
-# Legacy aliases for backward compatibility
-class UpdateTemplateRequestDtoLegacy(BaseModel):
-    template_type: TemplateType = Field(serialization_alias="templateType")
-    template_json: Optional[dict] = Field(None, serialization_alias="templateJson")
-    encoded_template_yaml: Optional[str] = Field(
-        None, serialization_alias="encodedTemplateYaml"
-    )
-
-
-class UpdateTemplateResponseDtoLegacy(TemplateResponseDto):
-    pass
+# Backward compatibility aliases
+CreateSubscriptionTemplateRequestDto = CreateSubscriptionTemplateBodyDto
+UpdateTemplateRequestDto = UpdateTemplateBodyDto
+ReorderSubscriptionTemplatesRequestDto = ReorderSubscriptionTemplatesBodyDto

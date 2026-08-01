@@ -61,6 +61,7 @@ ERRORS: Dict[str, Type[ApiError]] = {
     ErrorCode.NODE_PLUGIN_NAME_ALREADY_EXISTS: BadRequestError,
     ErrorCode.INVALID_API_TOKEN_SCOPE: BadRequestError,
     ErrorCode.CREATE_INFRA_BILLING_NODE_MISSING_TARGET: BadRequestError,
+    ErrorCode.GET_STATS_DIGEST_INVALID_RANGE: BadRequestError,
     # ---------------- HTTP 401 ----------------
     ErrorCode.UNAUTHORIZED: UnauthorizedError,
     # ---------------- HTTP 403 ----------------
@@ -167,7 +168,6 @@ ERRORS: Dict[str, Type[ApiError]] = {
     ErrorCode.GET_USER_USAGE_BY_RANGE_ERROR: ServerError,
     ErrorCode.KEYPAIR_NOT_FOUND: ServerError,
     ErrorCode.ACTIVATE_ALL_INBOUNDS_ERROR: ServerError,
-    ErrorCode.GET_NODES_USER_USAGE_BY_RANGE_ERROR: ServerError,
     ErrorCode.CREATE_HWID_USER_DEVICE_ERROR: ServerError,
     ErrorCode.CHECK_HWID_EXISTS_ERROR: ServerError,
     ErrorCode.GET_USER_HWID_DEVICES_ERROR: ServerError,
@@ -233,8 +233,8 @@ ERRORS: Dict[str, Type[ApiError]] = {
     ErrorCode.ADD_USERS_TO_EXTERNAL_SQUAD_ERROR: ServerError,
     ErrorCode.REMOVE_USERS_FROM_EXTERNAL_SQUAD_ERROR: ServerError,
     ErrorCode.GET_EXTERNAL_SQUAD_BY_UUID_ERROR: ServerError,
-    ErrorCode.GET_REMNAAWAVE_SETTINGS_ERROR: ServerError,
-    ErrorCode.UPDATE_REMNAAWAVE_SETTINGS_ERROR: ServerError,
+    ErrorCode.GET_REMNAWAVE_SETTINGS_ERROR: ServerError,
+    ErrorCode.UPDATE_REMNAWAVE_SETTINGS_ERROR: ServerError,
     ErrorCode.GENERATE_PASSKEY_REGISTRATION_OPTIONS: ServerError,
     ErrorCode.VERIFY_PASSKEY_REGISTRATION_ERROR: ServerError,
     ErrorCode.GET_ACTIVE_PASSKEYS_ERROR: ServerError,
@@ -255,6 +255,11 @@ ERRORS: Dict[str, Type[ApiError]] = {
     ErrorCode.CREATE_NODE_PLUGIN_ERROR: ServerError,
     ErrorCode.GET_TORRENT_BLOCKER_REPORTS_ERROR: ServerError,
     ErrorCode.UPDATE_HOSTS_ERROR: ServerError,
+    ErrorCode.CUSTOM_RAW_REMARK_VALIDATION_ERROR: ServerError,
+    ErrorCode.GET_INTERNAL_SQUAD_USAGE_ERROR: ServerError,
+    ErrorCode.ADD_MANY_USERS_TO_INTERNAL_SQUAD_ERROR: ServerError,
+    ErrorCode.REMOVE_MANY_USERS_FROM_INTERNAL_SQUAD_ERROR: ServerError,
+    ErrorCode.GET_STATS_DIGEST_ERROR: ServerError,
     ErrorCode.NODE_ERROR_WITH_MSG: ServerError,
     ErrorCode.NODE_ERROR_500_WITH_MSG: ServerError,
 }

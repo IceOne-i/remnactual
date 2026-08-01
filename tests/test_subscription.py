@@ -51,7 +51,7 @@ class TestSubscriptionContent:
     async def test_get_subscription_with_type(self, remnawave):
         """Тест получения подписки с типом"""
         try:
-            subscription_with_type = await remnawave.subscription.get_subscription_with_type(
+            subscription_with_type = await remnawave.subscription.get_subscription_by_client_type(
                 short_uuid=REMNAWAVE_SHORT_UUID
             )
             assert isinstance(subscription_with_type, str)

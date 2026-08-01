@@ -10,7 +10,7 @@ class GetUserMetadataResponseDto(BaseModel):
     metadata: Optional[Dict[str, Any]] = None
 
 
-class UpsertUserMetadataRequestBodyDto(BaseModel):
+class UpsertUserMetadataBodyDto(BaseModel):
     """Request body for upserting user metadata"""
     metadata: Dict[str, Any]
 
@@ -25,7 +25,7 @@ class GetNodeMetadataResponseDto(BaseModel):
     metadata: Optional[Dict[str, Any]] = None
 
 
-class UpsertNodeMetadataRequestBodyDto(BaseModel):
+class UpsertNodeMetadataBodyDto(BaseModel):
     """Request body for upserting node metadata"""
     metadata: Dict[str, Any]
 
@@ -33,3 +33,8 @@ class UpsertNodeMetadataRequestBodyDto(BaseModel):
 class UpsertNodeMetadataResponseDto(BaseModel):
     """Response for upserting node metadata"""
     metadata: Dict[str, Any]
+
+
+# Legacy aliases (имена 2.8)
+UpsertUserMetadataRequestBodyDto = UpsertUserMetadataBodyDto
+UpsertNodeMetadataRequestBodyDto = UpsertNodeMetadataBodyDto

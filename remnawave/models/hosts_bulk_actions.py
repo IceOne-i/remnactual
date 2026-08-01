@@ -1,47 +1,23 @@
-from typing import Annotated, Any, Dict, List, Optional
+"""Bulk host operations.
+
+Все четыре эндпоинта `/hosts/bulk/*` в 3.0 отвечают `204 No Content` с пустым телом,
+поэтому моделей ответа у них больше нет — контроллеры объявлены с
+``response_class=None`` и возвращают ``None``.
+"""
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, RootModel, StringConstraints
+from pydantic import BaseModel, Field
 
 from remnawave.enums import ALPN, MihomoIpVersion, SecurityLayer, SubscriptionType
-from remnawave.models import HostResponseDto
-from remnawave.models.hosts import CreateHostInboundData, HostTag
+from remnawave.models.hosts import CreateHostInboundData, HostRemark, HostTag
 
 
-class _HostListResponse(RootModel[List[HostResponseDto]]):
-    """Base for bulk host responses that return a plain list of hosts."""
-    root: List[HostResponseDto]
-
-    def __iter__(self):
-        return iter(self.root)
-
-    def __getitem__(self, item):
-        return self.root[item]
-
-    def __bool__(self):
-        return bool(self.root)
-
-    def __len__(self):
-        return len(self.root)
-
-
-class BulkDeleteHostsResponseDto(_HostListResponse):
-    pass
-
-
-class BulkDisableHostsResponseDto(_HostListResponse):
-    pass
-
-
-class BulkEnableHostsResponseDto(_HostListResponse):
-    pass
-
-
-class UpdateManyHostsRequestDto(BaseModel):
-    """Request to update many hosts at once (PATCH /hosts/bulk/update)."""
+class UpdateManyHostsBodyDto(BaseModel):
+    """Request to update many hosts at once (PATCH /hosts/bulk/update → 204)."""
     uuids: List[UUID] = Field(min_length=1)
     inbound: Optional[CreateHostInboundData] = None
-    remark: Annotated[Optional[str], StringConstraints(max_length=40)] = None
+    remark: Optional[HostRemark] = None
     address: Optional[str] = None
     port: Optional[int] = None
     path: Optional[str] = None
@@ -62,9 +38,9 @@ class UpdateManyHostsRequestDto(BaseModel):
     shuffle_host: Optional[bool] = Field(None, serialization_alias="shuffleHost")
     mihomo_x25519: Optional[bool] = Field(None, serialization_alias="mihomoX25519")
     mihomo_ip_version: Optional[MihomoIpVersion] = Field(None, serialization_alias="mihomoIpVersion")
-    xhttp_extra_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="xhttpExtraParams")
-    mux_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="muxParams")
-    sockopt_params: Optional[Dict[str, Any]] = Field(None, serialization_alias="sockoptParams")
+    xhttp_extra_params: Optional[Any] = Field(None, serialization_alias="xhttpExtraParams")
+    mux_params: Optional[Any] = Field(None, serialization_alias="muxParams")
+    sockopt_params: Optional[Any] = Field(None, serialization_alias="sockoptParams")
     final_mask: Optional[Any] = Field(None, serialization_alias="finalMask")
     nodes: Optional[List[UUID]] = None
     xray_json_template_uuid: Optional[UUID] = Field(None, serialization_alias="xrayJsonTemplateUuid")
@@ -76,5 +52,12 @@ class UpdateManyHostsRequestDto(BaseModel):
     )
 
 
-class UpdateManyHostsResponseDto(_HostListResponse):
-    pass
+# ─────────────────────────────────────────────────────────────────────────────
+# Legacy alias (имя до 3.0)
+# ─────────────────────────────────────────────────────────────────────────────
+UpdateManyHostsRequestDto = UpdateManyHostsBodyDto
+
+__all__ = [
+    "UpdateManyHostsBodyDto",
+    "UpdateManyHostsRequestDto",
+]

@@ -100,7 +100,6 @@ class ErrorCode(StrEnum):
     GET_USER_USAGE_BY_RANGE_ERROR = "A091"  # 500 — Get user usage by range error
     KEYPAIR_NOT_FOUND = "A092"  # 500 — Keypair not found. Restart app.
     ACTIVATE_ALL_INBOUNDS_ERROR = "A093"  # 500 — Activate all inbounds error
-    GET_NODES_USER_USAGE_BY_RANGE_ERROR = "A094"  # 500 — Get nodes user usage by range error
     CREATE_HWID_USER_DEVICE_ERROR = "A096"  # 500 — Create hwid user device error
     CHECK_HWID_EXISTS_ERROR = "A097"  # 500 — Check hwid exists error
     USER_HWID_DEVICE_ALREADY_EXISTS = "A098"  # 400 — User hwid device already exists
@@ -197,15 +196,15 @@ class ErrorCode(StrEnum):
     EXTERNAL_SQUAD_NAME_ALREADY_EXISTS = "A189"  # 400 — External squad name already exists
     NAME_OR_TEMPLATES_REQUIRED = "A190"  # 400 — Name or templates are required
     PASSKEY_NOT_FOUND = "A191"  # 404 — Passkey not found
-    GET_REMNAAWAVE_SETTINGS_ERROR = "A192"  # 500 — Get Remnawave settings error
-    UPDATE_REMNAAWAVE_SETTINGS_ERROR = "A193"  # 500 — Update Remnawave settings error
+    GET_REMNAWAVE_SETTINGS_ERROR = "A192"  # 500 — Get Remnawave settings error
+    UPDATE_REMNAWAVE_SETTINGS_ERROR = "A193"  # 500 — Update Remnawave settings error
     PASSKEYS_NOT_CONFIGURED = "A194"  # 400 — Passkeys not configured
     PASSKEYS_NOT_ENABLED = "A195"  # 400 — Passkeys not enabled. Please enable it first.
     GENERATE_PASSKEY_REGISTRATION_OPTIONS = "A196"  # 500 — Generate passkey registration options error
     VERIFY_PASSKEY_REGISTRATION_ERROR = "A197"  # 500 — Verify passkey registration error
     GET_ACTIVE_PASSKEYS_ERROR = "A198"  # 500 — Get active passkeys error
     DELETE_PASSKEY_ERROR = "A199"  # 500 — Delete passkey error
-    VALIDATE_REMNAAWAVE_SETTINGS_ERROR = "A199"  # 500 — Validate Remnawave settings error
+    VALIDATE_REMNAWAVE_SETTINGS_ERROR = "A199"  # 500 — Validate Remnawave settings error
     GET_COMPUTED_CONFIG_PROFILE_BY_UUID_ERROR = "A200"  # 500 — Get computed config profile by UUID error
     RESET_NODE_TRAFFIC_ERROR = "A201"  # 500 — Reset node traffic error
     UPDATE_PASSKEY_ERROR = "A202"  # 500 — Update passkey error
@@ -238,6 +237,12 @@ class ErrorCode(StrEnum):
     UPDATE_HOSTS_ERROR = "A228"  # 500 — Update hosts error
     INVALID_API_TOKEN_SCOPE = "A229"  # 400 — One or more provided API token scopes are invalid
     CREATE_INFRA_BILLING_NODE_MISSING_TARGET = "A230"  # 400 — Either nodeUuid or name must be provided
+    CUSTOM_RAW_REMARK_VALIDATION_ERROR = "A231"  # 500 — Invalid custom raw remark
+    GET_INTERNAL_SQUAD_USAGE_ERROR = "A232"  # 500 — Get internal squad usage error
+    ADD_MANY_USERS_TO_INTERNAL_SQUAD_ERROR = "A233"  # 500 — Add many users to internal squad error
+    REMOVE_MANY_USERS_FROM_INTERNAL_SQUAD_ERROR = "A234"  # 500 — Remove many users from internal squad error
+    GET_STATS_DIGEST_INVALID_RANGE = "A235"  # 400 — Start date must be before or equal to end date
+    GET_STATS_DIGEST_ERROR = "A236"  # 500 — Get stats digest error
     NODE_ERROR_WITH_MSG = "N001"  # 500 — 
     NODE_ERROR_500_WITH_MSG = "N002"  # 500 — 
 
@@ -336,7 +341,6 @@ ERROR_HTTP_CODES: "dict[str, int]" = {
     "A091": 500,
     "A092": 500,
     "A093": 500,
-    "A094": 500,
     "A096": 500,
     "A097": 500,
     "A098": 400,
@@ -441,7 +445,7 @@ ERROR_HTTP_CODES: "dict[str, int]" = {
     "A197": 500,
     "A198": 500,
     "A199": 500,
-    # ErrorCode.VALIDATE_REMNAAWAVE_SETTINGS_ERROR -> 500: код A199 переиспользован контрактом
+    # ErrorCode.VALIDATE_REMNAWAVE_SETTINGS_ERROR -> 500: код A199 переиспользован контрактом
     "A200": 500,
     "A201": 500,
     "A202": 500,
@@ -474,6 +478,12 @@ ERROR_HTTP_CODES: "dict[str, int]" = {
     "A228": 500,
     "A229": 400,
     "A230": 400,
+    "A231": 500,
+    "A232": 500,
+    "A233": 500,
+    "A234": 500,
+    "A235": 400,
+    "A236": 500,
     "N001": 500,
     "N002": 500,
 }
@@ -571,7 +581,6 @@ ERROR_MESSAGES: "dict[str, str]" = {
     "A091": "Get user usage by range error",
     "A092": "Keypair not found. Restart app.",
     "A093": "Activate all inbounds error",
-    "A094": "Get nodes user usage by range error",
     "A096": "Create hwid user device error",
     "A097": "Check hwid exists error",
     "A098": "User hwid device already exists",
@@ -707,6 +716,12 @@ ERROR_MESSAGES: "dict[str, str]" = {
     "A228": "Update hosts error",
     "A229": "One or more provided API token scopes are invalid",
     "A230": "Either nodeUuid or name must be provided",
+    "A231": "Invalid custom raw remark",
+    "A232": "Get internal squad usage error",
+    "A233": "Add many users to internal squad error",
+    "A234": "Remove many users from internal squad error",
+    "A235": "Start date must be before or equal to end date",
+    "A236": "Get stats digest error",
     "N001": "",
     "N002": "",
 }

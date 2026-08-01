@@ -6,16 +6,13 @@ from remnawave.models import (
     CloneNodePluginResponseDto,
     CreateNodePluginRequestDto,
     CreateNodePluginResponseDto,
-    DeleteNodePluginResponseDto,
     GetNodePluginResponseDto,
     GetNodePluginsResponseDto,
     GetTorrentBlockerReportsResponseDto,
     GetTorrentBlockerReportsStatsResponseDto,
     PluginExecutorRequestDto,
-    PluginExecutorResponseDto,
     ReorderNodePluginsRequestDto,
     ReorderNodePluginsResponseDto,
-    TruncateTorrentBlockerReportsResponseDto,
     UpdateNodePluginRequestDto,
     UpdateNodePluginResponseDto,
     BlockIpsCommandDto,
@@ -61,7 +58,7 @@ class TestNodePlugins:
         
         # Delete plugin
         delete_response = await remnawave.node_plugins.delete_node_plugin(uuid=plugin_uuid)
-        assert isinstance(delete_response, DeleteNodePluginResponseDto)
+        assert delete_response is None
 
     @pytest.mark.asyncio
     async def test_update_node_plugin(self, remnawave):
@@ -200,7 +197,7 @@ class TestNodePlugins:
                         target_nodes=TargetAllNodesDto(target="allNodes"),
                     )
                 )
-                assert isinstance(executor_response, PluginExecutorResponseDto)
+                assert executor_response is None
             except NotFoundError:
                 # В тестовых окружениях без подключенных нод API может вернуть 404
                 pytest.skip("Node plugins executor is unavailable in this environment (no connected nodes)")
@@ -250,7 +247,7 @@ class TestTorrentBlocker:
         # Only run in test environment
         response = await remnawave.node_plugins.truncate_torrent_blocker_reports()
         
-        assert isinstance(response, TruncateTorrentBlockerReportsResponseDto)
+        assert response is None
         
         # Verify truncation by checking reports are empty
         reports = await remnawave.node_plugins.get_torrent_blocker_reports()

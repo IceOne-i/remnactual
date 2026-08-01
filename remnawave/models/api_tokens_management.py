@@ -1,13 +1,13 @@
 from datetime import datetime
-from typing import Annotated, List, Literal, Optional
+from typing import Annotated, List, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+from pydantic import BaseModel, Field, StringConstraints
 
 from remnawave.enums import Scope
 
 
-class CreateApiTokenRequestDto(BaseModel):
+class CreateApiTokenBodyDto(BaseModel):
     name: Annotated[str, StringConstraints(min_length=2, max_length=30)] = Field(
         serialization_alias="name"
     )
@@ -35,21 +35,11 @@ class CreateApiTokenResponseData(BaseModel):
 
 
 class CreateApiTokenResponseDto(CreateApiTokenResponseData):
+    """``POST /api/tokens`` — 201 Created, отдаёт токен вместе с его plaintext-значением."""
     pass
 
 
-class DeleteApiTokenResponseDto(BaseModel):
-    """DELETE /api/tokens/{uuid} отдаёт `{"response": true}` — голый boolean."""
-    model_config = ConfigDict(populate_by_name=True)
-
-    is_deleted: bool = Field(..., alias="isDeleted")
-
-    @model_validator(mode="before")
-    @classmethod
-    def _accept_bare_bool(cls, data):
-        if isinstance(data, bool):
-            return {"isDeleted": data}
-        return data
+# 3.0: DELETE /api/tokens/{uuid} отвечает 204 без тела — DeleteApiTokenResponseDto удалён.
 
 
 class ApiTokenDto(BaseModel):
@@ -66,20 +56,13 @@ class ApiTokenDto(BaseModel):
         return self.name
 
 
-class DocsInfoDto(BaseModel):
-    enabled: bool = Field(..., alias="enabled")
-    scalar_path: Optional[str] = Field(None, alias="scalarPath")
-    swagger_path: Optional[str] = Field(None, alias="swaggerPath")
-
-    @property
-    def is_docs_enabled(self) -> bool:
-        """Backward compatibility property (renamed to `enabled` in v2.8.0)"""
-        return self.enabled
+# 3.0: объект `docs` убран из ответа GET /api/tokens — DocsInfoDto удалён,
+# документация переехала на /api/backend-tools/{swagger,scalar,queues}.
 
 
-class FindAllApiTokensResponseData(BaseModel):
+class GetApiTokensResponseDto(BaseModel):
+    """``GET /api/tokens`` — 3.0 отдаёт только список токенов."""
     tokens: List[ApiTokenDto] = Field(..., alias="tokens")
-    docs: DocsInfoDto
 
     @property
     def api_keys(self) -> List[ApiTokenDto]:
@@ -87,8 +70,9 @@ class FindAllApiTokensResponseData(BaseModel):
         return self.tokens
 
 
-class FindAllApiTokensResponseDto(FindAllApiTokensResponseData):
-    pass
+class GetOttResponseDto(BaseModel):
+    """``POST /api/tokens/ott`` — короткоживущий токен для Swagger/Scalar/Bull Board."""
+    ott: str
 
 
 class ApiTokenScopeEndpointDto(BaseModel):
@@ -112,3 +96,11 @@ class GetApiTokenScopesResponseData(BaseModel):
 
 class GetApiTokenScopesResponseDto(GetApiTokenScopesResponseData):
     pass
+
+
+# ---------------- BACKWARDS-COMPATIBLE ALIASES ---------------- #
+# 3.0 переименовал тело запроса *RequestDto -> *BodyDto, а ответ GET /api/tokens —
+# в GetApiTokensResponseDto (контрактное имя).
+CreateApiTokenRequestDto = CreateApiTokenBodyDto
+FindAllApiTokensResponseDto = GetApiTokensResponseDto
+FindAllApiTokensResponseData = GetApiTokensResponseDto

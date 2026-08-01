@@ -3,14 +3,13 @@ from typing import Annotated
 from rapid_api_client.annotations import Path, PydanticBody
 
 from remnawave.models import (
-    CreateSubscriptionTemplateRequestDto,
+    CreateSubscriptionTemplateBodyDto,
     CreateSubscriptionTemplateResponseDto,
-    DeleteSubscriptionTemplateResponseDto,
     GetTemplateResponseDto,
     GetTemplatesResponseDto,
-    ReorderSubscriptionTemplatesRequestDto,
+    ReorderSubscriptionTemplatesBodyDto,
     ReorderSubscriptionTemplatesResponseDto,
-    UpdateTemplateRequestDto,
+    UpdateTemplateBodyDto,
     UpdateTemplateResponseDto,
 )
 from remnawave.rapid import BaseController, delete, get, patch, post
@@ -25,15 +24,18 @@ class SubscriptionsTemplateController(BaseController):
     @post("/subscription-templates", response_class=CreateSubscriptionTemplateResponseDto)
     async def create_template(
         self,
-        body: Annotated[CreateSubscriptionTemplateRequestDto, PydanticBody()],
+        body: Annotated[CreateSubscriptionTemplateBodyDto, PydanticBody()],
     ) -> CreateSubscriptionTemplateResponseDto:
-        """Create subscription template"""
+        """Create subscription template.
+
+        3.0: отвечает 201 Created, тело ответа сохранено.
+        """
         ...
 
     @patch("/subscription-templates", response_class=UpdateTemplateResponseDto)
     async def update_template(
         self,
-        body: Annotated[UpdateTemplateRequestDto, PydanticBody()],
+        body: Annotated[UpdateTemplateBodyDto, PydanticBody()],
     ) -> UpdateTemplateResponseDto:
         """Update subscription template"""
         ...
@@ -46,17 +48,24 @@ class SubscriptionsTemplateController(BaseController):
         """Get subscription template by uuid"""
         ...
 
-    @delete("/subscription-templates/{uuid}", response_class=DeleteSubscriptionTemplateResponseDto)
+    @delete("/subscription-templates/{uuid}", response_class=None)
     async def delete_template(
         self,
         uuid: Annotated[str, Path(description="Template UUID")],
-    ) -> DeleteSubscriptionTemplateResponseDto:
-        """Delete subscription template"""
+    ) -> None:
+        """Delete subscription template.
+
+        3.0: отвечает 204 No Content без тела, поэтому метод возвращает ``None``.
+        """
         ...
-    @post("/subscription-templates/actions/reorder", response_class=ReorderSubscriptionTemplatesResponseDto)
+
+    @post(
+        "/subscription-templates/actions/reorder",
+        response_class=ReorderSubscriptionTemplatesResponseDto,
+    )
     async def reorder_templates(
         self,
-        body: Annotated[ReorderSubscriptionTemplatesRequestDto, PydanticBody()],
+        body: Annotated[ReorderSubscriptionTemplatesBodyDto, PydanticBody()],
     ) -> ReorderSubscriptionTemplatesResponseDto:
         """Reorder subscription templates"""
         ...

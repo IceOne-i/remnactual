@@ -1,13 +1,21 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
-class PubKeyData(BaseModel):
-    pub_key: str = Field(alias="pubKey")
+class SecretKeyData(BaseModel):
+    """SECRET_KEY выдаваемый панелью для Remnawave Node.
+
+    3.0: `response.pubKey` переименован в `response.secretKey`."""
+    model_config = ConfigDict(populate_by_name=True)
+
+    secret_key: str = Field(alias="secretKey")
 
 
-class GetPubKeyResponseDto(BaseModel):
-    pub_key: str = Field(alias="pubKey")
+class GetNodeSecretKeyResponseDto(SecretKeyData):
+    """Get SECRET_KEY for Remnawave Node"""
+    pass
 
 
-# Legacy alias for backward compatibility
-PubKeyResponseDto = PubKeyData
+# Legacy aliases (имена 2.8; поле теперь `secret_key`/`secretKey`)
+PubKeyData = SecretKeyData
+PubKeyResponseDto = SecretKeyData
+GetPubKeyResponseDto = GetNodeSecretKeyResponseDto

@@ -41,17 +41,14 @@ from remnawave.enums import ResponseRuleVersion
 
 
 class TestResolveUserRequestBodyDto:
-    def test_create_with_uuid(self):
-        uid = uuid4()
-        dto = ResolveUserRequestBodyDto(uuid=uid)
-        assert dto.uuid == uid
-        assert dto.id is None
-        assert dto.username is None
+    def test_uuid_removed_in_3_0(self):
+        """3.0 identifies users by numeric id; `uuid` is not part of resolve any more."""
+        assert "uuid" not in ResolveUserRequestBodyDto.model_fields
 
     def test_create_with_username(self):
         dto = ResolveUserRequestBodyDto(username="testuser")
         assert dto.username == "testuser"
-        assert dto.uuid is None
+        assert dto.id is None
 
     def test_create_with_short_uuid(self):
         dto = ResolveUserRequestBodyDto(short_uuid="abc123")
@@ -69,17 +66,16 @@ class TestResolveUserRequestBodyDto:
 
 class TestResolveUserResponseDto:
     def test_from_api_response(self):
-        uid = uuid4()
         dto = ResolveUserResponseDto(
-            uuid=uid,
             username="testuser",
             id=1,
             shortUuid="abc123",
         )
-        assert dto.uuid == uid
         assert dto.username == "testuser"
         assert dto.id == 1
         assert dto.short_uuid == "abc123"
+        # 3.0: пользователь больше не имеет uuid
+        assert "uuid" not in ResolveUserResponseDto.model_fields
 
 
 class TestGetRecapResponseDto:
@@ -132,7 +128,7 @@ class TestFetchUsersIpsModels:
                 "nodeUuid": str(uid),
                 "users": [
                     {
-                        "userId": "user-1",
+                        "userId": 1,
                         "ips": [
                             {"ip": "1.2.3.4", "lastSeen": "2025-01-01T00:00:00Z"},
                         ],
@@ -144,7 +140,7 @@ class TestFetchUsersIpsModels:
         assert dto.result.success is True
         assert dto.result.node_uuid == uid
         assert len(dto.result.users) == 1
-        assert dto.result.users[0].user_id == "user-1"
+        assert dto.result.users[0].user_id == 1
         assert dto.result.users[0].ips[0].ip == "1.2.3.4"
 
 

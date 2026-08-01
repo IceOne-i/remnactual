@@ -4,8 +4,8 @@ from typing import List
 import pytest
 import pytz
 
-from remnawave.models import BulkResponseDto, UpdateUserFields, BulkUpdateUsersRequestDto
-from tests.conftest import REMNAWAVE_USER_UUID
+from remnawave.models import UpdateUserFields, BulkUpdateUsersBodyDto
+from tests.conftest import REMNAWAVE_USER_ID
 
 
 @pytest.mark.asyncio
@@ -14,13 +14,12 @@ async def test_users_bulk_actions(remnawave):
     description = "TEST_DESCRIPTION"
 
     bulk_update_users = await remnawave.users_bulk_actions.bulk_update_users(
-        body=BulkUpdateUsersRequestDto(
-            uuids=[REMNAWAVE_USER_UUID],
+        body=BulkUpdateUsersBodyDto(
+            user_ids=[int(REMNAWAVE_USER_ID)],
             fields=UpdateUserFields(
                 expire_at=expire_at,
                 description=description,
             ),
         ),
     )
-    assert isinstance(bulk_update_users, BulkResponseDto)
-    assert bulk_update_users.affected_rows > 0
+    assert bulk_update_users is None

@@ -36,8 +36,8 @@ class GetSubscriptionPageConfigResponseDto(BaseModel):
     config: Any
 
 
-class CreateSubscriptionPageConfigRequestDto(BaseModel):
-    """Request to create subscription page config"""
+class CreateSubscriptionPageConfigBodyDto(BaseModel):
+    """Request body to create subscription page config"""
     name: Annotated[
         str,
         StringConstraints(min_length=2, max_length=30, pattern=r"^[A-Za-z0-9_\s-]+$")
@@ -49,10 +49,10 @@ class CreateSubscriptionPageConfigResponseDto(SubscriptionPageConfigDto):
     pass
 
 
-class UpdateSubscriptionPageConfigRequestDto(BaseModel):
-    """Request to update subscription page config"""
+class UpdateSubscriptionPageConfigBodyDto(BaseModel):
+    """Request body to update subscription page config"""
     model_config = ConfigDict(populate_by_name=True)
-    
+
     uuid: UUID
     name: Optional[Annotated[
         str,
@@ -66,18 +66,6 @@ class UpdateSubscriptionPageConfigResponseDto(SubscriptionPageConfigDto):
     pass
 
 
-class DeleteSubscriptionPageConfigData(BaseModel):
-    """Data for delete response"""
-    model_config = ConfigDict(populate_by_name=True)
-    
-    is_deleted: bool = Field(alias="isDeleted")
-
-
-class DeleteSubscriptionPageConfigResponseDto(DeleteSubscriptionPageConfigData):
-    """Response after deleting subscription page config"""
-    pass
-
-
 class ReorderSubscriptionPageConfigItem(BaseModel):
     """Item for reordering subscription page configs"""
     model_config = ConfigDict(populate_by_name=True)
@@ -86,8 +74,8 @@ class ReorderSubscriptionPageConfigItem(BaseModel):
     uuid: UUID
 
 
-class ReorderSubscriptionPageConfigsRequestDto(BaseModel):
-    """Request to reorder subscription page configs"""
+class ReorderSubscriptionPageConfigsBodyDto(BaseModel):
+    """Request body to reorder subscription page configs"""
     items: List[ReorderSubscriptionPageConfigItem]
 
 
@@ -96,10 +84,10 @@ class ReorderSubscriptionPageConfigsResponseDto(GetSubscriptionPageConfigsData):
     pass
 
 
-class CloneSubscriptionPageConfigRequestDto(BaseModel):
-    """Request to clone subscription page config"""
+class CloneSubscriptionPageConfigBodyDto(BaseModel):
+    """Request body to clone subscription page config"""
     model_config = ConfigDict(populate_by_name=True)
-    
+
     clone_from_uuid: UUID = Field(alias="cloneFromUuid")
 
 
@@ -133,3 +121,14 @@ class GetSubpageConfigByShortUuidResponseDto(SubpageConfigData):
     моделях ответов, поэтому объявленный тип совпадает с фактически возвращаемым.
     """
     pass
+
+
+# Backward compatibility aliases
+CreateSubscriptionPageConfigRequestDto = CreateSubscriptionPageConfigBodyDto
+UpdateSubscriptionPageConfigRequestDto = UpdateSubscriptionPageConfigBodyDto
+ReorderSubscriptionPageConfigsRequestDto = ReorderSubscriptionPageConfigsBodyDto
+CloneSubscriptionPageConfigRequestDto = CloneSubscriptionPageConfigBodyDto
+
+
+# Конвенция 3.0: тела запросов называются *BodyDto
+GetSubpageConfigByShortUuidBodyDto = GetSubpageConfigByShortUuidRequestBodyDto

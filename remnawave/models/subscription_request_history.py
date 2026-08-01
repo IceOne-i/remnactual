@@ -39,3 +39,7 @@ class SubscriptionRequestHistoryStatsData(BaseModel):
 
 class GetSubscriptionRequestHistoryStatsResponseDto(SubscriptionRequestHistoryStatsData):
     pass
+
+
+# В пакете имя AppStatItem занято HWID-моделью той же формы
+SubscriptionRequestAppStatItem = AppStatItem

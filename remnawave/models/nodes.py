@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, List, Optional, Union, Literal
+from typing import Annotated, List, Optional, Literal
 from uuid import UUID
 
 from pydantic import (
@@ -23,20 +23,12 @@ class ExcludedInbounds(BaseModel):
     security: Optional[str] = None
 
 
-class RestartEventResponse(BaseModel):
-    event_sent: bool = Field(alias="eventSent")
-
-
-class DeleteResponse(BaseModel):
-    is_deleted: bool = Field(alias="isDeleted")
-
-
 class ReorderNodeItem(BaseModel):
     view_position: int = Field(serialization_alias="viewPosition")
     uuid: UUID
 
 
-class GetAllNodesTagsResponseDto(BaseModel):
+class GetNodesTagsResponseDto(BaseModel):
     """Response with all nodes tags"""
     tags: List[str]
 
@@ -95,19 +87,20 @@ class NodeVersionsDto(BaseModel):
     node: str
 
 
-class NodeConfigProfileRequestDto(BaseModel):
+class NodeConfigProfileBodyDto(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     active_config_profile_uuid: UUID = Field(alias="activeConfigProfileUuid")
     active_inbounds: List[UUID] = Field(alias="activeInbounds")
 
 
-class CreateNodeRequestDto(BaseModel):
+class CreateNodeBodyDto(BaseModel):
+    """POST /nodes"""
     name: Annotated[str, StringConstraints(min_length=3, max_length=30)]
     address: Annotated[str, StringConstraints(min_length=2)]
     port: Optional[int] = Field(None, ge=1, le=65535)
     is_traffic_tracking_active: Optional[bool] = Field(
-        False, 
+        False,
         serialization_alias="isTrafficTrackingActive",
     )
     traffic_limit_bytes: Optional[float] = Field(
@@ -135,12 +128,12 @@ class CreateNodeRequestDto(BaseModel):
         serialization_alias="proxyUrl",
         pattern=r"^socks5://(?:[^:@/\s]+(?::[^@/\s]*)?@)?[^:@/\s]+:\d{1,5}$",
     )
-    config_profile: NodeConfigProfileRequestDto = Field(
+    config_profile: NodeConfigProfileBodyDto = Field(
         serialization_alias="configProfile"
     )
     provider_uuid: Optional[UUID] = Field(None, serialization_alias="providerUuid")
     tags: Optional[List[Annotated[str, StringConstraints(max_length=36, pattern=r'^[A-Z0-9_:]+$')]]] = Field(
-        None, 
+        None,
         serialization_alias="tags",
         max_length=10
     )
@@ -149,11 +142,12 @@ class CreateNodeRequestDto(BaseModel):
     )
 
 
-class UpdateNodeRequestDto(BaseModel):
+class UpdateNodeBodyDto(BaseModel):
+    """PATCH /nodes"""
     uuid: UUID
     name: Annotated[Optional[str], StringConstraints(min_length=3, max_length=30)] = None
     address: Annotated[Optional[str], StringConstraints(min_length=2)] = None
-    port: Optional[float] = Field(None, ge=1, le=65535)  # ИСПРАВЛЕН тип на float
+    port: Optional[float] = Field(None, ge=1, le=65535)
     is_traffic_tracking_active: Optional[bool] = Field(
         None, serialization_alias="isTrafficTrackingActive"
     )
@@ -181,7 +175,7 @@ class UpdateNodeRequestDto(BaseModel):
         serialization_alias="proxyUrl",
         pattern=r"^socks5://(?:[^:@/\s]+(?::[^@/\s]*)?@)?[^:@/\s]+:\d{1,5}$",
     )
-    config_profile: Optional[NodeConfigProfileRequestDto] = Field(
+    config_profile: Optional[NodeConfigProfileBodyDto] = Field(
         None, serialization_alias="configProfile"
     )
     provider_uuid: Optional[UUID] = Field(None, serialization_alias="providerUuid")
@@ -195,7 +189,8 @@ class UpdateNodeRequestDto(BaseModel):
     )
 
 
-class ReorderNodeRequestDto(BaseModel):
+class ReorderNodesBodyDto(BaseModel):
+    """POST /nodes/actions/reorder"""
     nodes: List[ReorderNodeItem]
 
 
@@ -254,19 +249,7 @@ class NodeResponseDto(BaseModel):
         return self.system.info.memory_total if self.system else None
 
 
-class CreateNodeResponseDto(NodeResponseDto):
-    pass
-
-
-class UpdateNodeResponseDto(NodeResponseDto):
-    pass
-
-
-class GetOneNodeResponseDto(NodeResponseDto):
-    pass
-
-
-class GetAllNodesResponseDto(RootModel[List[NodeResponseDto]]):
+class GetNodesResponseDto(RootModel[List[NodeResponseDto]]):
     root: List[NodeResponseDto]
 
     def __iter__(self):
@@ -274,34 +257,17 @@ class GetAllNodesResponseDto(RootModel[List[NodeResponseDto]]):
 
     def __getitem__(self, item):
         return self.root[item]
-    
+
     def __bool__(self):
         """Return True if list is not empty"""
         return bool(self.root)
-    
+
     def __len__(self):
         """Return length of list"""
         return len(self.root)
 
 
-
-class EnableNodeResponseDto(NodeResponseDto):
-    pass
-
-
-class DisableNodeResponseDto(NodeResponseDto):
-    pass
-
-
-class RestartNodeResponseDto(BaseModel):
-    event_sent: bool = Field(alias="eventSent")
-
-
-class RestartAllNodesResponseDto(BaseModel):
-    event_sent: bool = Field(alias="eventSent")
-
-
-class ReorderNodeResponseDto(RootModel[List[NodeResponseDto]]):
+class ReorderNodesResponseDto(RootModel[List[NodeResponseDto]]):
     root: List[NodeResponseDto]
 
     def __iter__(self):
@@ -309,25 +275,18 @@ class ReorderNodeResponseDto(RootModel[List[NodeResponseDto]]):
 
     def __getitem__(self, item):
         return self.root[item]
-    
+
     def __bool__(self):
         """Return True if list is not empty"""
         return bool(self.root)
-    
+
     def __len__(self):
         """Return length of list"""
         return len(self.root)
-
-
-class DeleteNodeResponseDto(BaseModel):
-    is_deleted: bool = Field(alias="isDeleted")
-
-    def __bool__(self):
-        return self.is_deleted
 
 
 class _ForceRestartBody(AlwaysEmitModel):
-    """`forceRestart` обязателен в теле запроса (2.8), поэтому ключ отправляется
+    """`forceRestart` обязателен в теле запроса, поэтому ключ отправляется
     всегда — даже если вызывающий оставил значение по умолчанию."""
     __always_emit__ = ("force_restart",)
 
@@ -336,19 +295,15 @@ class _ForceRestartBody(AlwaysEmitModel):
     force_restart: bool = Field(default=False, alias="forceRestart")
 
 
-class RestartAllNodesRequestBodyDto(_ForceRestartBody):
+class RestartAllNodesBodyDto(_ForceRestartBody):
+    """POST /nodes/actions/restart-all"""
     pass
 
 
-class RestartNodeRequestBodyDto(_ForceRestartBody):
+class RestartNodeBodyDto(_ForceRestartBody):
+    """POST /nodes/{uuid}/actions/restart"""
     pass
 
-
-class ResetNodeTrafficRequestDto(BaseModel):
-    uuid: Union[str, UUID] = Field(alias="uuid")
-
-class ResetNodeTrafficResponseDto(RestartEventResponse):
-    pass
 
 class ConfigProfileData(BaseModel):
     """Config profile data for modification"""
@@ -358,40 +313,21 @@ class ConfigProfileData(BaseModel):
     active_inbounds: List[str] = Field(alias="activeInbounds", min_length=1)
 
 
-class ProfileModificationRequestDto(BaseModel):
-    """Request to modify profiles for multiple nodes"""
+class ProfileModificationBodyDto(BaseModel):
+    """POST /nodes/bulk-actions/profile-modification"""
     model_config = ConfigDict(populate_by_name=True)
 
     uuids: List[str] = Field(min_length=1)
     config_profile: ConfigProfileData = Field(alias="configProfile")
 
 
-class ProfileModificationResponseData(BaseModel):
-    """Profile modification response data"""
-    event_sent: bool = Field(alias="eventSent")
-
-
-class ProfileModificationResponseDto(ProfileModificationResponseData):
-    """Profile modification response"""
-    pass
-
-# Для обратной совместимости
-RestartAllNodesRequestDto = RestartAllNodesRequestBodyDto
-NodesResponseDto = NodeResponseDto
-
-
 NodeBulkActionType = Literal["ENABLE", "DISABLE", "RESTART", "RESET_TRAFFIC"]
 
 
-class NodesBulkActionsRequestDto(BaseModel):
-    """Request for performing bulk actions on nodes"""
+class BulkNodesActionsBodyDto(BaseModel):
+    """POST /nodes/bulk-actions"""
     uuids: List[UUID] = Field(min_length=1)
     action: NodeBulkActionType = Field(description="Action to perform on nodes")
-
-
-class NodesBulkActionsResponseDto(BaseModel):
-    """Response after performing bulk actions on nodes"""
-    event_sent: bool = Field(alias="eventSent")
 
 
 class BulkNodesUpdateFieldsDto(BaseModel):
@@ -415,14 +351,36 @@ class BulkNodesUpdateFieldsDto(BaseModel):
     note: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
 
-class BulkNodesUpdateRequestDto(BaseModel):
-    """Request for POST /nodes/bulk-actions/update"""
+class BulkNodesUpdateBodyDto(BaseModel):
+    """POST /nodes/bulk-actions/update"""
     model_config = ConfigDict(populate_by_name=True)
 
     uuids: List[UUID] = Field(min_length=1)
     fields: BulkNodesUpdateFieldsDto
 
 
-class BulkNodesUpdateResponseDto(NodesBulkActionsResponseDto):
-    """OpenAPI alias for bulk nodes update response"""
-    pass
+# ---------------------------------------------------------------------------
+# Обратная совместимость: старые имена остаются доступными как алиасы.
+# ---------------------------------------------------------------------------
+NodesResponseDto = NodeResponseDto
+CreateNodeResponseDto = NodeResponseDto
+UpdateNodeResponseDto = NodeResponseDto
+GetOneNodeResponseDto = NodeResponseDto
+EnableNodeResponseDto = NodeResponseDto
+DisableNodeResponseDto = NodeResponseDto
+
+GetAllNodesResponseDto = GetNodesResponseDto
+GetAllNodesTagsResponseDto = GetNodesTagsResponseDto
+ReorderNodeResponseDto = ReorderNodesResponseDto
+
+CreateNodeRequestDto = CreateNodeBodyDto
+UpdateNodeRequestDto = UpdateNodeBodyDto
+ReorderNodeRequestDto = ReorderNodesBodyDto
+NodeConfigProfileRequestDto = NodeConfigProfileBodyDto
+RestartNodeRequestBodyDto = RestartNodeBodyDto
+RestartAllNodesRequestBodyDto = RestartAllNodesBodyDto
+RestartAllNodesRequestDto = RestartAllNodesBodyDto
+ProfileModificationRequestDto = ProfileModificationBodyDto
+NodesBulkActionsRequestDto = BulkNodesActionsBodyDto
+NodesBulkActionsBodyDto = BulkNodesActionsBodyDto
+BulkNodesUpdateRequestDto = BulkNodesUpdateBodyDto

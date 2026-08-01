@@ -93,7 +93,7 @@ class BillingStatsDto(BaseModel):
 
 
 # Provider models
-class CreateInfraProviderRequestDto(BaseModel):
+class CreateInfraProviderBodyDto(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     name: Annotated[str, StringConstraints(min_length=2, max_length=30)]
@@ -105,7 +105,7 @@ class CreateInfraProviderResponseDto(InfraProviderDto):
     pass
 
 
-class UpdateInfraProviderRequestDto(BaseModel):
+class UpdateInfraProviderBodyDto(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     uuid: UUID
@@ -128,16 +128,16 @@ class GetInfraProvidersResponseDto(AllInfraProvidersData):
     pass
 
 
-class GetInfraProviderByUuidResponseDto(InfraProviderDto):
+class GetInfraProviderResponseDto(InfraProviderDto):
     pass
 
 
-class DeleteInfraProviderByUuidResponseDto(BaseModel):
-    is_deleted: bool = Field(alias="isDeleted")
+# 3.0: DELETE /infra-billing/providers/{uuid} отвечает 204 без тела,
+# поэтому модели ответа больше нет.
 
 
 # Billing History models
-class CreateInfraBillingHistoryRecordRequestDto(BaseModel):
+class CreateInfraBillingHistoryRecordBodyDto(BaseModel):
     """Модель для создания записи истории биллинга"""
     model_config = ConfigDict(populate_by_name=True)
 
@@ -151,8 +151,8 @@ class InfraBillingHistoryData(BaseModel):
     total: float
 
 
-# POST /infra-billing/history и DELETE /infra-billing/history/{uuid} возвращают
-# обновлённый список записей, а не одну запись / флаг удаления.
+# POST /infra-billing/history (201) возвращает обновлённый список записей,
+# а не одну созданную запись.
 class CreateInfraBillingHistoryRecordResponseDto(InfraBillingHistoryData):
     pass
 
@@ -161,12 +161,11 @@ class GetInfraBillingHistoryRecordsResponseDto(InfraBillingHistoryData):
     pass
 
 
-class DeleteInfraBillingHistoryRecordByUuidResponseDto(InfraBillingHistoryData):
-    pass
+# 3.0: DELETE /infra-billing/history/{uuid} отвечает 204 без тела.
 
 
 # Billing Nodes models
-class CreateInfraBillingNodeRequestDto(AlwaysEmitModel):
+class CreateInfraBillingNodeBodyDto(AlwaysEmitModel):
     """`nodeUuid` и `name` обязательны в теле запроса, но могут быть `null`
     (кастомная billing node не привязана к реальной ноде), поэтому оба ключа
     отправляются всегда — даже если вызывающий их не задал."""
@@ -188,12 +187,12 @@ class InfraBillingNodesData(BaseModel):
     stats: BillingStatsDto
 
 
-# ИСПРАВЛЕНО: API возвращает список всех billing nodes после создания, а не один созданный
+# API возвращает список всех billing nodes после создания (201), а не один созданный
 class CreateInfraBillingNodeResponseDto(InfraBillingNodesData):
     pass
 
 
-class UpdateInfraBillingNodeRequestDto(BaseModel):
+class UpdateInfraBillingNodeBodyDto(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     uuids: List[UUID]
@@ -208,17 +207,19 @@ class GetInfraBillingNodesResponseDto(InfraBillingNodesData):
     pass
 
 
-class DeleteInfraBillingNodeByUuidResponseDto(InfraBillingNodesData):
-    """API возвращает обновленный список billing nodes после удаления"""
-    pass
+# 3.0: DELETE /infra-billing/nodes/{uuid} отвечает 204 без тела.
 
 
 # Legacy aliases для обратной совместимости
 NodeDto = InfraBillingNodeRefDto
+CreateInfraProviderRequestDto = CreateInfraProviderBodyDto
+UpdateInfraProviderRequestDto = UpdateInfraProviderBodyDto
+CreateInfraBillingHistoryRecordRequestDto = CreateInfraBillingHistoryRecordBodyDto
+CreateInfraBillingNodeRequestDto = CreateInfraBillingNodeBodyDto
+UpdateInfraBillingNodeRequestDto = UpdateInfraBillingNodeBodyDto
+GetInfraProviderByUuidResponseDto = GetInfraProviderResponseDto
 GetAllInfraProvidersResponseDto = GetInfraProvidersResponseDto
-DeleteInfraProviderResponseDto = DeleteInfraProviderByUuidResponseDto
 GetAllInfraBillingHistoryResponseDto = GetInfraBillingHistoryRecordsResponseDto
 GetInfraBillingHistoryByUuidResponseDto = InfraBillingHistoryDto
 GetAllInfraBillingNodesResponseDto = GetInfraBillingNodesResponseDto
 GetInfraBillingNodeByUuidResponseDto = InfraBillingNodeDto
-DeleteInfraBillingNodeResponseDto = DeleteInfraBillingNodeByUuidResponseDto

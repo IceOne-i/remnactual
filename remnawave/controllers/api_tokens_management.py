@@ -4,11 +4,11 @@ from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
 from remnawave.models import (
-    CreateApiTokenRequestDto,
+    CreateApiTokenBodyDto,
     CreateApiTokenResponseDto,
-    DeleteApiTokenResponseDto,
-    FindAllApiTokensResponseDto,
     GetApiTokenScopesResponseDto,
+    GetApiTokensResponseDto,
+    GetOttResponseDto,
 )
 from remnawave.rapid import BaseController, delete, get, post
 
@@ -17,23 +17,26 @@ class APITokensManagementController(BaseController):
     @post("/tokens", response_class=CreateApiTokenResponseDto)
     async def create(
         self,
-        body: Annotated[CreateApiTokenRequestDto, PydanticBody()],
+        body: Annotated[CreateApiTokenBodyDto, PydanticBody()],
     ) -> CreateApiTokenResponseDto:
-        """Create new API token"""
+        """Create a new API token"""
         ...
 
-    @delete("/tokens/{uuid}", response_class=DeleteApiTokenResponseDto)
+    @delete("/tokens/{uuid}", response_class=None)
     async def delete(
         self,
         uuid: Annotated[str, Path(description="UUID of the API token")],
-    ) -> DeleteApiTokenResponseDto:
-        """Delete API token"""
+    ) -> None:
+        """Delete API token
+
+        Отвечает ``204 No Content`` с пустым телом — метод возвращает ``None``.
+        """
         ...
 
-    @get("/tokens", response_class=FindAllApiTokensResponseDto)
+    @get("/tokens", response_class=GetApiTokensResponseDto)
     async def find_all(
         self,
-    ) -> FindAllApiTokensResponseDto:
+    ) -> GetApiTokensResponseDto:
         """Get all API tokens"""
         ...
 
@@ -42,4 +45,11 @@ class APITokensManagementController(BaseController):
         self,
     ) -> GetApiTokenScopesResponseDto:
         """Get available API token scopes"""
+        ...
+
+    @post("/tokens/ott", response_class=GetOttResponseDto)
+    async def get_ott(
+        self,
+    ) -> GetOttResponseDto:
+        """Get short-lived token for accessing backend tools (Swagger, Scalar, Bull Board)"""
         ...

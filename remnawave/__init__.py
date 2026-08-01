@@ -8,15 +8,25 @@ from remnawave.controllers import (
     AuthController,
     BandWidthStatsController,
     ConfigProfilesController,
+    ConnectionsController,
+    IpControlController,
+    ExternalSquadsController,
+    HWIDUserController,
     HostsBulkActionsController,
     HostsController,
-    HWIDUserController,
     InboundsController,
     InfraBillingController,
     InternalSquadsController,
     KeygenController,
+    MetadataController,
+    NodePluginsController,
     NodesController,
+    PasskeysController,
+    RemnawaveSettingsController,
+    SnippetsController,
     SubscriptionController,
+    SubscriptionPageConfigController,
+    SubscriptionRequestHistoryController,
     SubscriptionsController,
     SubscriptionsSettingsController,
     SubscriptionsTemplateController,
@@ -24,15 +34,6 @@ from remnawave.controllers import (
     UsersBulkActionsController,
     UsersController,
     WebhookUtility,
-    SubscriptionRequestHistoryController,
-    PasskeysController,
-    ExternalSquadsController,
-    SnippetsController,
-    RemnawaveSettingsController,
-    SubscriptionPageConfigController,
-    IpControlController,
-    NodePluginsController,
-    MetadataController,
 )
     
 
@@ -76,6 +77,8 @@ class RemnawaveSDK:
         self.auth = AuthController(self._client)
         self.bandwidthstats = BandWidthStatsController(self._client)
         self.config_profiles = ConfigProfilesController(self._client)
+        self.connections = ConnectionsController(self._client)
+        self.external_squads = ExternalSquadsController(self._client)
         self.hosts = HostsController(self._client)
         self.hosts_bulk_actions = HostsBulkActionsController(self._client)
         self.hwid = HWIDUserController(self._client)
@@ -83,24 +86,23 @@ class RemnawaveSDK:
         self.infra_billing = InfraBillingController(self._client)
         self.internal_squads = InternalSquadsController(self._client)
         self.keygen = KeygenController(self._client)
+        self.metadata = MetadataController(self._client)
+        self.node_plugins = NodePluginsController(self._client)
         self.nodes = NodesController(self._client)
+        self.passkeys = PasskeysController(self._client)
+        self.remnawave_settings = RemnawaveSettingsController(self._client)
+        self.snippets = SnippetsController(self._client)
         self.subscription = SubscriptionController(self._client)
+        self.subscription_page_config = SubscriptionPageConfigController(self._client)
         self.subscriptions = SubscriptionsController(self._client)
+        self.subscription_request_history = SubscriptionRequestHistoryController(self._client)
+        self.subscriptions_request = self.subscription_request_history
         self.subscriptions_settings = SubscriptionsSettingsController(self._client)
         self.subscriptions_template = SubscriptionsTemplateController(self._client)
-        self.subscription_request_history = SubscriptionRequestHistoryController(self._client)
         self.system = SystemController(self._client)
         self.users = UsersController(self._client)
         self.users_bulk_actions = UsersBulkActionsController(self._client)
         self.webhook_utility = WebhookUtility()
-        self.passkeys = PasskeysController(self._client)
-        self.external_squads = ExternalSquadsController(self._client)
-        self.snippets = SnippetsController(self._client)
-        self.remnawave_settings = RemnawaveSettingsController(self._client)
-        self.subscription_page_config = SubscriptionPageConfigController(self._client)
-        self.ip_control = IpControlController(self._client)
-        self.node_plugins = NodePluginsController(self._client)
-        self.metadata = MetadataController(self._client)
 
     def _validate_params(self) -> None:
         if self._client is None:

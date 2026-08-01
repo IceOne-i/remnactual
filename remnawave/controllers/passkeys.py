@@ -3,13 +3,12 @@ from typing import Annotated
 from rapid_api_client.annotations import PydanticBody
 
 from remnawave.models import (
-    DeletePasskeyRequestDto,
-    DeletePasskeyResponseDto,
-    GetAllPasskeysResponseDto,
+    DeletePasskeyBodyDto,
     GetPasskeyRegistrationOptionsResponseDto,
-    UpdatePasskeyRequestDto,
+    GetPasskeysResponseDto,
+    UpdatePasskeyBodyDto,
     UpdatePasskeyResponseDto,
-    VerifyPasskeyRegistrationRequestDto,
+    VerifyPasskeyRegistrationBodyDto,
     VerifyPasskeyRegistrationResponseDto,
 )
 from remnawave.rapid import BaseController, delete, get, patch, post
@@ -26,30 +25,33 @@ class PasskeysController(BaseController):
     @post("/passkeys/registration/verify", response_class=VerifyPasskeyRegistrationResponseDto)
     async def passkey_registration_verify(
         self,
-        body: Annotated[VerifyPasskeyRegistrationRequestDto, PydanticBody()],
+        body: Annotated[VerifyPasskeyRegistrationBodyDto, PydanticBody()],
     ) -> VerifyPasskeyRegistrationResponseDto:
         """Verify registration for passkey"""
         ...
 
-    @get("/passkeys", response_class=GetAllPasskeysResponseDto)
+    @get("/passkeys", response_class=GetPasskeysResponseDto)
     async def get_active_passkeys(
         self,
-    ) -> GetAllPasskeysResponseDto:
-        """Get all passkeys"""
+    ) -> GetPasskeysResponseDto:
+        """Get passkeys"""
         ...
 
-    @delete("/passkeys", response_class=DeletePasskeyResponseDto)
+    @delete("/passkeys", response_class=None)
     async def delete_passkey(
         self,
-        body: Annotated[DeletePasskeyRequestDto, PydanticBody()],
-    ) -> DeletePasskeyResponseDto:
-        """Delete a passkey by ID"""
+        body: Annotated[DeletePasskeyBodyDto, PydanticBody()],
+    ) -> None:
+        """Delete a passkey by ID
+
+        Отвечает ``204 No Content`` с пустым телом — метод возвращает ``None``.
+        """
         ...
 
     @patch("/passkeys", response_class=UpdatePasskeyResponseDto)
     async def update_passkey(
         self,
-        body: Annotated[UpdatePasskeyRequestDto, PydanticBody()],
+        body: Annotated[UpdatePasskeyBodyDto, PydanticBody()],
     ) -> UpdatePasskeyResponseDto:
-        """Update a passkey name"""
+        """Update passkey"""
         ...

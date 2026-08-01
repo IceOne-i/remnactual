@@ -1,8 +1,7 @@
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Annotated, Any, Dict, List
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
-from typing import Annotated
 
 
 class PasskeyDto(BaseModel):
@@ -23,7 +22,7 @@ class GetPasskeyRegistrationOptionsResponseDto(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
-class VerifyPasskeyRegistrationRequestDto(BaseModel):
+class VerifyPasskeyRegistrationBodyDto(BaseModel):
     """Request to verify passkey registration"""
     # WebAuthn registration response is complex object
     response: Dict[str, Any]
@@ -39,32 +38,20 @@ class VerifyPasskeyRegistrationResponseDto(BaseModel):
     verified: bool
 
 
-class GetAllPasskeysResponseData(BaseModel):
-    """Response data with all user's passkeys"""
+class GetPasskeysResponseDto(BaseModel):
+    """``GET /api/passkeys`` — список passkey текущего администратора"""
     passkeys: List[PasskeyDto]
 
 
-class GetAllPasskeysResponseDto(BaseModel):
-    """Response with all user's passkeys"""
-    passkeys: List[PasskeyDto]
-
-
-class DeletePasskeyRequestDto(BaseModel):
+class DeletePasskeyBodyDto(BaseModel):
     """Request to delete a passkey"""
     id: str
 
 
-class DeletePasskeyResponseData(BaseModel):
-    """Response data with updated passkeys list after deletion"""
-    passkeys: List[PasskeyDto]
+# 3.0: DELETE /api/passkeys отвечает 204 без тела — DeletePasskeyResponseDto удалён.
 
 
-class DeletePasskeyResponseDto(BaseModel):
-    """Response with updated passkeys list after deletion"""
-    passkeys: List[PasskeyDto]
-
-
-class UpdatePasskeyRequestDto(BaseModel):
+class UpdatePasskeyBodyDto(BaseModel):
     """Request to update a passkey"""
     id: str
     name: Annotated[str, StringConstraints(min_length=2, max_length=30, pattern=r"^[A-Za-z0-9_\s-]+$")]
@@ -78,3 +65,13 @@ class UpdatePasskeyResponseData(BaseModel):
 class UpdatePasskeyResponseDto(BaseModel):
     """Response with updated passkey information"""
     passkeys: List[PasskeyDto]
+
+
+# ---------------- BACKWARDS-COMPATIBLE ALIASES ---------------- #
+# 3.0 переименовал тела запросов *RequestDto -> *BodyDto, а ответ GET /api/passkeys —
+# в GetPasskeysResponseDto (контрактное имя).
+VerifyPasskeyRegistrationRequestDto = VerifyPasskeyRegistrationBodyDto
+DeletePasskeyRequestDto = DeletePasskeyBodyDto
+UpdatePasskeyRequestDto = UpdatePasskeyBodyDto
+GetAllPasskeysResponseDto = GetPasskeysResponseDto
+GetAllPasskeysResponseData = GetPasskeysResponseDto

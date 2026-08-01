@@ -1,7 +1,7 @@
 from datetime import datetime
 from functools import partial, wraps
 from inspect import signature
-from typing import Any, Callable, Coroutine, Type
+from typing import Any, Callable, Coroutine, Optional, Type
 
 import httpx
 from httpx import AsyncClient, Response
@@ -16,21 +16,23 @@ from .client import BaseController, CustomRapidParameters
 def http(
     method: str,
     path: str,
-    response_class: Type[BM | str | bytes | Response] | TypeAdapter[T] = Response,
+    response_class: Optional[Type[BM | str | bytes | Response] | TypeAdapter[T]] = Response,
     timeout: float | None = None,
 ) -> Callable[
-    [Callable], Callable[..., Coroutine[Any, Any, BM | str | bytes | Response | T]]
+    [Callable], Callable[..., Coroutine[Any, Any, BM | str | bytes | Response | T | None]]
 ]:
+    """`response_class=None` — эндпоинт отвечает 202/204 без тела."""
+
     def decorator(
         func: Callable,
-    ) -> Callable[..., Coroutine[Any, Any, BM | str | bytes | Response | T]]:
+    ) -> Callable[..., Coroutine[Any, Any, BM | str | bytes | Response | T | None]]:
         sig = signature(func)
         rapid_parameters = CustomRapidParameters.from_sig(sig)
 
         @wraps(func)
         async def wrapper(
             api: BaseController, *args, **kwargs
-        ) -> BM | str | bytes | Response | T:
+        ) -> BM | str | bytes | Response | T | None:
             assert isinstance(
                 api, BaseController
             ), f"{api} should be an instance of BaseController"
