@@ -1,5 +1,5 @@
 {
-  "note": "Built from ScopeCatalogService rules: controllers decorated with @ApiScopeResource, contract 3.0.0",
+  "note": "Built from ScopeCatalogService rules: controllers decorated with @ApiScopeResource, contract 3.2.0",
   "scopes": [
     "*",
     "bandwidth-stats:*",
@@ -188,6 +188,7 @@
     "subscriptions:write",
     "system:*",
     "system:bandwidth-stats",
+    "system:configuration",
     "system:digest",
     "system:generate-x25519",
     "system:http",

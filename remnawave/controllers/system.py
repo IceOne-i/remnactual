@@ -12,6 +12,7 @@ from remnawave.models.system import (
     GetX25519KeyPairResponseDto,
     DebugSrrMatcherBodyDto,
     DebugSrrMatcherResponseDto,
+    GetConfigurationResponseDto,
     GetMetadataResponseDto,
     GetRecapResponseDto,
 )
@@ -25,7 +26,14 @@ class SystemController(BaseController):
     ) -> GetMetadataResponseDto:
         """Get Remnawave Information"""
         ...
-        
+
+    @get("/system/configuration", response_class=GetConfigurationResponseDto)
+    async def get_configuration(
+        self,
+    ) -> GetConfigurationResponseDto:
+        """Get Remnawave Configuration"""
+        ...
+
     @get("/system/stats", response_class=GetStatsResponseDto)
     async def get_stats(
         self,

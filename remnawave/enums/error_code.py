@@ -89,7 +89,9 @@ class ErrorCode(StrEnum):
     DELETE_HOSTS_ERROR = "A079"  # 500 — Delete hosts error
     BULK_ENABLE_HOSTS_ERROR = "A080"  # 500 — Bulk enable hosts error
     BULK_DISABLE_HOSTS_ERROR = "A081"  # 500 — Bulk disable hosts error
-    BULK_DELETE_USERS_BY_UUID_ERROR = "A084"  # 500 — Bulk delete users by UUID error
+    BULK_DELETE_USERS_BY_USER_IDS_ERROR = "A084"  # 500 — Bulk delete users by user IDs error
+    # 3.1 переименовал константу; старое имя оставлено алиасом того же кода.
+    BULK_DELETE_USERS_BY_UUID_ERROR = "A084"
     BULK_REVOKE_USERS_SUBSCRIPTION_ERROR = "A085"  # 500 — Bulk revoke users subscription error
     BULK_RESET_USER_TRAFFIC_ERROR = "A086"  # 500 — Bulk reset user traffic error
     BULK_UPDATE_USERS_ERROR = "A087"  # 500 — Bulk update users error
@@ -571,7 +573,7 @@ ERROR_MESSAGES: "dict[str, str]" = {
     "A079": "Delete hosts error",
     "A080": "Bulk enable hosts error",
     "A081": "Bulk disable hosts error",
-    "A084": "Bulk delete users by UUID error",
+    "A084": "Bulk delete users by user IDs error",
     "A085": "Bulk revoke users subscription error",
     "A086": "Bulk reset user traffic error",
     "A087": "Bulk update users error",

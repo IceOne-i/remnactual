@@ -2,6 +2,7 @@ import pytest
 
 from remnawave.models import (
     GetBandwidthStatsResponseDto,
+    GetConfigurationResponseDto,
     GetNodesStatisticsResponseDto,
     GetStatsResponseDto,
     GetNodesMetricsResponseDto,
@@ -64,3 +65,16 @@ class TestSystemMonitoring:
         health = await remnawave.system.get_health()
         assert isinstance(health, GetRemnawaveHealthResponseDto)
         assert hasattr(health, 'pm2_stats')
+
+
+class TestSystemConfiguration:
+    """Тесты для GET /system/configuration (панель >= 3.2.0)"""
+
+    @pytest.mark.asyncio
+    async def test_get_configuration(self, remnawave):
+        """Тест получения конфигурации панели"""
+        configuration = await remnawave.system.get_configuration()
+        assert isinstance(configuration, GetConfigurationResponseDto)
+        assert isinstance(configuration.notifications.webhook, bool)
+        assert isinstance(configuration.service.disable_srh_records, bool)
+        assert configuration.misc.short_uuid_length > 0

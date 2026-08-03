@@ -69,6 +69,9 @@ class TestSystemControllerEndpoints:
         for name in ("get_stats_digest", "get_http_stats"):
             assert _has(SystemController, name), name
 
+    def test_new_3_2_configuration(self):
+        assert _has(SystemController, "get_configuration")
+
     def test_no_encrypt_happ_crypto_link(self):
         # Removed in 2.8 (use client-side happ link generation instead)
         assert not hasattr(SystemController, "encrypt_happ_crypto_link")

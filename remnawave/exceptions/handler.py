@@ -158,7 +158,7 @@ ERRORS: Dict[str, Type[ApiError]] = {
     ErrorCode.DELETE_HOSTS_ERROR: ServerError,
     ErrorCode.BULK_ENABLE_HOSTS_ERROR: ServerError,
     ErrorCode.BULK_DISABLE_HOSTS_ERROR: ServerError,
-    ErrorCode.BULK_DELETE_USERS_BY_UUID_ERROR: ServerError,
+    ErrorCode.BULK_DELETE_USERS_BY_USER_IDS_ERROR: ServerError,
     ErrorCode.BULK_REVOKE_USERS_SUBSCRIPTION_ERROR: ServerError,
     ErrorCode.BULK_RESET_USER_TRAFFIC_ERROR: ServerError,
     ErrorCode.BULK_UPDATE_USERS_ERROR: ServerError,

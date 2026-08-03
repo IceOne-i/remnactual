@@ -8,6 +8,9 @@ class SubscriptionRequestHistoryRecord(BaseModel):
     id: int
     # 2.8: колонка userUuid заменена на числовой userId
     user_id: int = Field(alias="userId")
+    # 3.1: какое правило SRR обработало запрос. Панели 3.0.x эти поля не пишут.
+    srr_response_type: Optional[str] = Field(None, alias="srrResponseType")
+    srr_rule_name: Optional[str] = Field(None, alias="srrRuleName")
     request_ip: Optional[str] = Field(None, alias="requestIp")
     user_agent: Optional[str] = Field(None, alias="userAgent")
     request_at: datetime = Field(alias="requestAt")

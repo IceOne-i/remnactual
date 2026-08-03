@@ -196,6 +196,9 @@ class ReorderNodesBodyDto(BaseModel):
 
 class NodeResponseDto(BaseModel):
     uuid: UUID
+    # 3.1: рядом с uuid панель отдаёт числовой id. Панели 3.0.x его не присылают,
+    # поэтому поле опционально; маршруты нод по-прежнему адресуются по {uuid}.
+    id: Optional[int] = None
     name: str
     address: str
     port: Optional[int] = None

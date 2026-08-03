@@ -178,14 +178,14 @@ class TestScopesAndErrorCodes:
         The grantable catalog is built by `ScopeCatalogService` from controllers decorated
         with `@ApiScopeResource` only — `auth`, `passkeys`, `api-tokens`, `remnawave-settings`
         and the public `subscription` controller are NOT in it, so inventing scopes for them
-        makes `POST /api/tokens` fail. The fixture is derived from the 3.0 contract.
+        makes `POST /api/tokens` fail. The fixture is derived from the 3.2 contract.
         """
         import json
 
         from remnawave.enums import Scope
 
         fixture = json.loads(
-            (pathlib.Path(__file__).parent / "fixtures" / "scopes_3.0.json").read_text(
+            (pathlib.Path(__file__).parent / "fixtures" / "scopes_3.2.json").read_text(
                 encoding="utf-8"
             )
         )

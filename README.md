@@ -7,9 +7,9 @@
 [![Fork of remnawave/python-sdk](https://img.shields.io/badge/fork%20of-remnawave%2Fpython--sdk-24292f?logo=github)](https://github.com/remnawave/python-sdk)
 
 [![Remnawave panel](https://img.shields.io/badge/Remnawave%20panel-%E2%89%A5%203.0.0-1f6feb)](https://remna.st)
-[![Backend contract](https://img.shields.io/badge/backend--contract-3.0.0-1f6feb)](https://github.com/remnawave/backend/tree/3.0.0/libs/contract)
-[![Endpoints](https://img.shields.io/badge/endpoints-191-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
-[![Models](https://img.shields.io/badge/models-641-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
+[![Backend contract](https://img.shields.io/badge/backend--contract-3.2.0-1f6feb)](https://github.com/remnawave/backend/tree/3.2.0/libs/contract)
+[![Endpoints](https://img.shields.io/badge/endpoints-192-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
+[![Models](https://img.shields.io/badge/models-645-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
 [![API docs](https://img.shields.io/badge/API%20docs-docs.rw-1f6feb)](https://docs.rw/api)
 
 [![Pydantic v2](https://img.shields.io/badge/pydantic-v2-e92063?logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
@@ -34,11 +34,16 @@ Asynchronous Python client for the **[Remnawave](https://remna.st)** panel API, 
 
 | SDK version | Remnawave panel | Backend contract |
 | ----------- | --------------- | ---------------- |
+| 3.2.0       | >= 3.0.0        | `@remnawave/backend-contract` 3.2.0 |
 | 3.0.0       | >= 3.0.0        | `@remnawave/backend-contract` 3.0.0 |
 | 2.8.1       | >= 2.8.0, < 3.0 | `@remnawave/backend-contract` 2.8.35 |
 
 Every endpoint, request body and response model in this fork is verified against
-`libs/contract` of [`remnawave/backend`](https://github.com/remnawave/backend) at tag `3.0.0`.
+`libs/contract` of [`remnawave/backend`](https://github.com/remnawave/backend) at tag `3.2.0`.
+
+> 3.1 and 3.2 are purely additive, so the panel floor stays at 3.0.0: the fields they added
+> are optional here and simply stay `None` against an older panel. `GET /system/configuration`
+> of course needs a panel on 3.2.0.
 
 > Remnawave 3.0 is **not** backwards compatible with 2.8 — users are identified by a numeric
 > `id` instead of a `uuid`, `/api/ip-control` became `/api/connections`, and many endpoints
@@ -143,7 +148,7 @@ when missing.
 | `sdk.node_plugins` | Node plugins, executor, torrent-blocker reports |
 | `sdk.infra_billing` | Providers, billing nodes, billing history |
 | `sdk.bandwidthstats` | Per-node and per-user bandwidth stats (incl. legacy endpoints) |
-| `sdk.system` | Stats, digest, HTTP counters, health, metrics, recap, x25519, SRR matcher |
+| `sdk.system` | Stats, digest, HTTP counters, health, metrics, recap, configuration, x25519, SRR matcher |
 | `sdk.auth` / `sdk.passkeys` / `sdk.api_tokens_management` | Login, OAuth2, passkeys, scoped API tokens |
 | `sdk.remnawave_settings` / `sdk.snippets` / `sdk.keygen` / `sdk.metadata` | Panel settings, snippets, node secret key, user/node metadata |
 | `sdk.webhook_utility` | Webhook signature validation and payload parsing |
@@ -224,6 +229,24 @@ if sdk.webhook_utility.is_user_event(payload.event):
 
 This fork tracks the Remnawave API closely and fixes the divergences each upstream migration
 left behind.
+
+### Migration to 3.1 / 3.2
+
+Both releases are additive — no endpoint, path or field was renamed or removed.
+
+- **Nodes carry a numeric `id`** next to the `uuid`, on `NodeResponseDto` and on the webhook
+  node model (`data.id` of node events, `data.node.id` of torrent-blocker events). Node routes
+  still take `{uuid}`.
+- **Subscription request history reports the matched SRR rule** — `srrResponseType` and
+  `srrRuleName` on both `GET /subscription-request-history` and
+  `GET /users/{userId}/subscription-request-history`.
+- **Added** — `GET /system/configuration` (`sdk.system.get_configuration()`), with the
+  `system:configuration` token scope.
+- **Renamed** — the contract's constant for error `A084` became
+  `BULK_DELETE_USERS_BY_USER_IDS_ERROR` (the code and its HTTP status are unchanged); the old
+  `BULK_DELETE_USERS_BY_UUID_ERROR` name stays as an alias of the same member.
+- The `preStart` node plugin needs no SDK change — the contract types `pluginConfig` as
+  `unknown`, so it stays an untyped mapping here.
 
 ### Migration to 3.0
 
