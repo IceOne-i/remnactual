@@ -295,6 +295,51 @@ class GetHttpStatsResponseDto(BaseModel):
     total: int
 
 
+# ============ Configuration (3.2) ============
+
+
+class ConfigurationNotificationsDto(BaseModel):
+    """Значения переменных окружения, отвечающих за уведомления"""
+    webhook: bool  # WEBHOOK_ENABLED
+    bandwidth_usage: Optional[List[float]] = Field(
+        None, alias="bandwidthUsage"
+    )  # BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD
+    not_connected_after: Optional[List[float]] = Field(
+        None, alias="notConnectedAfter"
+    )  # NOT_CONNECTED_USERS_NOTIFICATIONS_AFTER_HOURS
+    expiration_notifications: Optional[List[float]] = Field(
+        None, alias="expirationNotifications"
+    )  # EXPIRATION_NOTIFICATIONS
+
+
+class ConfigurationServiceDto(BaseModel):
+    """Переключатели фоновых сервисов панели"""
+    clean_usage_history: bool = Field(alias="cleanUsageHistory")  # SERVICE_CLEAN_USAGE_HISTORY
+    disable_user_usage_records: bool = Field(
+        alias="disableUserUsageRecords"
+    )  # SERVICE_DISABLE_USER_USAGE_RECORDS
+    disable_srh_records: bool = Field(alias="disableSrhRecords")  # SERVICE_DISABLE_SRH_RECORDS
+    export_to_redis_stream: bool = Field(
+        alias="exportToRedisStream"
+    )  # EXPORT_TO_STREAM_ENABLED
+
+
+class ConfigurationMiscDto(BaseModel):
+    """Прочие значения конфигурации"""
+    short_uuid_length: int = Field(alias="shortUuidLength")  # SHORT_UUID_LENGTH
+    sub_public_domain: str = Field(alias="subPublicDomain")
+    user_usage_ignore_below_bytes: float = Field(
+        alias="userUsageIgnoreBelowBytes"
+    )  # USER_USAGE_IGNORE_BELOW_BYTES
+
+
+class GetConfigurationResponseDto(BaseModel):
+    """GET /system/configuration — часть значений конфигурации панели (3.2)"""
+    notifications: ConfigurationNotificationsDto
+    service: ConfigurationServiceDto
+    misc: ConfigurationMiscDto
+
+
 class BuildInfo(BaseModel):
     """Build information"""
     time: str

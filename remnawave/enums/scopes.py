@@ -227,6 +227,7 @@ class Scope(StrEnum):
     SYSTEM_READ = "system:read"
     SYSTEM_WRITE = "system:write"
     SYSTEM_METADATA = "system:metadata"
+    SYSTEM_CONFIGURATION = "system:configuration"  # 3.2
     SYSTEM_STATS = "system:stats"
     SYSTEM_BANDWIDTH_STATS = "system:bandwidth-stats"
     SYSTEM_NODES_STATISTICS = "system:nodes-statistics"

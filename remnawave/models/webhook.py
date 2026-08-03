@@ -246,6 +246,9 @@ class WebhookNodeConfigProfileDto(BaseModel):
 
 class WebhookNodeDto(BaseModel):
     uuid: UUID
+    # 3.1: `data.id` в событиях ноды и `data.node.id` в событиях torrent-blocker —
+    # обе схемы контракта используют полный NodesSchema. На 3.0.x поля нет.
+    id: Optional[int] = None
     name: str
     address: str
     port: Optional[int] = None
