@@ -245,6 +245,7 @@ class ErrorCode(StrEnum):
     REMOVE_MANY_USERS_FROM_INTERNAL_SQUAD_ERROR = "A234"  # 500 — Remove many users from internal squad error
     GET_STATS_DIGEST_INVALID_RANGE = "A235"  # 400 — Start date must be before or equal to end date
     GET_STATS_DIGEST_ERROR = "A236"  # 500 — Get stats digest error
+    SYNC_SNIPPET_ERROR = "A237"  # 500 — Sync snippet error
     NODE_ERROR_WITH_MSG = "N001"  # 500 — 
     NODE_ERROR_500_WITH_MSG = "N002"  # 500 — 
 
@@ -486,6 +487,7 @@ ERROR_HTTP_CODES: "dict[str, int]" = {
     "A234": 500,
     "A235": 400,
     "A236": 500,
+    "A237": 500,
     "N001": 500,
     "N002": 500,
 }
@@ -724,6 +726,7 @@ ERROR_MESSAGES: "dict[str, str]" = {
     "A234": "Remove many users from internal squad error",
     "A235": "Start date must be before or equal to end date",
     "A236": "Get stats digest error",
+    "A237": "Sync snippet error",
     "N001": "",
     "N002": "",
 }

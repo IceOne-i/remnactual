@@ -7,6 +7,7 @@ from remnawave.models import (
     CreateSnippetResponseDto,
     DeleteSnippetBodyDto,
     GetSnippetsResponseDto,
+    SyncSnippetBodyDto,
     UpdateSnippetBodyDto,
     UpdateSnippetResponseDto,
 )
@@ -33,6 +34,20 @@ class SnippetsController(BaseController):
         body: Annotated[UpdateSnippetBodyDto, PydanticBody()],
     ) -> UpdateSnippetResponseDto:
         """Update snippet"""
+        ...
+
+    @post("/snippets/actions/sync", response_class=None)
+    async def sync_snippet(
+        self,
+        body: Annotated[SyncSnippetBodyDto, PydanticBody()],
+    ) -> None:
+        """Sync snippet to affected config profiles
+
+        3.2.3: раскатывает сниппет по всем конфиг-профилям, которые на него ссылаются;
+        ноды этих профилей перезапускаются.
+
+        Отвечает ``202 Accepted`` с пустым телом — метод возвращает ``None``.
+        """
         ...
 
     @delete("/snippets", response_class=None)

@@ -51,6 +51,15 @@ class DeleteSnippetBodyDto(BaseModel):
     name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_\s-]+$")]
 
 
+class SyncSnippetBodyDto(BaseModel):
+    """Sync snippet request
+
+    3.2.3: раскатывает сниппет по всем ссылающимся на него конфиг-профилям.
+    Ноды этих профилей будут перезапущены.
+    """
+    name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_\s-]+$")]
+
+
 # ---------------- BACKWARDS-COMPATIBLE ALIASES ---------------- #
 # 3.0 переименовал тела запросов *RequestDto -> *BodyDto.
 CreateSnippetRequestDto = CreateSnippetBodyDto

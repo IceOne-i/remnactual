@@ -182,6 +182,8 @@ class TlsSecurityOptions(BaseModel):
     ech_force_query: Optional[str] = Field(..., alias="echForceQuery")
     #: 3.0: новое поле `echSockopt`
     ech_sockopt: Optional[Any] = Field(None, alias="echSockopt")
+    #: 3.2.3: `cipherSuites` из `tlsSettings` инбаунда доезжает до Xray-Json и Base64.
+    cipher_suites: Optional[str] = Field(None, alias="cipherSuites")
 
 
 class RealitySecurityOptions(BaseModel):

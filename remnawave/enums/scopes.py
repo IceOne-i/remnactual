@@ -260,6 +260,8 @@ class Scope(StrEnum):
     SNIPPETS_DELETE = "snippets:delete"
     SNIPPETS_CREATE = "snippets:create"
     SNIPPETS_UPDATE = "snippets:update"
+    #: 3.2.3
+    SNIPPETS_SYNC = "snippets:sync"
 
     # Subscription Page Configs
     SUBSCRIPTION_PAGE_CONFIGS_ALL = "subscription-page-configs:*"
