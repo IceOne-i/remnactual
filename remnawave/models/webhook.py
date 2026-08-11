@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from pydantic.alias_generators import to_camel
 from remnawave.models.node_plugins import TorrentBlockerReportPayloadDto
 from remnawave.models.nodes import (
+    NodeIpDto,
     NodeNetworkInterfaceDto as NodeSystemInterfaceDto,
     NodeSystemDto,
     NodeSystemInfoDto,
@@ -275,6 +276,8 @@ class WebhookNodeDto(BaseModel):
     note: Optional[str] = None
 
     tags: List[str] = Field(default_factory=list)
+    # 3.2.3: список IP-адресов ноды. Панели до 3.2.3 его не присылают.
+    ips: List[NodeIpDto] = Field(default_factory=list)
 
     created_at: datetime
     updated_at: datetime

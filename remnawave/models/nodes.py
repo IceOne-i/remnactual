@@ -6,13 +6,26 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    IPvAnyAddress,
     RootModel,
     StringConstraints,
 )
 
+from remnawave.enums import NodeIpStatus
 from remnawave.models._serialization import AlwaysEmitModel
 
 from remnawave.models.internal_squads import InboundsDto
+
+#: 3.2.3: контракт ограничивает список IP-адресов ноды 64 элементами.
+NODE_IPS_MAX = 64
+
+
+class NodeIpDto(BaseModel):
+    """IP-адрес ноды и его назначение (3.2.3)."""
+    model_config = ConfigDict(populate_by_name=True)
+
+    ip: IPvAnyAddress
+    status: NodeIpStatus
 
 
 class ExcludedInbounds(BaseModel):
@@ -140,6 +153,10 @@ class CreateNodeBodyDto(BaseModel):
     active_plugin_uuid: Optional[UUID] = Field(
         None, serialization_alias="activePluginUuid"
     )
+    #: 3.2.3: список IP-адресов ноды. Нетронутое поле не отправляется (`exclude_unset`).
+    ips: Optional[List[NodeIpDto]] = Field(
+        None, serialization_alias="ips", max_length=NODE_IPS_MAX
+    )
 
 
 class UpdateNodeBodyDto(BaseModel):
@@ -187,6 +204,10 @@ class UpdateNodeBodyDto(BaseModel):
     active_plugin_uuid: Optional[UUID] = Field(
         None, serialization_alias="activePluginUuid"
     )
+    #: 3.2.3: список IP-адресов ноды. Нетронутое поле не отправляется (`exclude_unset`).
+    ips: Optional[List[NodeIpDto]] = Field(
+        None, serialization_alias="ips", max_length=NODE_IPS_MAX
+    )
 
 
 class ReorderNodesBodyDto(BaseModel):
@@ -226,6 +247,8 @@ class NodeResponseDto(BaseModel):
     provider_uuid: Optional[UUID] = Field(None, alias="providerUuid")
     provider: Optional[NodeProviderDto] = None
     tags: List[str] = Field(default_factory=list, alias="tags")
+    # 3.2.3: список IP-адресов ноды. Панели до 3.2.3 его не присылают.
+    ips: List[NodeIpDto] = Field(default_factory=list, alias="ips")
     active_plugin_uuid: Optional[UUID] = Field(None, alias="activePluginUuid")
     system: Optional[NodeSystemDto] = None
     versions: Optional[NodeVersionsDto] = None

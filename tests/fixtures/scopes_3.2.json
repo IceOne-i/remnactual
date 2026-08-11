@@ -1,5 +1,5 @@
 {
-  "note": "Built from ScopeCatalogService rules: controllers decorated with @ApiScopeResource, contract 3.2.0",
+  "note": "Built from ScopeCatalogService rules: controllers decorated with @ApiScopeResource, contract 3.2.3",
   "scopes": [
     "*",
     "bandwidth-stats:*",
@@ -145,6 +145,7 @@
     "snippets:delete",
     "snippets:list",
     "snippets:read",
+    "snippets:sync",
     "snippets:update",
     "snippets:write",
     "subscription-page-configs:*",

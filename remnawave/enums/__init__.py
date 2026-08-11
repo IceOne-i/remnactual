@@ -3,6 +3,7 @@ from .client_type import ClientType
 from .error_code import ErrorCode
 from .fingerprint import Fingerprint
 from .mihomo import MihomoIpVersion
+from .nodes import NodeIpStatus
 from .scopes import Scope
 from .security_layer import SecurityLayer
 from .template_type import TemplateType
@@ -28,6 +29,7 @@ __all__ = [
     "ALPN",
     "Fingerprint",
     "MihomoIpVersion",
+    "NodeIpStatus",
     "Scope",
     "SecurityLayer",
     "TemplateType",

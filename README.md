@@ -7,9 +7,9 @@
 [![Fork of remnawave/python-sdk](https://img.shields.io/badge/fork%20of-remnawave%2Fpython--sdk-24292f?logo=github)](https://github.com/remnawave/python-sdk)
 
 [![Remnawave panel](https://img.shields.io/badge/Remnawave%20panel-%E2%89%A5%203.0.0-1f6feb)](https://remna.st)
-[![Backend contract](https://img.shields.io/badge/backend--contract-3.2.0-1f6feb)](https://github.com/remnawave/backend/tree/3.2.0/libs/contract)
-[![Endpoints](https://img.shields.io/badge/endpoints-192-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
-[![Models](https://img.shields.io/badge/models-645-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
+[![Backend contract](https://img.shields.io/badge/backend--contract-3.2.3-1f6feb)](https://github.com/remnawave/backend/tree/3.2.3/libs/contract)
+[![Endpoints](https://img.shields.io/badge/endpoints-193-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
+[![Models](https://img.shields.io/badge/models-647-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
 [![API docs](https://img.shields.io/badge/API%20docs-docs.rw-1f6feb)](https://docs.rw/api)
 
 [![Pydantic v2](https://img.shields.io/badge/pydantic-v2-e92063?logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
@@ -34,16 +34,18 @@ Asynchronous Python client for the **[Remnawave](https://remna.st)** panel API, 
 
 | SDK version | Remnawave panel | Backend contract |
 | ----------- | --------------- | ---------------- |
+| 3.2.3       | >= 3.0.0        | `@remnawave/backend-contract` 3.2.3 |
 | 3.2.0       | >= 3.0.0        | `@remnawave/backend-contract` 3.2.0 |
 | 3.0.0       | >= 3.0.0        | `@remnawave/backend-contract` 3.0.0 |
 | 2.8.1       | >= 2.8.0, < 3.0 | `@remnawave/backend-contract` 2.8.35 |
 
 Every endpoint, request body and response model in this fork is verified against
-`libs/contract` of [`remnawave/backend`](https://github.com/remnawave/backend) at tag `3.2.0`.
+`libs/contract` of [`remnawave/backend`](https://github.com/remnawave/backend) at tag `3.2.3`.
 
-> 3.1 and 3.2 are purely additive, so the panel floor stays at 3.0.0: the fields they added
-> are optional here and simply stay `None` against an older panel. `GET /system/configuration`
-> of course needs a panel on 3.2.0.
+> 3.1, 3.2 and 3.2.3 are purely additive, so the panel floor stays at 3.0.0: the fields they
+> added are optional here and simply stay `None` (or empty) against an older panel.
+> `GET /system/configuration` of course needs a panel on 3.2.0, and
+> `POST /snippets/actions/sync` a panel on 3.2.3.
 
 > Remnawave 3.0 is **not** backwards compatible with 2.8 — users are identified by a numeric
 > `id` instead of a `uuid`, `/api/ip-control` became `/api/connections`, and many endpoints
@@ -150,7 +152,7 @@ when missing.
 | `sdk.bandwidthstats` | Per-node and per-user bandwidth stats (incl. legacy endpoints) |
 | `sdk.system` | Stats, digest, HTTP counters, health, metrics, recap, configuration, x25519, SRR matcher |
 | `sdk.auth` / `sdk.passkeys` / `sdk.api_tokens_management` | Login, OAuth2, passkeys, scoped API tokens |
-| `sdk.remnawave_settings` / `sdk.snippets` / `sdk.keygen` / `sdk.metadata` | Panel settings, snippets, node secret key, user/node metadata |
+| `sdk.remnawave_settings` / `sdk.snippets` / `sdk.keygen` / `sdk.metadata` | Panel settings, snippets (incl. `sync`), node secret key, user/node metadata |
 | `sdk.webhook_utility` | Webhook signature validation and payload parsing |
 
 ## Request bodies and `null`
@@ -229,6 +231,22 @@ if sdk.webhook_utility.is_user_event(payload.event):
 
 This fork tracks the Remnawave API closely and fixes the divergences each upstream migration
 left behind.
+
+### Migration to 3.2.3
+
+Additive as well — nothing was renamed or removed.
+
+- **Added** — `POST /snippets/actions/sync` (`sdk.snippets.sync_snippet()`), with the
+  `snippets:sync` token scope and the new `A237` error code. It rolls a snippet out to every
+  config profile referencing it and restarts the nodes of those profiles; the panel answers
+  `202 Accepted` with no body, so the method returns `None`.
+- **Nodes carry `ips`** — a list of up to 64 `{ip, status}` entries on `NodeResponseDto` and on
+  the webhook node model, and an optional field of `POST` / `PATCH /nodes`. Statuses live in
+  `remnawave.enums.NodeIpStatus`. Panels below 3.2.3 do not send it, so the list stays empty.
+- **`cipherSuites`** of the inbound's `tlsSettings` reaches the raw subscription —
+  `TlsSecurityOptions.cipher_suites`.
+- `vlessUuid` validation was loosened upstream (`z.uuid()` → `z.guid()`) and needs no SDK
+  change: Python's `uuid.UUID` already accepts non-RFC-4122 values.
 
 ### Migration to 3.1 / 3.2
 
