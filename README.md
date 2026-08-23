@@ -7,9 +7,9 @@
 [![Fork of remnawave/python-sdk](https://img.shields.io/badge/fork%20of-remnawave%2Fpython--sdk-24292f?logo=github)](https://github.com/remnawave/python-sdk)
 
 [![Remnawave panel](https://img.shields.io/badge/Remnawave%20panel-%E2%89%A5%203.0.0-1f6feb)](https://remna.st)
-[![Backend contract](https://img.shields.io/badge/backend--contract-3.2.3-1f6feb)](https://github.com/remnawave/backend/tree/3.2.3/libs/contract)
-[![Endpoints](https://img.shields.io/badge/endpoints-193-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
-[![Models](https://img.shields.io/badge/models-647-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
+[![Backend contract](https://img.shields.io/badge/backend--contract-3.3.2-1f6feb)](https://github.com/remnawave/backend/tree/3.3.2/libs/contract)
+[![Endpoints](https://img.shields.io/badge/endpoints-207-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
+[![Models](https://img.shields.io/badge/models-684-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
 [![API docs](https://img.shields.io/badge/API%20docs-docs.rw-1f6feb)](https://docs.rw/api)
 
 [![Pydantic v2](https://img.shields.io/badge/pydantic-v2-e92063?logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
@@ -34,18 +34,20 @@ Asynchronous Python client for the **[Remnawave](https://remna.st)** panel API, 
 
 | SDK version | Remnawave panel | Backend contract |
 | ----------- | --------------- | ---------------- |
+| 3.3.2       | >= 3.0.0        | `@remnawave/backend-contract` 3.3.2 |
 | 3.2.3       | >= 3.0.0        | `@remnawave/backend-contract` 3.2.3 |
 | 3.2.0       | >= 3.0.0        | `@remnawave/backend-contract` 3.2.0 |
 | 3.0.0       | >= 3.0.0        | `@remnawave/backend-contract` 3.0.0 |
 | 2.8.1       | >= 2.8.0, < 3.0 | `@remnawave/backend-contract` 2.8.35 |
 
 Every endpoint, request body and response model in this fork is verified against
-`libs/contract` of [`remnawave/backend`](https://github.com/remnawave/backend) at tag `3.2.3`.
+`libs/contract` of [`remnawave/backend`](https://github.com/remnawave/backend) at tag `3.3.2`.
 
-> 3.1, 3.2 and 3.2.3 are purely additive, so the panel floor stays at 3.0.0: the fields they
-> added are optional here and simply stay `None` (or empty) against an older panel.
-> `GET /system/configuration` of course needs a panel on 3.2.0, and
-> `POST /snippets/actions/sync` a panel on 3.2.3.
+> 3.1, 3.2, 3.2.3 and 3.3 are purely additive, so the panel floor stays at 3.0.0: the fields
+> they added are optional here and simply stay `None` (or empty) against an older panel.
+> The endpoints they introduced of course need a panel that has them:
+> `GET /system/configuration` a panel on 3.2.0, `POST /snippets/actions/sync` on 3.2.3, and
+> node integrations, shared lists, plugin sync and node geocheck a panel on 3.3.0.
 
 > Remnawave 3.0 is **not** backwards compatible with 2.8 — users are identified by a numeric
 > `id` instead of a `uuid`, `/api/ip-control` became `/api/connections`, and many endpoints
@@ -146,8 +148,9 @@ when missing.
 | `sdk.subscriptions_settings` / `sdk.subscriptions_template` / `sdk.subscription_page_config` | Subscription settings, templates, subscription page configs |
 | `sdk.subscription_request_history` | Request history and its stats |
 | `sdk.hwid` | HWID devices, stats, top users |
-| `sdk.connections` | Per-user / per-node connection jobs, drop connections (was `sdk.ip_control`) |
-| `sdk.node_plugins` | Node plugins, executor, torrent-blocker reports |
+| `sdk.connections` | Per-user / per-node connection jobs, node geocheck, drop connections (was `sdk.ip_control`) |
+| `sdk.node_plugins` | Node plugins, executor, torrent-blocker reports, shared lists, `sync` |
+| `sdk.node_integrations` | Node integrations CRUD — the `integrationUuids` of a node |
 | `sdk.infra_billing` | Providers, billing nodes, billing history |
 | `sdk.bandwidthstats` | Per-node and per-user bandwidth stats (incl. legacy endpoints) |
 | `sdk.system` | Stats, digest, HTTP counters, health, metrics, recap, configuration, x25519, SRR matcher |
@@ -232,6 +235,39 @@ if sdk.webhook_utility.is_user_event(payload.event):
 This fork tracks the Remnawave API closely and fixes the divergences each upstream migration
 left behind.
 
+### Migration to 3.3
+
+Additive as well — nothing was renamed or removed, and the shape of every existing response is
+unchanged.
+
+- **Node integrations** — a new controller, `sdk.node_integrations`: a named piece of
+  configuration the panel merges into the config of every node it is enabled on. Nodes carry
+  `integrationUuids` (up to 20) on `NodeResponseDto`, on the webhook node model and as an
+  optional field of `POST` / `PATCH /nodes` and of the bulk update. Scopes are
+  `node-integrations:*`, errors `A238`-`A244`.
+- **Shared lists** — `sdk.node_plugins.get_shared_lists()` and friends under
+  `/node-plugins/shared-lists`. A list is either `ipList` (IPs and CIDR ranges) or `asList`
+  (ASNs); an unknown type stays a plain dict, because the contract types `config` as an
+  arbitrary object and validates it on the panel (`A252`). The `ext:` prefix is added by the
+  panel, so the name you send must match `^[A-Za-z0-9_-]+$`. `GET /node-plugins/shared-lists`
+  returns previews only — name, type and item count. Errors `A245`-`A252`.
+- **Added** — `POST /node-plugins/actions/sync` (`sdk.node_plugins.sync_node_plugin()`) and
+  `POST /node-plugins/shared-lists/actions/sync`, both `202 Accepted` with no body.
+- **Node geocheck** — `sdk.connections.geocheck_by_node()` queues the check and returns a job
+  ID, `geocheck_by_node_result()` polls it (the node may take up to a minute). The result
+  carries a base64 SVG ready for a `data:` URL and the raw node report. The source of the
+  check is either `ip` or `interface`, never both — the body model rejects that combination
+  locally.
+- **Host Mapper** — `mapper` on hosts (response and both bodies) and on `clientOverrides` of
+  the raw subscription. It rewrites the generated config per client type (`xrayJson`,
+  `mihomo`, `base64`, `singbox`) with `copy` / `set` / `unset` operations. `from` is a Python
+  keyword, so the field is `from_` and serializes back to `from`.
+- **`respondWithRemarks`** in SRR response modifications — replaces the response body with the
+  given remarks.
+- `rulePlacement` of the Torrent Blocker plugin (3.3.1, its default dropped in 3.3.2) needs no
+  SDK change — the contract types `pluginConfig` as `unknown`, so it stays an untyped mapping
+  here.
+
 ### Migration to 3.2.3
 
 Additive as well — nothing was renamed or removed.
@@ -306,9 +342,11 @@ a library should resolve against whatever its consumers already have.
 ```bash
 uv sync --group dev
 
-# offline tests (3.0 contract regressions, models, enums, controller surface)
-uv run pytest tests/test_3_0_compliance.py tests/test_models_validation.py \
-              tests/test_enums.py tests/test_controllers_completeness.py
+# offline tests (contract regressions, models, enums, controller surface)
+uv run pytest tests/test_3_0_compliance.py tests/test_3_2_compliance.py \
+              tests/test_3_2_3_compliance.py tests/test_3_3_compliance.py \
+              tests/test_models_validation.py tests/test_enums.py \
+              tests/test_controllers_completeness.py
 
 # full suite — requires a live panel
 #   REMNAWAVE_BASE_URL, REMNAWAVE_TOKEN and the REMNAWAVE_* fixtures in tests/conftest.py

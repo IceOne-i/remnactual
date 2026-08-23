@@ -104,6 +104,16 @@ class ResponseModifications(BaseModel):
         min_length=1,
         description="Исключает хосты из выдачи подписки, если хотя бы один их тег совпал.",
     )
+    #: 3.3.0: подменяет тело ответа перечисленными ремарками. Больше одного элемента —
+    #: реальные хосты в ответ не попадут.
+    respond_with_remarks: Optional[List[str]] = Field(
+        None,
+        alias="respondWithRemarks",
+        description=(
+            "Replaces the response body with the provided remarks. If this array "
+            "contains more than one element, actual hosts will not be sent."
+        ),
+    )
 
 
 class ResponseRule(BaseModel):

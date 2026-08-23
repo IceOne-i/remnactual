@@ -1,8 +1,10 @@
 from datetime import datetime
-from typing import Any, Annotated, List, Literal, Optional, Union
+from typing import Any, Annotated, Dict, List, Literal, Optional, Union
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+
+from remnawave.models._serialization import AlwaysEmitModel
 
 
 class TorrentBlockerUserDto(BaseModel):
@@ -222,6 +224,113 @@ class PluginExecutorBodyDto(BaseModel):
 
     command: PluginCommandDto
     target_nodes: PluginTargetNodesDto = Field(alias="targetNodes")
+
+
+# ---------------------------------------------------------------------------
+# 3.3.0: Shared Lists — общие списки, на которые ссылаются конфиги плагинов
+# ---------------------------------------------------------------------------
+
+#: Имя общего списка: ^[A-Za-z0-9_-]+$, 2..255. Префикс `ext:` панель добавляет сама.
+SharedListName = Annotated[
+    str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_-]+$")
+]
+
+
+class SharedListIpListConfig(AlwaysEmitModel):
+    """Общий список IP-адресов и CIDR-диапазонов"""
+    model_config = ConfigDict(populate_by_name=True)
+
+    __always_emit__ = ("type",)
+
+    type: Literal["ipList"] = "ipList"
+    items: List[str]
+
+
+class SharedListAsListConfig(AlwaysEmitModel):
+    """Общий список номеров автономных систем (ASN без префикса `AS`)"""
+    model_config = ConfigDict(populate_by_name=True)
+
+    __always_emit__ = ("type",)
+
+    type: Literal["asList"] = "asList"
+    items: List[Annotated[int, Field(ge=1, le=4294967295)]]
+
+
+#: Тело общего списка. Неизвестный SDK тип остаётся словарём: контракт объявляет
+#: `config` произвольным объектом и валидирует его уже на панели (ошибка A252).
+SharedListConfig = Annotated[
+    Union[SharedListIpListConfig, SharedListAsListConfig, Dict[str, Any]],
+    Field(union_mode="left_to_right"),
+]
+
+
+class SharedListDto(BaseModel):
+    """Общий список целиком"""
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str
+    config: SharedListConfig
+
+
+class SharedListPreviewDto(BaseModel):
+    """Общий список без элементов — только имя, тип и их количество"""
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str
+    type: str
+    items_count: int = Field(alias="itemsCount")
+
+
+class GetSharedListsResponseDto(BaseModel):
+    """GET /node-plugins/shared-lists"""
+    model_config = ConfigDict(populate_by_name=True)
+
+    total: int
+    shared_lists: List[SharedListPreviewDto] = Field(alias="sharedLists")
+
+
+class GetSharedListResponseDto(SharedListDto):
+    """GET /node-plugins/shared-lists/{name}"""
+
+
+class CreateSharedListBodyDto(BaseModel):
+    """POST /node-plugins/shared-lists"""
+    name: SharedListName
+    config: SharedListConfig
+
+
+class CreateSharedListResponseDto(SharedListDto):
+    """Ответ POST /node-plugins/shared-lists"""
+
+
+class UpdateSharedListBodyDto(BaseModel):
+    """PATCH /node-plugins/shared-lists"""
+    name: SharedListName
+    config: SharedListConfig
+
+
+class UpdateSharedListResponseDto(SharedListDto):
+    """Ответ PATCH /node-plugins/shared-lists"""
+
+
+class SyncSharedListBodyDto(BaseModel):
+    """POST /node-plugins/shared-lists/actions/sync
+
+    Раскатывает каждый плагин, ссылающийся на список, по нодам, где он активен.
+    """
+    name: SharedListName
+
+
+class SyncNodePluginBodyDto(BaseModel):
+    """POST /node-plugins/actions/sync
+
+    Отправляет текущий конфиг плагина (вместе с общими списками) на все
+    подключённые ноды, где плагин активен.
+    """
+    uuid: UUID
+
+
+# DELETE /node-plugins/shared-lists/{name} отвечает 204 без тела — DTO не нужен.
 
 
 # Legacy aliases (имена 2.8)

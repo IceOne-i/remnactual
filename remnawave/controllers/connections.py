@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
@@ -9,6 +9,9 @@ from remnawave.models import (
     ConnectionsByUserResponseDto,
     ConnectionsByUserResultResponseDto,
     DropConnectionsBodyDto,
+    GeocheckByNodeBodyDto,
+    GeocheckByNodeResponseDto,
+    GeocheckByNodeResultResponseDto,
 )
 from remnawave.rapid import BaseController, get, post
 
@@ -66,6 +69,34 @@ class ConnectionsController(BaseController):
         Poll this endpoint after calling :meth:`connections_by_node`. When
         ``is_completed`` is ``True`` the ``result`` field contains per-user
         IP lists.
+        """
+        ...
+
+    @post("/connections/geocheck/{nodeUuid}", response_class=GeocheckByNodeResponseDto)
+    async def geocheck_by_node(
+        self,
+        node_uuid: Annotated[str, Path(description="UUID of the node", alias="nodeUuid")],
+        body: Annotated[Optional[GeocheckByNodeBodyDto], PydanticBody()] = None,
+    ) -> GeocheckByNodeResponseDto:
+        """Request Geocheck for Node.
+
+        3.3.0: ставит задачу геопроверки на ноде и возвращает ``job_id``.
+        Результат забирается через :meth:`geocheck_by_node_result` — нода может
+        отвечать до минуты.
+
+        Источник проверки задаётся либо ``ip``, либо ``interface``, но не оба сразу.
+        """
+        ...
+
+    @get("/connections/geocheck/{jobId}", response_class=GeocheckByNodeResultResponseDto)
+    async def geocheck_by_node_result(
+        self,
+        job_id: Annotated[str, Path(description="Job ID returned by geocheck_by_node", alias="jobId")],
+    ) -> GeocheckByNodeResultResponseDto:
+        """Get Geocheck for Node by Job ID.
+
+        Когда ``is_completed`` — ``True``, в ``result`` лежит отчёт ноды:
+        SVG-картинка в base64 (``image``) и сырой отчёт (``raw_report``).
         """
         ...
 
