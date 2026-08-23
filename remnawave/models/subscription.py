@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 from remnawave.enums import TrafficLimitStrategy, UserStatus
+from remnawave.models.host_mapper import HostMapperDto
 from remnawave.utils.happ_crypt import create_happ_crypto_link
 from remnawave.models.users import (
     ActiveInternalSquadDto,
@@ -221,6 +222,8 @@ class ResolvedProxyClientOverrides(BaseModel):
     mihomo_ip_version: Optional[str] = Field(None, alias="mihomoIpVersion")
     server_description: Optional[str] = Field(None, alias="serverDescription")
     xray_json_template: Optional[Any] = Field(None, alias="xrayJsonTemplate")
+    #: 3.3.0: mapper хоста доезжает до raw-подписки. Панели до 3.3.0 его не присылают.
+    mapper: HostMapperDto = Field(default_factory=HostMapperDto, alias="mapper")
 
 
 class ResolvedProxyConfig(BaseModel):

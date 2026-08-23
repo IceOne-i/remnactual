@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import Annotated, List, Literal, Optional, Union
+from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from remnawave.models._serialization import AlwaysEmitModel
 
@@ -190,6 +190,73 @@ class ConnectionsByNodeResultData(BaseModel):
 
 class ConnectionsByNodeResultResponseDto(ConnectionsByNodeResultData):
     """Response for GET /api/connections/by-node/{jobId}"""
+    pass
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Geocheck по ноде (3.3.0) – шаг 1: поставить задачу
+# ─────────────────────────────────────────────────────────────────────────────
+
+class GeocheckByNodeBodyDto(BaseModel):
+    """Тело POST /api/connections/geocheck/{nodeUuid}
+
+    Контракт разрешает задать источник проверки либо по IP, либо по интерфейсу,
+    но не одновременно. Пустое тело — проверка с адреса по умолчанию.
+    """
+    ip: Optional[str] = Field(None, description="Check from this IP address")
+    interface: Optional[str] = Field(None, description="Check from this network interface")
+
+    @model_validator(mode="after")
+    def _only_one_source(self) -> "GeocheckByNodeBodyDto":
+        if self.ip and self.interface:
+            raise ValueError('Only one of "ip" or "interface" can be specified')
+        return self
+
+
+class GeocheckByNodeJobData(BaseModel):
+    """Returned job ID after requesting a geocheck of a node"""
+    job_id: str = Field(alias="jobId")
+
+
+class GeocheckByNodeResponseDto(GeocheckByNodeJobData):
+    """Response for POST /api/connections/geocheck/{nodeUuid}"""
+    pass
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Geocheck по ноде (3.3.0) – шаг 2: забрать результат
+# ─────────────────────────────────────────────────────────────────────────────
+
+class GeocheckImageDto(BaseModel):
+    """Картинка отчёта. Ключ `media_type` контракт пишет в snake_case."""
+    format: Literal["svg"]
+    media_type: str
+    encoding: Literal["base64"]
+    data: str = Field(description="Base64-encoded image, ready for a data: URL")
+
+
+class GeocheckByNodeResult(BaseModel):
+    """Full result payload when the job is completed"""
+    success: bool
+    node_uuid: UUID = Field(alias="nodeUuid")
+    image: Optional[GeocheckImageDto] = None
+    raw_report: Optional[Dict[str, Any]] = Field(
+        None,
+        alias="rawReport",
+        description="The full node report with the image object stripped out",
+    )
+    message: Optional[str] = None
+
+
+class GeocheckByNodeResultData(BaseModel):
+    """Job state + optional result"""
+    is_completed: bool = Field(alias="isCompleted")
+    is_failed: bool = Field(alias="isFailed")
+    result: Optional[GeocheckByNodeResult] = None
+
+
+class GeocheckByNodeResultResponseDto(GeocheckByNodeResultData):
+    """Response for GET /api/connections/geocheck/{jobId}"""
     pass
 
 

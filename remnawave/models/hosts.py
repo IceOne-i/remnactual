@@ -4,6 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, StringConstraints, RootModel
 
 from remnawave.enums import ALPN, MihomoIpVersion, SecurityLayer, SubscriptionType
+from remnawave.models.host_mapper import HostMapperDto
 
 # Tag for a single host tag entry: uppercase alphanumeric, underscores and colons, max 36 chars
 HostTag = Annotated[str, StringConstraints(max_length=36, pattern=r"^[A-Z0-9_:]+$")]
@@ -67,6 +68,8 @@ class UpdateHostBodyDto(BaseModel):
         serialization_alias="excludeFromSubscriptionTypes",
         description="Subscription types from which this host will be excluded.",
     )
+    #: 3.3.0: правки сгенерированного конфига по типам клиентов.
+    mapper: Optional[HostMapperDto] = Field(None, serialization_alias="mapper")
 
     def __init__(self, **data):
         # Backward compatibility: `tag` (single value) was replaced by `tags` (list) in v2.8.0
@@ -134,6 +137,8 @@ class HostResponseDto(BaseModel):
         alias="excludeFromSubscriptionTypes",
         description="Subscription types from which this host is excluded.",
     )
+    # 3.3.0: правки сгенерированного конфига. Панели до 3.3.0 поля не присылают.
+    mapper: HostMapperDto = Field(default_factory=HostMapperDto, alias="mapper")
 
     @property
     def inbound_uuid(self) -> Optional[UUID]:
@@ -190,6 +195,8 @@ class CreateHostBodyDto(BaseModel):
         serialization_alias="excludeFromSubscriptionTypes",
         description="Subscription types from which this host will be excluded.",
     )
+    #: 3.3.0: правки сгенерированного конфига по типам клиентов.
+    mapper: Optional[HostMapperDto] = Field(None, serialization_alias="mapper")
 
     @property
     def inbound_uuid(self) -> Optional[UUID]:

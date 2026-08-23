@@ -27,6 +27,7 @@ from remnawave.controllers import (
     InternalSquadsController,
     KeygenController,
     MetadataController,
+    NodeIntegrationsController,
     NodePluginsController,
     NodesController,
     PasskeysController,
@@ -95,6 +96,7 @@ class RemnawaveSDK:
         self.internal_squads = InternalSquadsController(self._client)
         self.keygen = KeygenController(self._client)
         self.metadata = MetadataController(self._client)
+        self.node_integrations = NodeIntegrationsController(self._client)
         self.node_plugins = NodePluginsController(self._client)
         self.nodes = NodesController(self._client)
         self.passkeys = PasskeysController(self._client)

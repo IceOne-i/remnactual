@@ -8,15 +8,23 @@ from remnawave.models.node_plugins import (
     CloneNodePluginResponseDto,
     CreateNodePluginBodyDto,
     CreateNodePluginResponseDto,
+    CreateSharedListBodyDto,
+    CreateSharedListResponseDto,
     GetNodePluginResponseDto,
     GetNodePluginsResponseDto,
+    GetSharedListResponseDto,
+    GetSharedListsResponseDto,
     GetTorrentBlockerReportsResponseDto,
     GetTorrentBlockerReportsStatsResponseDto,
     PluginExecutorBodyDto,
     ReorderNodePluginsBodyDto,
     ReorderNodePluginsResponseDto,
+    SyncNodePluginBodyDto,
+    SyncSharedListBodyDto,
     UpdateNodePluginBodyDto,
     UpdateNodePluginResponseDto,
+    UpdateSharedListBodyDto,
+    UpdateSharedListResponseDto,
 )
 from remnawave.rapid import BaseController, delete, get, patch, post
 
@@ -120,4 +128,76 @@ class NodePluginsController(BaseController):
         body: Annotated[PluginExecutorBodyDto, PydanticBody()],
     ) -> None:
         """Execute command on node plugins (202 Accepted)"""
+        ...
+
+    @post("/node-plugins/actions/sync", response_class=None)
+    async def sync_node_plugin(
+        self,
+        body: Annotated[SyncNodePluginBodyDto, PydanticBody()],
+    ) -> None:
+        """Sync Node Plugin to nodes
+
+        3.3.0: отправляет текущий конфиг плагина, включая общие списки, на каждую
+        подключённую ноду, где плагин активен.
+
+        Отвечает ``202 Accepted`` с пустым телом — метод возвращает ``None``.
+        """
+        ...
+
+    @get("/node-plugins/shared-lists", response_class=GetSharedListsResponseDto)
+    async def get_shared_lists(self) -> GetSharedListsResponseDto:
+        """Get Shared Lists (Preview)
+
+        3.3.0: возвращает только имя, тип и количество элементов каждого списка.
+        За самими элементами — :meth:`get_shared_list`.
+        """
+        ...
+
+    @get("/node-plugins/shared-lists/{name}", response_class=GetSharedListResponseDto)
+    async def get_shared_list(
+        self,
+        name: Annotated[str, Path(description="Shared list name")],
+    ) -> GetSharedListResponseDto:
+        """Get Shared List by name"""
+        ...
+
+    @post("/node-plugins/shared-lists", response_class=CreateSharedListResponseDto)
+    async def create_shared_list(
+        self,
+        body: Annotated[CreateSharedListBodyDto, PydanticBody()],
+    ) -> CreateSharedListResponseDto:
+        """Create Shared List (201 Created)
+
+        Префикс ``ext:`` панель добавляет к имени сама.
+        """
+        ...
+
+    @patch("/node-plugins/shared-lists", response_class=UpdateSharedListResponseDto)
+    async def update_shared_list(
+        self,
+        body: Annotated[UpdateSharedListBodyDto, PydanticBody()],
+    ) -> UpdateSharedListResponseDto:
+        """Update Shared List"""
+        ...
+
+    @delete("/node-plugins/shared-lists/{name}", response_class=None)
+    async def delete_shared_list(
+        self,
+        name: Annotated[str, Path(description="Shared list name")],
+    ) -> None:
+        """Delete Shared List by name (204 No Content)"""
+        ...
+
+    @post("/node-plugins/shared-lists/actions/sync", response_class=None)
+    async def sync_shared_list(
+        self,
+        body: Annotated[SyncSharedListBodyDto, PydanticBody()],
+    ) -> None:
+        """Sync Shared List to nodes
+
+        3.3.0: раскатывает каждый плагин, ссылающийся на список, по нодам,
+        где этот плагин активен.
+
+        Отвечает ``202 Accepted`` с пустым телом — метод возвращает ``None``.
+        """
         ...

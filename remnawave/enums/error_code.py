@@ -246,6 +246,21 @@ class ErrorCode(StrEnum):
     GET_STATS_DIGEST_INVALID_RANGE = "A235"  # 400 — Start date must be before or equal to end date
     GET_STATS_DIGEST_ERROR = "A236"  # 500 — Get stats digest error
     SYNC_SNIPPET_ERROR = "A237"  # 500 — Sync snippet error
+    NODE_INTEGRATION_NOT_FOUND = "A238"  # 404 — Node integration not found
+    GET_ALL_NODE_INTEGRATIONS_ERROR = "A239"  # 500 — Get all node integrations error
+    GET_NODE_INTEGRATION_BY_UUID_ERROR = "A240"  # 500 — Get node integration by UUID error
+    CREATE_NODE_INTEGRATION_ERROR = "A241"  # 500 — Create node integration error
+    UPDATE_NODE_INTEGRATION_ERROR = "A242"  # 500 — Update node integration error
+    DELETE_NODE_INTEGRATION_ERROR = "A243"  # 500 — Delete node integration error
+    NODE_INTEGRATION_NAME_ALREADY_EXISTS = "A244"  # 400 — Node integration name already exists
+    SHARED_LIST_NOT_FOUND = "A245"  # 404 — Shared list not found
+    SHARED_LIST_NAME_ALREADY_EXISTS = "A246"  # 400 — Shared list name already exists
+    GET_ALL_SHARED_LISTS_ERROR = "A247"  # 500 — Get all shared lists error
+    GET_SHARED_LIST_BY_NAME_ERROR = "A248"  # 500 — Get shared list by name error
+    CREATE_SHARED_LIST_ERROR = "A249"  # 500 — Create shared list error
+    UPDATE_SHARED_LIST_ERROR = "A250"  # 500 — Update shared list error
+    DELETE_SHARED_LIST_ERROR = "A251"  # 500 — Delete shared list error
+    INVALID_SHARED_LIST_CONFIG = "A252"  # 400 — Invalid shared list config
     NODE_ERROR_WITH_MSG = "N001"  # 500 — 
     NODE_ERROR_500_WITH_MSG = "N002"  # 500 — 
 
@@ -488,6 +503,21 @@ ERROR_HTTP_CODES: "dict[str, int]" = {
     "A235": 400,
     "A236": 500,
     "A237": 500,
+    "A238": 404,
+    "A239": 500,
+    "A240": 500,
+    "A241": 500,
+    "A242": 500,
+    "A243": 500,
+    "A244": 400,
+    "A245": 404,
+    "A246": 400,
+    "A247": 500,
+    "A248": 500,
+    "A249": 500,
+    "A250": 500,
+    "A251": 500,
+    "A252": 400,
     "N001": 500,
     "N002": 500,
 }
@@ -727,6 +757,21 @@ ERROR_MESSAGES: "dict[str, str]" = {
     "A235": "Start date must be before or equal to end date",
     "A236": "Get stats digest error",
     "A237": "Sync snippet error",
+    "A238": "Node integration not found",
+    "A239": "Get all node integrations error",
+    "A240": "Get node integration by UUID error",
+    "A241": "Create node integration error",
+    "A242": "Update node integration error",
+    "A243": "Delete node integration error",
+    "A244": "Node integration name already exists",
+    "A245": "Shared list not found",
+    "A246": "Shared list name already exists",
+    "A247": "Get all shared lists error",
+    "A248": "Get shared list by name error",
+    "A249": "Create shared list error",
+    "A250": "Update shared list error",
+    "A251": "Delete shared list error",
+    "A252": "Invalid shared list config",
     "N001": "",
     "N002": "",
 }

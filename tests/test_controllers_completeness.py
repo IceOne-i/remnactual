@@ -4,6 +4,8 @@ from remnawave.controllers.bandwidthstats import BandWidthStatsController
 from remnawave.controllers.connections import ConnectionsController
 from remnawave.controllers.hosts_bulk_actions import HostsBulkActionsController
 from remnawave.controllers.internal_squads import InternalSquadsController
+from remnawave.controllers.node_integrations import NodeIntegrationsController
+from remnawave.controllers.node_plugins import NodePluginsController
 from remnawave.controllers.system import SystemController
 from remnawave.controllers.users import UsersController
 
@@ -124,6 +126,40 @@ class TestConnectionsControllerEndpoints:
         from remnawave.controllers.connections import IpControlController
 
         assert IpControlController is ConnectionsController
+
+    def test_geocheck_added_in_3_3(self):
+        for name in ("geocheck_by_node", "geocheck_by_node_result"):
+            assert _has(ConnectionsController, name), name
+
+
+class TestNodeIntegrationsControllerEndpoints:
+    """Новый контроллер 3.3."""
+
+    def test_crud(self):
+        for name in (
+            "get_all_node_integrations",
+            "get_node_integration",
+            "create_node_integration",
+            "update_node_integration",
+            "delete_node_integration",
+        ):
+            assert _has(NodeIntegrationsController, name), name
+
+
+class TestNodePluginsControllerEndpoints:
+    def test_shared_lists_added_in_3_3(self):
+        for name in (
+            "get_shared_lists",
+            "get_shared_list",
+            "create_shared_list",
+            "update_shared_list",
+            "delete_shared_list",
+            "sync_shared_list",
+        ):
+            assert _has(NodePluginsController, name), name
+
+    def test_plugin_sync_added_in_3_3(self):
+        assert _has(NodePluginsController, "sync_node_plugin")
 
 
 class TestInternalSquadsControllerEndpoints:

@@ -19,6 +19,9 @@ from remnawave.models.internal_squads import InboundsDto
 #: 3.2.3: контракт ограничивает список IP-адресов ноды 64 элементами.
 NODE_IPS_MAX = 64
 
+#: 3.3.0: контракт ограничивает список интеграций ноды 20 элементами.
+NODE_INTEGRATIONS_MAX = 20
+
 
 class NodeIpDto(BaseModel):
     """IP-адрес ноды и его назначение (3.2.3)."""
@@ -153,6 +156,10 @@ class CreateNodeBodyDto(BaseModel):
     active_plugin_uuid: Optional[UUID] = Field(
         None, serialization_alias="activePluginUuid"
     )
+    #: 3.3.0: интеграции ноды. Нетронутое поле не отправляется (`exclude_unset`).
+    integration_uuids: Optional[List[UUID]] = Field(
+        None, serialization_alias="integrationUuids", max_length=NODE_INTEGRATIONS_MAX
+    )
     #: 3.2.3: список IP-адресов ноды. Нетронутое поле не отправляется (`exclude_unset`).
     ips: Optional[List[NodeIpDto]] = Field(
         None, serialization_alias="ips", max_length=NODE_IPS_MAX
@@ -204,6 +211,10 @@ class UpdateNodeBodyDto(BaseModel):
     active_plugin_uuid: Optional[UUID] = Field(
         None, serialization_alias="activePluginUuid"
     )
+    #: 3.3.0: интеграции ноды. Нетронутое поле не отправляется (`exclude_unset`).
+    integration_uuids: Optional[List[UUID]] = Field(
+        None, serialization_alias="integrationUuids", max_length=NODE_INTEGRATIONS_MAX
+    )
     #: 3.2.3: список IP-адресов ноды. Нетронутое поле не отправляется (`exclude_unset`).
     ips: Optional[List[NodeIpDto]] = Field(
         None, serialization_alias="ips", max_length=NODE_IPS_MAX
@@ -249,6 +260,8 @@ class NodeResponseDto(BaseModel):
     tags: List[str] = Field(default_factory=list, alias="tags")
     # 3.2.3: список IP-адресов ноды. Панели до 3.2.3 его не присылают.
     ips: List[NodeIpDto] = Field(default_factory=list, alias="ips")
+    # 3.3.0: интеграции ноды. Панели до 3.3.0 их не присылают.
+    integration_uuids: List[UUID] = Field(default_factory=list, alias="integrationUuids")
     active_plugin_uuid: Optional[UUID] = Field(None, alias="activePluginUuid")
     system: Optional[NodeSystemDto] = None
     versions: Optional[NodeVersionsDto] = None
@@ -374,6 +387,10 @@ class BulkNodesUpdateFieldsDto(BaseModel):
         List[Annotated[str, StringConstraints(max_length=36, pattern=r"^[A-Z0-9_:]+$")]]
     ] = Field(None, max_length=10)
     active_plugin_uuid: Optional[UUID] = Field(None, alias="activePluginUuid")
+    #: 3.3.0: интеграции ноды, максимум 20.
+    integration_uuids: Optional[List[UUID]] = Field(
+        None, alias="integrationUuids", max_length=NODE_INTEGRATIONS_MAX
+    )
     note: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
 

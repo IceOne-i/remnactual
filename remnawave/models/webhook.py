@@ -278,6 +278,8 @@ class WebhookNodeDto(BaseModel):
     tags: List[str] = Field(default_factory=list)
     # 3.2.3: список IP-адресов ноды. Панели до 3.2.3 его не присылают.
     ips: List[NodeIpDto] = Field(default_factory=list)
+    # 3.3.0: интеграции ноды. Панели до 3.3.0 их не присылают.
+    integration_uuids: List[UUID] = Field(default_factory=list)
 
     created_at: datetime
     updated_at: datetime

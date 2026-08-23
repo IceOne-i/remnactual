@@ -104,6 +104,24 @@ class Scope(StrEnum):
     NODE_PLUGINS_REORDER = "node-plugins:reorder"
     NODE_PLUGINS_CLONE = "node-plugins:clone"
     NODE_PLUGINS_EXECUTOR = "node-plugins:executor"
+    #: 3.3.0
+    NODE_PLUGINS_SYNC = "node-plugins:sync"
+    NODE_PLUGINS_SHARED_LISTS_LIST = "node-plugins:shared-lists-list"
+    NODE_PLUGINS_SHARED_LISTS_GET = "node-plugins:shared-lists-get"
+    NODE_PLUGINS_SHARED_LISTS_CREATE = "node-plugins:shared-lists-create"
+    NODE_PLUGINS_SHARED_LISTS_UPDATE = "node-plugins:shared-lists-update"
+    NODE_PLUGINS_SHARED_LISTS_DELETE = "node-plugins:shared-lists-delete"
+    NODE_PLUGINS_SHARED_LISTS_SYNC = "node-plugins:shared-lists-sync"
+
+    # Node Integrations (3.3.0)
+    NODE_INTEGRATIONS_ALL = "node-integrations:*"
+    NODE_INTEGRATIONS_READ = "node-integrations:read"
+    NODE_INTEGRATIONS_WRITE = "node-integrations:write"
+    NODE_INTEGRATIONS_LIST = "node-integrations:list"
+    NODE_INTEGRATIONS_GET = "node-integrations:get"
+    NODE_INTEGRATIONS_CREATE = "node-integrations:create"
+    NODE_INTEGRATIONS_UPDATE = "node-integrations:update"
+    NODE_INTEGRATIONS_DELETE = "node-integrations:delete"
 
     # Bandwidth Stats
     BANDWIDTH_STATS_ALL = "bandwidth-stats:*"
@@ -126,6 +144,9 @@ class Scope(StrEnum):
     CONNECTIONS_BY_NODE = "connections:by-node"
     CONNECTIONS_BY_NODE_RESULT = "connections:by-node-result"
     CONNECTIONS_DROP = "connections:drop"
+    #: 3.3.0
+    CONNECTIONS_GEOCHECK = "connections:geocheck"
+    CONNECTIONS_GEOCHECK_RESULT = "connections:geocheck-result"
 
     # Config Profiles
     CONFIG_PROFILES_ALL = "config-profiles:*"
