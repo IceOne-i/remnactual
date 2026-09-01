@@ -1,9 +1,15 @@
 from typing import Annotated, Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, StringConstraints, RootModel
+from pydantic import BaseModel, Field, StringConstraints, RootModel, model_validator
 
-from remnawave.enums import ALPN, MihomoIpVersion, SecurityLayer, SubscriptionType
+from remnawave.enums import (
+    ALPN,
+    InternalSquadsMode,
+    MihomoIpVersion,
+    SecurityLayer,
+    SubscriptionType,
+)
 from remnawave.models.host_mapper import HostMapperDto
 
 # Tag for a single host tag entry: uppercase alphanumeric, underscores and colons, max 36 chars
@@ -11,6 +17,42 @@ HostTag = Annotated[str, StringConstraints(max_length=36, pattern=r"^[A-Z0-9_:]+
 
 # `remark` в 3.0 расширен с 40 до 100 символов (CreateHostCommand/UpdateHostCommand)
 HostRemark = Annotated[str, StringConstraints(min_length=1, max_length=100)]
+
+
+class HostInternalSquadsDto(BaseModel):
+    """Отношение хоста к внутренним сквадам (панель 3.4.0+).
+
+    Пришло на смену полю ``excludedInternalSquads``, которое умело выражать
+    только один случай — «спрятать от перечисленных». Режим ``ALLOW_ONLY``
+    выражает обратный, и панель требует у него непустой список: хост,
+    видимый ТОЛЬКО пустому множеству сквадов, не виден никому.
+    """
+
+    mode: InternalSquadsMode
+    squads: List[UUID] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _allow_only_needs_squads(self) -> "HostInternalSquadsDto":
+        if self.mode is InternalSquadsMode.ALLOW_ONLY and not self.squads:
+            raise ValueError("At least one internal squad is required in ALLOW_ONLY mode")
+        return self
+
+
+def _reject_both_squad_fields(model: BaseModel) -> None:
+    """Запрещает задать и старое поле, и новое одновременно.
+
+    Схемы панели НЕ строгие: неизвестный ключ она отбрасывает молча. Значит
+    ``excluded_internal_squads``, отправленное панели 3.4+, не вызовет ошибки
+    и просто ничего не сделает — а вызывающий будет уверен, что настроил
+    хост. Разрешать оба поля сразу значит оставить этот промах невидимым;
+    здесь он становится ошибкой ещё до сетевого вызова.
+    """
+    fields = model.model_fields_set
+    if "internal_squads" in fields and "excluded_internal_squads" in fields:
+        raise ValueError(
+            "excluded_internal_squads (panel < 3.4) and internal_squads (panel >= 3.4) "
+            "are two forms of the same setting — set exactly one, matching your panel"
+        )
 
 
 class ReorderHostItem(BaseModel):
@@ -62,7 +104,17 @@ class UpdateHostBodyDto(BaseModel):
     final_mask: Optional[Any] = Field(None, serialization_alias="finalMask")
     nodes: Optional[List[UUID]] = None
     xray_json_template_uuid: Optional[UUID] = Field(None, serialization_alias="xrayJsonTemplateUuid")
-    excluded_internal_squads: Optional[List[UUID]] = Field(None, serialization_alias="excludedInternalSquads")
+    #: Панель < 3.4. Снято в 3.4.0 в пользу :attr:`internal_squads`.
+    excluded_internal_squads: Optional[List[UUID]] = Field(
+        None,
+        serialization_alias="excludedInternalSquads",
+        deprecated="Panel < 3.4 only. Panel 3.4 replaced it with internal_squads "
+        "and IGNORES this key silently.",
+    )
+    #: Панель 3.4.0+. Пара «режим + список» вместо одного списка исключений.
+    internal_squads: Optional[HostInternalSquadsDto] = Field(
+        None, serialization_alias="internalSquads"
+    )
     exclude_from_subscription_types: Optional[List[SubscriptionType]] = Field(
         None,
         serialization_alias="excludeFromSubscriptionTypes",
@@ -70,6 +122,11 @@ class UpdateHostBodyDto(BaseModel):
     )
     #: 3.3.0: правки сгенерированного конфига по типам клиентов.
     mapper: Optional[HostMapperDto] = Field(None, serialization_alias="mapper")
+
+    @model_validator(mode="after")
+    def _one_squad_form(self) -> "UpdateHostBodyDto":
+        _reject_both_squad_fields(self)
+        return self
 
     def __init__(self, **data):
         # Backward compatibility: `tag` (single value) was replaced by `tags` (list) in v2.8.0
@@ -131,7 +188,13 @@ class HostResponseDto(BaseModel):
     override_sni_from_address: bool = Field(False, alias="overrideSniFromAddress")
     keep_blank_sni: bool = Field(False, alias="keepSniBlank")
     xray_json_template_uuid: UUID | None = Field(alias="xrayJsonTemplateUuid")
+    #: Панель < 3.4. На 3.4+ поле не приходит и остаётся пустым — читайте
+    #: :attr:`effective_internal_squads`, он сводит обе формы к одной.
     excluded_internal_squads: List[UUID] = Field(default_factory=list, alias="excludedInternalSquads")
+    #: Панель 3.4.0+. Объявлено обязательным в контракте, но здесь
+    #: необязательно НАМЕРЕННО: пол панели у форка — 3.0.0, а панель до 3.4
+    #: этого ключа не присылает вовсе.
+    internal_squads: Optional[HostInternalSquadsDto] = Field(None, alias="internalSquads")
     exclude_from_subscription_types: List[SubscriptionType] = Field(
         default_factory=list,
         alias="excludeFromSubscriptionTypes",
@@ -158,6 +221,20 @@ class HostResponseDto(BaseModel):
     def allow_insecure(self) -> bool:
         """Backward compatibility property (removed in v2.8.0, derived from security_layer)"""
         return self.security_layer == SecurityLayer.NONE
+
+    @property
+    def effective_internal_squads(self) -> HostInternalSquadsDto:
+        """Отношение хоста к сквадам ОДНОЙ формой, независимо от версии панели.
+
+        На 3.4+ отдаёт то, что прислала панель. На панели до 3.4 собирает
+        эквивалент из ``excludedInternalSquads``: старое поле выражало ровно
+        режим ``EXCLUDE``, поэтому перевод точный, а не приблизительный.
+        """
+        if self.internal_squads is not None:
+            return self.internal_squads
+        return HostInternalSquadsDto(
+            mode=InternalSquadsMode.EXCLUDE, squads=list(self.excluded_internal_squads)
+        )
 
 
 class CreateHostBodyDto(BaseModel):
@@ -189,7 +266,17 @@ class CreateHostBodyDto(BaseModel):
     override_sni_from_address: bool = Field(False, serialization_alias="overrideSniFromAddress")
     keep_blank_sni: bool = Field(False, serialization_alias="keepSniBlank")
     xray_json_template_uuid: Optional[UUID] = Field(None, serialization_alias="xrayJsonTemplateUuid")
-    excluded_internal_squads: List[UUID] = Field(default_factory=list, serialization_alias="excludedInternalSquads")
+    #: Панель < 3.4. Снято в 3.4.0 в пользу :attr:`internal_squads`.
+    excluded_internal_squads: List[UUID] = Field(
+        default_factory=list,
+        serialization_alias="excludedInternalSquads",
+        deprecated="Panel < 3.4 only. Panel 3.4 replaced it with internal_squads "
+        "and IGNORES this key silently.",
+    )
+    #: Панель 3.4.0+. Пара «режим + список» вместо одного списка исключений.
+    internal_squads: Optional[HostInternalSquadsDto] = Field(
+        None, serialization_alias="internalSquads"
+    )
     exclude_from_subscription_types: List[SubscriptionType] = Field(
         default_factory=list,
         serialization_alias="excludeFromSubscriptionTypes",
@@ -197,6 +284,11 @@ class CreateHostBodyDto(BaseModel):
     )
     #: 3.3.0: правки сгенерированного конфига по типам клиентов.
     mapper: Optional[HostMapperDto] = Field(None, serialization_alias="mapper")
+
+    @model_validator(mode="after")
+    def _one_squad_form(self) -> "CreateHostBodyDto":
+        _reject_both_squad_fields(self)
+        return self
 
     @property
     def inbound_uuid(self) -> Optional[UUID]:

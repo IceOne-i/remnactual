@@ -21,6 +21,9 @@ class NodesProfileDto(BaseModel):
     country_code: str = Field(alias="countryCode")
 
 class ConfigProfileDto(BaseModel):
+    #: Метки сущности (панель 3.4.0+). До 3.4 поле не приходит и остаётся
+    #: пустым — пол панели у форка 3.0.0.
+    tags: List[str] = Field(default_factory=list, alias="tags")
     uuid: UUID
     name: str
     view_position: int = Field(alias="viewPosition")

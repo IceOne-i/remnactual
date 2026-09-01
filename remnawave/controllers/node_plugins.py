@@ -10,6 +10,7 @@ from remnawave.models.node_plugins import (
     CreateNodePluginResponseDto,
     CreateSharedListBodyDto,
     CreateSharedListResponseDto,
+    DeleteSharedListBodyDto,
     GetNodePluginResponseDto,
     GetNodePluginsResponseDto,
     GetSharedListResponseDto,
@@ -25,6 +26,11 @@ from remnawave.models.node_plugins import (
     UpdateNodePluginResponseDto,
     UpdateSharedListBodyDto,
     UpdateSharedListResponseDto,
+)
+from remnawave.models.tags import (
+    GetEntityTagsResponseDto,
+    SetEntityTagsBodyDto,
+    SetEntityTagsResponseDto,
 )
 from remnawave.rapid import BaseController, delete, get, patch, post
 
@@ -153,12 +159,17 @@ class NodePluginsController(BaseController):
         """
         ...
 
-    @get("/node-plugins/shared-lists/{name}", response_class=GetSharedListResponseDto)
+    @get("/node-plugins/shared-lists/by-name", response_class=GetSharedListResponseDto)
     async def get_shared_list(
         self,
-        name: Annotated[str, Path(description="Shared list name")],
+        name: Annotated[str, Query(description="Shared list name")],
     ) -> GetSharedListResponseDto:
-        """Get Shared List by name"""
+        """Get Shared List by name
+
+        **Требует панель 3.4.0+.** До неё имя стояло СЕГМЕНТОМ ПУТИ
+        (``/shared-lists/{name}``). Адрес сменился не ради красоты: 3.4.0
+        разрешила слэш внутри имени, а такое имя сегментом пути быть не может.
+        """
         ...
 
     @post("/node-plugins/shared-lists", response_class=CreateSharedListResponseDto)
@@ -180,12 +191,17 @@ class NodePluginsController(BaseController):
         """Update Shared List"""
         ...
 
-    @delete("/node-plugins/shared-lists/{name}", response_class=None)
+    @delete("/node-plugins/shared-lists", response_class=None)
     async def delete_shared_list(
         self,
-        name: Annotated[str, Path(description="Shared list name")],
+        body: Annotated[DeleteSharedListBodyDto, PydanticBody()],
     ) -> None:
-        """Delete Shared List by name (204 No Content)"""
+        """Delete Shared List by name (204 No Content)
+
+        **Требует панель 3.4.0+.** Имя переехало из пути в ТЕЛО по той же
+        причине, что и у :meth:`get_shared_list`: со слэшем внутри оно
+        перестало быть выразимым сегментом пути.
+        """
         ...
 
     @post("/node-plugins/shared-lists/actions/sync", response_class=None)
@@ -199,5 +215,25 @@ class NodePluginsController(BaseController):
         где этот плагин активен.
 
         Отвечает ``202 Accepted`` с пустым телом — метод возвращает ``None``.
+        """
+        ...
+
+    @get("/node-plugins/tags", response_class=GetEntityTagsResponseDto)
+    async def get_tags(self) -> GetEntityTagsResponseDto:
+        """Get tags of Node Plugins (панель 3.4.0+)
+
+        Отдаёт ВСЕ метки, встречающиеся у сущностей этого вида, а не метки
+        одной из них: у конкретной они лежат в её собственном поле ``tags``.
+        """
+        ...
+
+    @patch("/node-plugins/tags", response_class=SetEntityTagsResponseDto)
+    async def set_tags(
+        self,
+        body: Annotated[SetEntityTagsBodyDto, PydanticBody()],
+    ) -> SetEntityTagsResponseDto:
+        """Set tags of Node Plugin (панель 3.4.0+)
+
+        ЗАМЕНЯЕТ набор меток целиком: пустой список снимает все.
         """
         ...

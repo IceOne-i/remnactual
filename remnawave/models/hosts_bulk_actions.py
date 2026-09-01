@@ -7,10 +7,16 @@
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from remnawave.enums import ALPN, MihomoIpVersion, SecurityLayer, SubscriptionType
-from remnawave.models.hosts import CreateHostInboundData, HostRemark, HostTag
+from remnawave.models.hosts import (
+    CreateHostInboundData,
+    HostInternalSquadsDto,
+    HostRemark,
+    HostTag,
+    _reject_both_squad_fields,
+)
 
 
 class UpdateManyHostsBodyDto(BaseModel):
@@ -44,12 +50,31 @@ class UpdateManyHostsBodyDto(BaseModel):
     final_mask: Optional[Any] = Field(None, serialization_alias="finalMask")
     nodes: Optional[List[UUID]] = None
     xray_json_template_uuid: Optional[UUID] = Field(None, serialization_alias="xrayJsonTemplateUuid")
-    excluded_internal_squads: Optional[List[UUID]] = Field(None, serialization_alias="excludedInternalSquads")
+    #: Панель < 3.4. Снято в 3.4.0 в пользу :attr:`internal_squads`.
+    #:
+    #: Тело массового обновления контракт выводит из тела одиночного
+    #: (``UpdateHostCommand.RequestBodySchema.omit({uuid}).partial()``), поэтому
+    #: замена поля пришла сюда транзитивно — сам файл команды в 3.4.0 не менялся.
+    excluded_internal_squads: Optional[List[UUID]] = Field(
+        None,
+        serialization_alias="excludedInternalSquads",
+        deprecated="Panel < 3.4 only. Panel 3.4 replaced it with internal_squads "
+        "and IGNORES this key silently.",
+    )
+    #: Панель 3.4.0+.
+    internal_squads: Optional[HostInternalSquadsDto] = Field(
+        None, serialization_alias="internalSquads"
+    )
     exclude_from_subscription_types: Optional[List[SubscriptionType]] = Field(
         None,
         serialization_alias="excludeFromSubscriptionTypes",
         description="Subscription types from which the hosts will be excluded.",
     )
+
+    @model_validator(mode="after")
+    def _one_squad_form(self) -> "UpdateManyHostsBodyDto":
+        _reject_both_squad_fields(self)
+        return self
 
 
 # ─────────────────────────────────────────────────────────────────────────────

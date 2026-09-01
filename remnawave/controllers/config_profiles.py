@@ -16,6 +16,11 @@ from remnawave.models import (
     UpdateConfigProfileBodyDto,
     UpdateConfigProfileResponseDto,
 )
+from remnawave.models.tags import (
+    GetEntityTagsResponseDto,
+    SetEntityTagsBodyDto,
+    SetEntityTagsResponseDto,
+)
 from remnawave.rapid import BaseController, delete, get, patch, post
 
 
@@ -91,4 +96,24 @@ class ConfigProfilesController(BaseController):
         uuid: Annotated[str, Path(description="UUID of the config profile")],
     ) -> GetComputedConfigProfileByUuidResponseDto:
         """Get computed config profile by uuid"""
+        ...
+
+    @get("/config-profiles/tags", response_class=GetEntityTagsResponseDto)
+    async def get_tags(self) -> GetEntityTagsResponseDto:
+        """Get tags of Config Profiles (панель 3.4.0+)
+
+        Отдаёт ВСЕ метки, встречающиеся у сущностей этого вида, а не метки
+        одной из них: у конкретной они лежат в её собственном поле ``tags``.
+        """
+        ...
+
+    @patch("/config-profiles/tags", response_class=SetEntityTagsResponseDto)
+    async def set_tags(
+        self,
+        body: Annotated[SetEntityTagsBodyDto, PydanticBody()],
+    ) -> SetEntityTagsResponseDto:
+        """Set tags of Config Profile (панель 3.4.0+)
+
+        ЗАМЕНЯЕТ набор меток целиком: пустой список снимает все.
+        """
         ...

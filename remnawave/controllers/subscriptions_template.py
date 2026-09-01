@@ -12,6 +12,11 @@ from remnawave.models import (
     UpdateTemplateBodyDto,
     UpdateTemplateResponseDto,
 )
+from remnawave.models.tags import (
+    GetEntityTagsResponseDto,
+    SetEntityTagsBodyDto,
+    SetEntityTagsResponseDto,
+)
 from remnawave.rapid import BaseController, delete, get, patch, post
 
 
@@ -68,4 +73,24 @@ class SubscriptionsTemplateController(BaseController):
         body: Annotated[ReorderSubscriptionTemplatesBodyDto, PydanticBody()],
     ) -> ReorderSubscriptionTemplatesResponseDto:
         """Reorder subscription templates"""
+        ...
+
+    @get("/subscription-templates/tags", response_class=GetEntityTagsResponseDto)
+    async def get_tags(self) -> GetEntityTagsResponseDto:
+        """Get tags of Subscription Templates (панель 3.4.0+)
+
+        Отдаёт ВСЕ метки, встречающиеся у сущностей этого вида, а не метки
+        одной из них: у конкретной они лежат в её собственном поле ``tags``.
+        """
+        ...
+
+    @patch("/subscription-templates/tags", response_class=SetEntityTagsResponseDto)
+    async def set_tags(
+        self,
+        body: Annotated[SetEntityTagsBodyDto, PydanticBody()],
+    ) -> SetEntityTagsResponseDto:
+        """Set tags of Subscription Template (панель 3.4.0+)
+
+        ЗАМЕНЯЕТ набор меток целиком: пустой список снимает все.
+        """
         ...

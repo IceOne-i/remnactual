@@ -277,10 +277,11 @@ class TestSharedListsEndpoints:
         ("method_name", "http_method", "path"),
         [
             ("get_shared_lists", "get", "/node-plugins/shared-lists"),
-            ("get_shared_list", "get", "/node-plugins/shared-lists/{name}"),
+            # 3.4.0 увела имя из пути: со слэшем внутри оно сегментом не выразимо.
+            ("get_shared_list", "get", "/node-plugins/shared-lists/by-name"),
             ("create_shared_list", "post", "/node-plugins/shared-lists"),
             ("update_shared_list", "patch", "/node-plugins/shared-lists"),
-            ("delete_shared_list", "delete", "/node-plugins/shared-lists/{name}"),
+            ("delete_shared_list", "delete", "/node-plugins/shared-lists"),
             (
                 "sync_shared_list",
                 "post",
@@ -360,7 +361,7 @@ class TestSharedListModels:
             "config": {"type": "ipList", "items": ["1.1.1.1"]},
         }
 
-    @pytest.mark.parametrize("name", ["g", "geo ru", "ext:geo_ru", "geo/ru"])
+    @pytest.mark.parametrize("name", ["g", "geo ru", "ext:geo_ru", "geo//ru", "/geo"])
     def test_name_outside_the_contract_pattern_is_rejected(self, name):
         """^[A-Za-z0-9_-]+$, 2..255 — префикс `ext:` панель добавляет сама."""
         from remnawave.models import CreateSharedListBodyDto

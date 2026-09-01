@@ -261,6 +261,12 @@ class ErrorCode(StrEnum):
     UPDATE_SHARED_LIST_ERROR = "A250"  # 500 — Update shared list error
     DELETE_SHARED_LIST_ERROR = "A251"  # 500 — Delete shared list error
     INVALID_SHARED_LIST_CONFIG = "A252"  # 400 — Invalid shared list config
+    # A253 в контракте ОТСУТСТВУЕТ: панель пропустила номер. Пропуск сохранён,
+    # чтобы коды здесь и в панели значили одно и то же.
+    CREATE_SSH_TICKET_ERROR = "A254"  # 500 — Create SSH ticket error
+    EVALUATE_VAULT_ERROR = "A255"  # 429 — Vault evaluation refused
+    GET_ENTITY_TAGS_ERROR = "A256"  # 500 — Get tags error
+    SET_ENTITY_TAGS_ERROR = "A257"  # 500 — Set tags error
     NODE_ERROR_WITH_MSG = "N001"  # 500 — 
     NODE_ERROR_500_WITH_MSG = "N002"  # 500 — 
 
@@ -518,6 +524,10 @@ ERROR_HTTP_CODES: "dict[str, int]" = {
     "A250": 500,
     "A251": 500,
     "A252": 400,
+    "A254": 500,
+    "A255": 429,
+    "A256": 500,
+    "A257": 500,
     "N001": 500,
     "N002": 500,
 }
@@ -772,6 +782,10 @@ ERROR_MESSAGES: "dict[str, str]" = {
     "A250": "Update shared list error",
     "A251": "Delete shared list error",
     "A252": "Invalid shared list config",
+    "A254": "Create SSH ticket error",
+    "A255": "Vault evaluation refused",
+    "A256": "Get tags error",
+    "A257": "Set tags error",
     "N001": "",
     "N002": "",
 }

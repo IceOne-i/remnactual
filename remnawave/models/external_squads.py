@@ -44,6 +44,9 @@ class ExternalSquadHostOverridesDto(BaseModel):
 
 class ExternalSquadDto(BaseModel):
     """External squad data model"""
+    #: Метки сущности (панель 3.4.0+). До 3.4 поле не приходит и остаётся
+    #: пустым — пол панели у форка 3.0.0.
+    tags: List[str] = Field(default_factory=list, alias="tags")
     uuid: UUID
     view_position: int = Field(alias="viewPosition")
     name: str

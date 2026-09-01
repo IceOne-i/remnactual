@@ -119,6 +119,9 @@ class GetTorrentBlockerReportsStatsResponseDto(BaseModel):
 class NodePluginDto(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
+    #: Метки сущности (панель 3.4.0+). До 3.4 поле не приходит и остаётся
+    #: пустым — пол панели у форка 3.0.0.
+    tags: List[str] = Field(default_factory=list, alias="tags")
     uuid: UUID
     view_position: int = Field(alias="viewPosition")
     name: str
@@ -230,10 +233,31 @@ class PluginExecutorBodyDto(BaseModel):
 # 3.3.0: Shared Lists — общие списки, на которые ссылаются конфиги плагинов
 # ---------------------------------------------------------------------------
 
-#: Имя общего списка: ^[A-Za-z0-9_-]+$, 2..255. Префикс `ext:` панель добавляет сама.
+#: Имя общего списка, 2..255. Префикс `ext:` панель добавляет сама.
+#:
+#: 3.4.0 разрешила в имени СЛЭШ (``^[A-Za-z0-9_-]+(/[A-Za-z0-9_-]+)*$``) — имена
+#: стали путеподобными. Из-за этого же имя и уехало из адреса в query и в тело:
+#: сегментом пути `a/b` быть не может. Ограничение здесь ослаблено, а не
+#: ужесточено, поэтому панель до 3.4 от него не пострадает: она просто никогда
+#: не получит имени со слэшем, если его не задаст вызывающий.
 SharedListName = Annotated[
-    str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_-]+$")
+    str,
+    StringConstraints(
+        min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_-]+(/[A-Za-z0-9_-]+)*$"
+    ),
 ]
+
+
+class GetSharedListQueryDto(BaseModel):
+    """Имя списка для ``GET /node-plugins/shared-lists/by-name`` (3.4.0+)."""
+
+    name: SharedListName
+
+
+class DeleteSharedListBodyDto(BaseModel):
+    """Имя списка для ``DELETE /node-plugins/shared-lists`` (3.4.0+)."""
+
+    name: SharedListName
 
 
 class SharedListIpListConfig(AlwaysEmitModel):
