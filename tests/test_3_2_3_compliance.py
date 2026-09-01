@@ -124,7 +124,17 @@ class TestSyncSnippetBody:
         from remnawave.models import SyncSnippetBodyDto
 
         with pytest.raises(ValidationError):
-            SyncSnippetBodyDto(name="geodata/snippet")
+            SyncSnippetBodyDto(name="geodata@snippet")
+
+    def test_slash_became_legal_in_3_4(self):
+        """3.4.0 разрешила слэш: ^[A-Za-z0-9_ -]+(/[A-Za-z0-9_ -]+)*$.
+
+        Ограничение ОСЛАБЛЕНО, поэтому панели до 3.4 это не ломает: имя со
+        слэшем к ней просто не поедет, если его не задаст вызывающий.
+        """
+        from remnawave.models import SyncSnippetBodyDto
+
+        assert SyncSnippetBodyDto(name="geodata/snippet").name == "geodata/snippet"
 
 
 class TestSnippetSyncScopeAndError:

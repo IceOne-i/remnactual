@@ -2,6 +2,7 @@ from .alpn import ALPN
 from .client_type import ClientType
 from .error_code import ErrorCode
 from .fingerprint import Fingerprint
+from .internal_squads import InternalSquadsMode
 from .mihomo import MihomoIpVersion
 from .nodes import NodeIpStatus
 from .scopes import Scope
@@ -28,6 +29,7 @@ __all__ = [
     "ClientType",
     "ALPN",
     "Fingerprint",
+    "InternalSquadsMode",
     "MihomoIpVersion",
     "NodeIpStatus",
     "Scope",

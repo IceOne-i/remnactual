@@ -188,6 +188,7 @@ from .hosts import (
     GetHostsTagsResponseDto,
     GetOneHostResponseDto,
     HostInboundData,
+    HostInternalSquadsDto,
     HostRemark,
     HostResponseDto,
     HostTag,
@@ -340,6 +341,17 @@ from .node_integrations import (
     UpdateNodeIntegrationBodyDto,
     UpdateNodeIntegrationResponseDto,
 )
+from .node_ssh import (
+    CreateSshTicketResponseDto,
+    EvaluateVaultBodyDto,
+    EvaluateVaultResponseDto,
+)
+from .tags import (
+    EntityTag,
+    GetEntityTagsResponseDto,
+    SetEntityTagsBodyDto,
+    SetEntityTagsResponseDto,
+)
 from .node_plugins import (
     BlockIpItemDto,
     BlockIpsCommandDto,
@@ -351,8 +363,10 @@ from .node_plugins import (
     CreateNodePluginResponseDto,
     CreateSharedListBodyDto,
     CreateSharedListResponseDto,
+    DeleteSharedListBodyDto,
     GetNodePluginResponseDto,
     GetNodePluginsResponseDto,
+    GetSharedListQueryDto,
     GetSharedListResponseDto,
     GetSharedListsResponseDto,
     GetTorrentBlockerReportsResponseDto,
@@ -1283,6 +1297,16 @@ __all__ = [
     "SharedListDto",
     "SharedListIpListConfig",
     "SharedListName",
+    "GetSharedListQueryDto",
+    "DeleteSharedListBodyDto",
+    "HostInternalSquadsDto",
+    "CreateSshTicketResponseDto",
+    "EvaluateVaultBodyDto",
+    "EvaluateVaultResponseDto",
+    "EntityTag",
+    "GetEntityTagsResponseDto",
+    "SetEntityTagsBodyDto",
+    "SetEntityTagsResponseDto",
     "SharedListPreviewDto",
     "SnippetItem",
     "SnippetsData",

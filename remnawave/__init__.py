@@ -28,6 +28,7 @@ from remnawave.controllers import (
     KeygenController,
     MetadataController,
     NodeIntegrationsController,
+    NodeSshController,
     NodePluginsController,
     NodesController,
     PasskeysController,
@@ -98,6 +99,7 @@ class RemnawaveSDK:
         self.metadata = MetadataController(self._client)
         self.node_integrations = NodeIntegrationsController(self._client)
         self.node_plugins = NodePluginsController(self._client)
+        self.node_ssh = NodeSshController(self._client)
         self.nodes = NodesController(self._client)
         self.passkeys = PasskeysController(self._client)
         self.remnawave_settings = RemnawaveSettingsController(self._client)

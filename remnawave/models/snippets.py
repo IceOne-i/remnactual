@@ -36,19 +36,19 @@ class UpdateSnippetResponseDto(SnippetsData):
 
 class CreateSnippetBodyDto(BaseModel):
     """Create snippet request"""
-    name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_\s-]+$")]
+    name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_ -]+(/[A-Za-z0-9_ -]+)*$")]
     snippet: List[Dict[str, Any]]  # Array of objects
 
 
 class UpdateSnippetBodyDto(BaseModel):
     """Update snippet request"""
-    name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_\s-]+$")]
+    name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_ -]+(/[A-Za-z0-9_ -]+)*$")]
     snippet: List[Dict[str, Any]]  # Array of objects
 
 
 class DeleteSnippetBodyDto(BaseModel):
     """Delete snippet request"""
-    name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_\s-]+$")]
+    name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_ -]+(/[A-Za-z0-9_ -]+)*$")]
 
 
 class SyncSnippetBodyDto(BaseModel):
@@ -57,7 +57,7 @@ class SyncSnippetBodyDto(BaseModel):
     3.2.3: раскатывает сниппет по всем ссылающимся на него конфиг-профилям.
     Ноды этих профилей будут перезапущены.
     """
-    name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_\s-]+$")]
+    name: Annotated[str, StringConstraints(min_length=2, max_length=255, pattern=r"^[A-Za-z0-9_ -]+(/[A-Za-z0-9_ -]+)*$")]
 
 
 # ---------------- BACKWARDS-COMPATIBLE ALIASES ---------------- #

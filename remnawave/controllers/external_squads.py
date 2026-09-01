@@ -13,6 +13,11 @@ from remnawave.models.external_squads import (
     UpdateExternalSquadBodyDto,
     UpdateExternalSquadResponseDto,
 )
+from remnawave.models.tags import (
+    GetEntityTagsResponseDto,
+    SetEntityTagsBodyDto,
+    SetEntityTagsResponseDto,
+)
 from remnawave.rapid import BaseController, delete, get, patch, post
 
 
@@ -78,4 +83,24 @@ class ExternalSquadsController(BaseController):
         body: Annotated[ReorderExternalSquadsBodyDto, PydanticBody()],
     ) -> ReorderExternalSquadsResponseDto:
         """Reorder external squads"""
+        ...
+
+    @get("/external-squads/tags", response_class=GetEntityTagsResponseDto)
+    async def get_tags(self) -> GetEntityTagsResponseDto:
+        """Get tags of External Squads (панель 3.4.0+)
+
+        Отдаёт ВСЕ метки, встречающиеся у сущностей этого вида, а не метки
+        одной из них: у конкретной они лежат в её собственном поле ``tags``.
+        """
+        ...
+
+    @patch("/external-squads/tags", response_class=SetEntityTagsResponseDto)
+    async def set_tags(
+        self,
+        body: Annotated[SetEntityTagsBodyDto, PydanticBody()],
+    ) -> SetEntityTagsResponseDto:
+        """Set tags of External Squad (панель 3.4.0+)
+
+        ЗАМЕНЯЕТ набор меток целиком: пустой список снимает все.
+        """
         ...

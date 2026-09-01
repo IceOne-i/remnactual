@@ -15,6 +15,7 @@ from .internal_squads import InternalSquadsController
 from .keygen import KeygenController
 from .metadata import MetadataController
 from .node_integrations import NodeIntegrationsController
+from .node_ssh import NodeSshController
 from .node_plugins import NodePluginsController
 from .nodes import NodesController
 from .passkeys import PasskeysController
@@ -48,6 +49,7 @@ __all__ = [
     "KeygenController",
     "MetadataController",
     "NodeIntegrationsController",
+    "NodeSshController",
     "NodePluginsController",
     "NodesController",
     "PasskeysController",

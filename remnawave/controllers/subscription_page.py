@@ -14,6 +14,11 @@ from remnawave.models import (
     UpdateSubscriptionPageConfigBodyDto,
     UpdateSubscriptionPageConfigResponseDto,
 )
+from remnawave.models.tags import (
+    GetEntityTagsResponseDto,
+    SetEntityTagsBodyDto,
+    SetEntityTagsResponseDto,
+)
 from remnawave.rapid import BaseController, delete, get, patch, post
 
 
@@ -81,4 +86,24 @@ class SubscriptionPageConfigController(BaseController):
         body: Annotated[CloneSubscriptionPageConfigBodyDto, PydanticBody()],
     ) -> CloneSubscriptionPageConfigResponseDto:
         """Clone subscription page config"""
+        ...
+
+    @get("/subscription-page-configs/tags", response_class=GetEntityTagsResponseDto)
+    async def get_tags(self) -> GetEntityTagsResponseDto:
+        """Get tags of Subscription Page Configs (панель 3.4.0+)
+
+        Отдаёт ВСЕ метки, встречающиеся у сущностей этого вида, а не метки
+        одной из них: у конкретной они лежат в её собственном поле ``tags``.
+        """
+        ...
+
+    @patch("/subscription-page-configs/tags", response_class=SetEntityTagsResponseDto)
+    async def set_tags(
+        self,
+        body: Annotated[SetEntityTagsBodyDto, PydanticBody()],
+    ) -> SetEntityTagsResponseDto:
+        """Set tags of Subscription Page Config (панель 3.4.0+)
+
+        ЗАМЕНЯЕТ набор меток целиком: пустой список снимает все.
+        """
         ...

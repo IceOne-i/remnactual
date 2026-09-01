@@ -6,6 +6,11 @@ from remnawave.controllers.hosts_bulk_actions import HostsBulkActionsController
 from remnawave.controllers.internal_squads import InternalSquadsController
 from remnawave.controllers.node_integrations import NodeIntegrationsController
 from remnawave.controllers.node_plugins import NodePluginsController
+from remnawave.controllers.node_ssh import NodeSshController
+from remnawave.controllers.subscription_page import SubscriptionPageConfigController
+from remnawave.controllers.subscriptions_template import SubscriptionsTemplateController
+from remnawave.controllers.config_profiles import ConfigProfilesController
+from remnawave.controllers.external_squads import ExternalSquadsController
 from remnawave.controllers.system import SystemController
 from remnawave.controllers.users import UsersController
 
@@ -166,3 +171,33 @@ class TestInternalSquadsControllerEndpoints:
     def test_targeted_bulk_actions_added_in_3_0(self):
         for name in ("add_many_users_to_internal_squad", "remove_many_users_from_internal_squad"):
             assert _has(InternalSquadsController, name), name
+
+
+class TestThreeFourSurface:
+    """Поверхность, добавленная панелью 3.4.0."""
+
+    def test_node_ssh_controller(self):
+        for name in ("create_ssh_ticket", "evaluate_vault"):
+            assert _has(NodeSshController, name), name
+
+    def test_tags_on_every_entity_that_got_them(self):
+        """Шесть сущностей, и ни одной лишней: метки завела ровно им."""
+        for controller in (
+            ConfigProfilesController,
+            ExternalSquadsController,
+            InternalSquadsController,
+            NodePluginsController,
+            SubscriptionPageConfigController,
+            SubscriptionsTemplateController,
+        ):
+            assert _has(controller, "get_tags"), controller.__name__
+            assert _has(controller, "set_tags"), controller.__name__
+
+    def test_shared_list_name_left_the_path(self):
+        """3.4.0: имя со слэшем не выразимо сегментом пути.
+
+        Метод остался, но адресуется иначе — путь пиннится в
+        ``test_3_4_compliance``; здесь только то, что он не исчез.
+        """
+        for name in ("get_shared_list", "delete_shared_list"):
+            assert _has(NodePluginsController, name), name

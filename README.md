@@ -7,9 +7,9 @@
 [![Fork of remnawave/python-sdk](https://img.shields.io/badge/fork%20of-remnawave%2Fpython--sdk-24292f?logo=github)](https://github.com/remnawave/python-sdk)
 
 [![Remnawave panel](https://img.shields.io/badge/Remnawave%20panel-%E2%89%A5%203.0.0-1f6feb)](https://remna.st)
-[![Backend contract](https://img.shields.io/badge/backend--contract-3.3.2-1f6feb)](https://github.com/remnawave/backend/tree/3.3.2/libs/contract)
-[![Endpoints](https://img.shields.io/badge/endpoints-207-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
-[![Models](https://img.shields.io/badge/models-684-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
+[![Backend contract](https://img.shields.io/badge/backend--contract-3.4.3-1f6feb)](https://github.com/remnawave/backend/tree/3.4.3/libs/contract)
+[![Endpoints](https://img.shields.io/badge/endpoints-221-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
+[![Models](https://img.shields.io/badge/models-694-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
 [![API docs](https://img.shields.io/badge/API%20docs-docs.rw-1f6feb)](https://docs.rw/api)
 
 [![Pydantic v2](https://img.shields.io/badge/pydantic-v2-e92063?logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
@@ -34,20 +34,30 @@ Asynchronous Python client for the **[Remnawave](https://remna.st)** panel API, 
 
 | SDK version | Remnawave panel | Backend contract |
 | ----------- | --------------- | ---------------- |
-| 3.3.2       | >= 3.0.0        | `@remnawave/backend-contract` 3.3.2 |
+| 3.4.3       | >= 3.0.0        | `remnawave/backend` at tag 3.4.3 |
+| 3.3.2       | >= 3.0.0        | `remnawave/backend` at tag 3.3.2 |
 | 3.2.3       | >= 3.0.0        | `@remnawave/backend-contract` 3.2.3 |
 | 3.2.0       | >= 3.0.0        | `@remnawave/backend-contract` 3.2.0 |
 | 3.0.0       | >= 3.0.0        | `@remnawave/backend-contract` 3.0.0 |
 | 2.8.1       | >= 2.8.0, < 3.0 | `@remnawave/backend-contract` 2.8.35 |
 
 Every endpoint, request body and response model in this fork is verified against
-`libs/contract` of [`remnawave/backend`](https://github.com/remnawave/backend) at tag `3.3.2`.
+`libs/contract` of [`remnawave/backend`](https://github.com/remnawave/backend) at tag `3.4.3`.
+
+> The npm package `@remnawave/backend-contract` has its **own** version series and does not
+> track the panel: tag `3.3.2` of the backend ships contract `3.4.2`, tag `3.4.3` ships
+> `3.4.13`. Always compare tag to tag — comparing npm versions silently mixes up releases.
 
 > 3.1, 3.2, 3.2.3 and 3.3 are purely additive, so the panel floor stays at 3.0.0: the fields
 > they added are optional here and simply stay `None` (or empty) against an older panel.
 > The endpoints they introduced of course need a panel that has them:
 > `GET /system/configuration` a panel on 3.2.0, `POST /snippets/actions/sync` on 3.2.3, and
 > node integrations, shared lists, plugin sync and node geocheck a panel on 3.3.0.
+
+> **3.4 is not additive** — it replaced a host field and moved two shared-list endpoints.
+> The floor still stays at 3.0.0 because the replaced field is kept alongside the new one
+> (see [Migration to 3.4](#migration-to-34)), but `get_shared_list` / `delete_shared_list`,
+> the twelve tag endpoints and `sdk.node_ssh` need a panel on **3.4.0**.
 
 > Remnawave 3.0 is **not** backwards compatible with 2.8 — users are identified by a numeric
 > `id` instead of a `uuid`, `/api/ip-control` became `/api/connections`, and many endpoints
@@ -151,6 +161,7 @@ when missing.
 | `sdk.connections` | Per-user / per-node connection jobs, node geocheck, drop connections (was `sdk.ip_control`) |
 | `sdk.node_plugins` | Node plugins, executor, torrent-blocker reports, shared lists, `sync` |
 | `sdk.node_integrations` | Node integrations CRUD — the `integrationUuids` of a node |
+| `sdk.node_ssh` | SSH ticket and key-vault evaluation (3.4.0+, **admin JWT only**) |
 | `sdk.infra_billing` | Providers, billing nodes, billing history |
 | `sdk.bandwidthstats` | Per-node and per-user bandwidth stats (incl. legacy endpoints) |
 | `sdk.system` | Stats, digest, HTTP counters, health, metrics, recap, configuration, x25519, SRR matcher |
@@ -234,6 +245,41 @@ if sdk.webhook_utility.is_user_event(payload.event):
 
 This fork tracks the Remnawave API closely and fixes the divergences each upstream migration
 left behind.
+
+### Migration to 3.4
+
+The first **non-additive** step since 3.0: one field was replaced and two endpoints moved.
+
+- **Hosts: `excludedInternalSquads` -> `internalSquads`.** The old field was a bare list of
+  squads to hide the host from; the new one is `{ mode, squads }`, where `mode` is `EXCLUDE`
+  (the old behaviour) or `ALLOW_ONLY` (show the host **only** to those squads, and then the
+  list may not be empty). Both fields are kept here so the SDK still reads and writes a 3.3
+  panel, and `HostResponseDto.effective_internal_squads` folds the two into one shape — on a
+  pre-3.4 panel it returns the old list under `mode=EXCLUDE`, which is exactly what it meant.
+  Setting **both** in a request body raises before the call: panel schemas are not strict, so
+  an `excludedInternalSquads` sent to a 3.4 panel would be dropped in silence and you would
+  believe the host was configured. The same replacement reached `PATCH /hosts/bulk/update`
+  transitively — its body is derived from the single-host one in the contract.
+- **`isDisabled` of `PATCH /hosts` became optional.** It used to default to `false`, so an
+  update that did not mention it silently **enabled** a disabled host. It now stays untouched.
+- **Shared lists: the name left the path.** `GET /node-plugins/shared-lists/{name}` is now
+  `GET /node-plugins/shared-lists/by-name?name=`, and `DELETE .../{name}` takes the name in the
+  body. Not cosmetic: 3.4 allows a slash inside the name, and such a name cannot be a path
+  segment. Snippet names gained the same slash.
+- **Tags** on six kinds of entity — config profiles, internal and external squads, node
+  plugins, subscription page configs and subscription templates. Each gained a `tags` field
+  plus `GET`/`PATCH <entity>/tags` (`sdk.<controller>.get_tags()` / `.set_tags()`); `PATCH`
+  **replaces** the set. A tag matches `^[A-Z0-9_:]+$`, at most 36 characters, at most ten per
+  entity. Scopes `<resource>:list-tags` / `:set-tags`, errors `A256`-`A257`.
+- **`sdk.node_ssh`** — `POST /node-ssh/{uuid}/ticket` and `POST /node-ssh/vault/evaluate`.
+  Guarded by the **admin role**, not by a scope: the panel controller carries no
+  `@ApiScopeResource`, so `node-ssh` does not appear in `GET /tokens/scopes` at all and no API
+  token can reach it. The terminal itself is a WebSocket and is out of scope for an `httpx`
+  client — only the two HTTP steps that precede it are here. Errors `A254`-`A255`.
+- **Host Mapper `$link.`** — a target may now rewrite the share link itself rather than its
+  query string (`$link.address`, `$link.port`, `$link.password`, `$link.remark`, and
+  `$link.method` for Shadowsocks). No SDK change: the contract types the target as a plain
+  1..512 string, and narrowing it here would forbid what the panel accepts.
 
 ### Migration to 3.3
 

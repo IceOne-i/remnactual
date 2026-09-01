@@ -185,7 +185,7 @@ class TestScopesAndErrorCodes:
         from remnawave.enums import Scope
 
         fixture = json.loads(
-            (pathlib.Path(__file__).parent / "fixtures" / "scopes_3.3.json").read_text(
+            (pathlib.Path(__file__).parent / "fixtures" / "scopes_3.4.json").read_text(
                 encoding="utf-8"
             )
         )

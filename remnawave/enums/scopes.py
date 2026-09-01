@@ -112,6 +112,8 @@ class Scope(StrEnum):
     NODE_PLUGINS_SHARED_LISTS_UPDATE = "node-plugins:shared-lists-update"
     NODE_PLUGINS_SHARED_LISTS_DELETE = "node-plugins:shared-lists-delete"
     NODE_PLUGINS_SHARED_LISTS_SYNC = "node-plugins:shared-lists-sync"
+    NODE_PLUGINS_LIST_TAGS = "node-plugins:list-tags"
+    NODE_PLUGINS_SET_TAGS = "node-plugins:set-tags"
 
     # Node Integrations (3.3.0)
     NODE_INTEGRATIONS_ALL = "node-integrations:*"
@@ -161,6 +163,8 @@ class Scope(StrEnum):
     CONFIG_PROFILES_CREATE = "config-profiles:create"
     CONFIG_PROFILES_UPDATE = "config-profiles:update"
     CONFIG_PROFILES_REORDER = "config-profiles:reorder"
+    CONFIG_PROFILES_LIST_TAGS = "config-profiles:list-tags"
+    CONFIG_PROFILES_SET_TAGS = "config-profiles:set-tags"
 
     # Internal Squads
     INTERNAL_SQUADS_ALL = "internal-squads:*"
@@ -178,6 +182,8 @@ class Scope(StrEnum):
     INTERNAL_SQUADS_REORDER = "internal-squads:reorder"
     INTERNAL_SQUADS_ADD_MANY_USERS = "internal-squads:add-many-users"
     INTERNAL_SQUADS_REMOVE_MANY_USERS = "internal-squads:remove-many-users"
+    INTERNAL_SQUADS_LIST_TAGS = "internal-squads:list-tags"
+    INTERNAL_SQUADS_SET_TAGS = "internal-squads:set-tags"
 
     # External Squads
     EXTERNAL_SQUADS_ALL = "external-squads:*"
@@ -191,6 +197,8 @@ class Scope(StrEnum):
     EXTERNAL_SQUADS_ADD_USERS = "external-squads:add-users"
     EXTERNAL_SQUADS_REMOVE_USERS = "external-squads:remove-users"
     EXTERNAL_SQUADS_REORDER = "external-squads:reorder"
+    EXTERNAL_SQUADS_LIST_TAGS = "external-squads:list-tags"
+    EXTERNAL_SQUADS_SET_TAGS = "external-squads:set-tags"
 
     # Hosts
     HOSTS_ALL = "hosts:*"
@@ -218,6 +226,8 @@ class Scope(StrEnum):
     SUBSCRIPTION_TEMPLATE_DELETE = "subscription-template:delete"
     SUBSCRIPTION_TEMPLATE_CREATE = "subscription-template:create"
     SUBSCRIPTION_TEMPLATE_REORDER = "subscription-template:reorder"
+    SUBSCRIPTION_TEMPLATE_LIST_TAGS = "subscription-template:list-tags"
+    SUBSCRIPTION_TEMPLATE_SET_TAGS = "subscription-template:set-tags"
 
     # Subscription Settings
     SUBSCRIPTION_SETTINGS_ALL = "subscription-settings:*"
@@ -295,6 +305,8 @@ class Scope(StrEnum):
     SUBSCRIPTION_PAGE_CONFIGS_CREATE = "subscription-page-configs:create"
     SUBSCRIPTION_PAGE_CONFIGS_REORDER = "subscription-page-configs:reorder"
     SUBSCRIPTION_PAGE_CONFIGS_CLONE = "subscription-page-configs:clone"
+    SUBSCRIPTION_PAGE_CONFIGS_LIST_TAGS = "subscription-page-configs:list-tags"
+    SUBSCRIPTION_PAGE_CONFIGS_SET_TAGS = "subscription-page-configs:set-tags"
 
     # Metadata
     METADATA_ALL = "metadata:*"
