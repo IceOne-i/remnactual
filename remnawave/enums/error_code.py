@@ -267,6 +267,7 @@ class ErrorCode(StrEnum):
     EVALUATE_VAULT_ERROR = "A255"  # 429 — Vault evaluation refused
     GET_ENTITY_TAGS_ERROR = "A256"  # 500 — Get tags error
     SET_ENTITY_TAGS_ERROR = "A257"  # 500 — Set tags error
+    CLONE_HOST_ERROR = "A258"  # 500 — Clone host error
     NODE_ERROR_WITH_MSG = "N001"  # 500 — 
     NODE_ERROR_500_WITH_MSG = "N002"  # 500 — 
 
@@ -528,6 +529,7 @@ ERROR_HTTP_CODES: "dict[str, int]" = {
     "A255": 429,
     "A256": 500,
     "A257": 500,
+    "A258": 500,
     "N001": 500,
     "N002": 500,
 }
@@ -786,6 +788,7 @@ ERROR_MESSAGES: "dict[str, str]" = {
     "A255": "Vault evaluation refused",
     "A256": "Get tags error",
     "A257": "Set tags error",
+    "A258": "Clone host error",
     "N001": "",
     "N002": "",
 }

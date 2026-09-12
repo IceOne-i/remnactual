@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from http import HTTPStatus
 from inspect import BoundArguments, Signature
-from typing import Any, Dict, Mapping, Optional, Self, Tuple, Type
+from typing import Any, Dict, Mapping, Optional, Self, Tuple, Type, TypeVar
 
 import httpx
 import orjson
 from httpx import Request, Response
 from pydantic import BaseModel, RootModel, TypeAdapter
+from pydantic.fields import FieldInfo
 from rapid_api_client import (
     Body,
     FileBody,
@@ -17,8 +19,9 @@ from rapid_api_client import (
     RapidApi,
 )
 from rapid_api_client.annotations import Header, JsonBody, Path, Query
-from rapid_api_client.client import pydantic_xml, RapidParameter, RapidParameters
-from rapid_api_client.typing import BM, T
+from rapid_api_client.parameters import RapidParameter, ParameterManager
+from rapid_api_client.xml import pydantic_xml
+from rapid_api_client.utils import T
 from rapid_api_client.utils import filter_none_values, find_annotation
 
 from remnawave.exceptions import handle_api_error
@@ -26,7 +29,13 @@ from remnawave.rapid import AttributeBody
 from remnawave.utils.serializer import orjson_default
 
 
+BM = TypeVar("BM", bound=BaseModel)
+
+
 class BaseController(RapidApi):
+    def __init__(self, client: httpx.AsyncClient):
+        super().__init__(async_client=client)
+        self.client = client
 
     def _build_request(
         self,
@@ -132,34 +141,40 @@ class BaseController(RapidApi):
         raise ValueError(f"Response class not supported: {response_class}")
 
 
-class CustomRapidParameters(RapidParameters):
+class CustomRapidParameters(ParameterManager):
     @classmethod
     def from_sig(cls, sig: Signature) -> Self:
         out = cls()
         for parameter in sig.parameters.values():
+            field = find_annotation(parameter, FieldInfo)
             if (annot := find_annotation(parameter, Path)) is not None:
-                out.path_parameters.append(RapidParameter(parameter, annot))
+                out.path_parameters.append(RapidParameter(parameter, annot, field))
             if (annot := find_annotation(parameter, Query)) is not None:
-                out.query_parameters.append(RapidParameter(parameter, annot))
+                # Let HTTPX encode booleans and repeated query values.
+                annot = replace(annot, transformer=lambda value: value)
+                out.query_parameters.append(RapidParameter(parameter, annot, field))
             if (annot := find_annotation(parameter, Header)) is not None:
-                out.header_parameters.append(RapidParameter(parameter, annot))
+                out.header_parameters.append(RapidParameter(parameter, annot, field))
             if (annot := find_annotation(parameter, Body)) is not None:
-                out.body_parameters.append(RapidParameter(parameter, annot))
+                if isinstance(annot, (PydanticBody, PydanticXmlBody)):
+                    # Serialize below, preserving explicit null and unset fields.
+                    annot = replace(annot, transformer=lambda value: value)
+                out.body_parameters.append(RapidParameter(parameter, annot, field))
 
         if len(out.body_parameters) > 0:
             first_body_param = out.body_parameters[0]
-            if isinstance(first_body_param.annot, FileBody):
+            if isinstance(first_body_param.rapid_annotation, FileBody):
                 assert all(
-                    map(lambda p: isinstance(p.annot, FileBody), out.body_parameters)
+                    map(lambda p: isinstance(p.rapid_annotation, FileBody), out.body_parameters)
                 ), "All body parameters must be of type FileBody"
-            elif isinstance(first_body_param.annot, FormBody):
+            elif isinstance(first_body_param.rapid_annotation, FormBody):
                 assert all(
-                    map(lambda p: isinstance(p.annot, FormBody), out.body_parameters)
+                    map(lambda p: isinstance(p.rapid_annotation, FormBody), out.body_parameters)
                 ), "All body parameters must be of type FormBody"
-            elif isinstance(first_body_param.annot, JsonBody):
+            elif isinstance(first_body_param.rapid_annotation, JsonBody):
                 assert len(out.body_parameters) == 1, "Only one JsonBody allowed"
-            elif isinstance(first_body_param.annot, Body) and not isinstance(
-                first_body_param.annot,
+            elif isinstance(first_body_param.rapid_annotation, Body) and not isinstance(
+                first_body_param.rapid_annotation,
                 AttributeBody,  # don't check the AttributeBody because there can be more than one
             ):
                 assert (
@@ -188,13 +203,13 @@ class CustomRapidParameters(RapidParameters):
 
         if len(self.body_parameters) > 0:
             first_body_param = self.body_parameters[0]
-            if isinstance(first_body_param.annot, FileBody):
+            if isinstance(first_body_param.rapid_annotation, FileBody):
                 values = filter_none_values(
                     {p.get_name(): p.get_value(ba) for p in self.body_parameters}
                 )
                 if len(values) > 0:
                     return "files", values
-            elif isinstance(first_body_param.annot, FormBody):
+            elif isinstance(first_body_param.rapid_annotation, FormBody):
                 values = {}
 
                 def update_values(p: RapidParameter[Body]) -> None:
@@ -209,14 +224,14 @@ class CustomRapidParameters(RapidParameters):
 
                 if len(values) > 0:
                     return "data", values
-            elif isinstance(first_body_param.annot, PydanticXmlBody):
+            elif isinstance(first_body_param.rapid_annotation, PydanticXmlBody):
                 assert (
                     pydantic_xml is not None
                 ), "pydantic-xml must be installed to use PydanticXmlBody"
                 if (value := first_body_param.get_value(ba)) is not None:
                     assert isinstance(value, pydantic_xml.BaseXmlModel)
                     return "content", value.to_xml()
-            elif isinstance(first_body_param.annot, PydanticBody):
+            elif isinstance(first_body_param.rapid_annotation, PydanticBody):
                 if (value := first_body_param.get_value(ba)) is not None:
                     assert isinstance(value, BaseModel)
                     # `exclude_unset` (not `exclude_none`): the API distinguishes an absent key
@@ -226,11 +241,11 @@ class CustomRapidParameters(RapidParameters):
                     return "json", value.model_dump(
                         exclude_unset=True, by_alias=True, mode="json"
                     )
-            elif isinstance(first_body_param.annot, JsonBody):
+            elif isinstance(first_body_param.rapid_annotation, JsonBody):
                 if (value := first_body_param.get_value(ba)) is not None:
                     assert isinstance(value, dict)
                     return "json", value
-            elif isinstance(first_body_param.annot, AttributeBody):
+            elif isinstance(first_body_param.rapid_annotation, AttributeBody):
                 body: dict[str, Any] = {}
                 for param in self.body_parameters:
                     if (value := param.get_value(ba)) is not None:

@@ -1,9 +1,11 @@
 from typing import Annotated
 
+from pydantic import Field
 from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
 from remnawave.models import (
+    CloneHostBodyDto,
     CreateHostBodyDto,
     GetHostsResponseDto,
     GetHostsTagsResponseDto,
@@ -16,6 +18,14 @@ from remnawave.rapid import BaseController, delete, get, post, patch
 
 
 class HostsController(BaseController):
+    @post("/hosts/actions/clone", response_class=HostResponseDto)
+    async def clone_host(
+        self,
+        body: Annotated[CloneHostBodyDto, PydanticBody()],
+    ) -> HostResponseDto:
+        """Clone a host (201, panel >= 3.4.4). Requires hosts:clone scope."""
+        ...
+
     @post("/hosts", response_class=HostResponseDto)
     async def create_host(
         self,
@@ -49,7 +59,7 @@ class HostsController(BaseController):
     @delete("/hosts/{uuid}", response_class=None)
     async def delete_host(
         self,
-        uuid: Annotated[str, Path(description="UUID of the host")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the host")],
     ) -> None:
         """Delete Host.
 
@@ -60,7 +70,7 @@ class HostsController(BaseController):
     @get("/hosts/{uuid}", response_class=HostResponseDto)
     async def get_one_host(
         self,
-        uuid: Annotated[str, Path(description="UUID of the host")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the host")],
     ) -> HostResponseDto:
         """Get One Host"""
         ...

@@ -1,5 +1,6 @@
 from typing import Annotated, Optional, Union
 
+from pydantic import Field
 from rapid_api_client import Path, Query
 from rapid_api_client.annotations import PydanticBody
 
@@ -43,37 +44,27 @@ class UsersController(BaseController):
         self,
         start: Annotated[
             Optional[int],
-            Query(default=None, description="Offset for pagination (default 0)")
+            Query(), Field(default=None, description="Offset for pagination (default 0)")
         ] = None,
         size: Annotated[
             Optional[int],
-            Query(default=None, description="Page size, 1..1000 (default 25)")
+            Query(), Field(default=None, description="Page size, 1..1000 (default 25)")
         ] = None,
         filters: Annotated[
             Optional[str],
-            Query(
-                default=None,
-                description='JSON array of filters, e.g. \'[{"id":"username","value":"john"}]\'',
-            ),
+            Query(), Field(default=None, description='JSON array of filters, e.g. \'[{"id":"username","value":"john"}]\''),
         ] = None,
         filter_modes: Annotated[
             Optional[str],
-            Query(
-                default=None,
-                alias="filterModes",
-                description='JSON object of per-column filter modes, e.g. \'{"username":"contains"}\'',
-            ),
+            Query(alias="filterModes"), Field(default=None, description='JSON object of per-column filter modes, e.g. \'{"username":"contains"}\''),
         ] = None,
         global_filter_mode: Annotated[
             Optional[str],
-            Query(default=None, alias="globalFilterMode", description="Global filter mode"),
+            Query(alias="globalFilterMode"), Field(default=None, description="Global filter mode"),
         ] = None,
         sorting: Annotated[
             Optional[str],
-            Query(
-                default=None,
-                description='JSON array of sorting rules, e.g. \'[{"id":"createdAt","desc":true}]\'',
-            ),
+            Query(), Field(default=None, description='JSON array of sorting rules, e.g. \'[{"id":"createdAt","desc":true}]\''),
         ] = None,
     ) -> GetAllUsersResponseDto:
         """Get all users using offset-based pagination"""
@@ -84,46 +75,35 @@ class UsersController(BaseController):
         self,
         size: Annotated[
             Optional[int],
-            Query(default=None, description="Page size, 1..1000 (default 250)"),
+            Query(), Field(default=None, description="Page size, 1..1000 (default 250)"),
         ] = None,
         cursor: Annotated[
             Optional[Union[int, str]],
-            Query(
-                default=None,
-                description="Cursor from the previous response (nextCursor). Omit on the first request",
-            ),
+            Query(), Field(default=None, description="Cursor from the previous response (nextCursor). Omit on the first request"),
         ] = None,
         status: Annotated[
             Optional[UserStatus],
-            Query(default=None, description="Status to filter users by"),
+            Query(), Field(default=None, description="Status to filter users by"),
         ] = None,
         traffic_limit_strategy: Annotated[
             Optional[TrafficLimitStrategy],
-            Query(
-                default=None,
-                alias="trafficLimitStrategy",
-                description="Traffic limit strategy to filter users by",
-            ),
+            Query(alias="trafficLimitStrategy"), Field(default=None, description="Traffic limit strategy to filter users by"),
         ] = None,
         telegram_id: Annotated[
             Optional[int],
-            Query(default=None, alias="telegramId", description="Telegram ID to filter users by"),
+            Query(alias="telegramId"), Field(default=None, description="Telegram ID to filter users by"),
         ] = None,
         email: Annotated[
             Optional[str],
-            Query(default=None, description="Email to filter users by"),
+            Query(), Field(default=None, description="Email to filter users by"),
         ] = None,
         tag: Annotated[
             Optional[str],
-            Query(default=None, description="Tag to filter users by"),
+            Query(), Field(default=None, description="Tag to filter users by"),
         ] = None,
         external_squad_uuid: Annotated[
             Optional[str],
-            Query(
-                default=None,
-                alias="externalSquadUuid",
-                description="External squad UUID to filter users by",
-            ),
+            Query(alias="externalSquadUuid"), Field(default=None, description="External squad UUID to filter users by"),
         ] = None,
     ) -> GetUsersStreamResponseDto:
         """Get all users using cursor-based (keyset) pagination with filtering options"""
@@ -147,7 +127,7 @@ class UsersController(BaseController):
     @get("/users/by-short-uuid/{shortUuid}", response_class=UserResponseDto)
     async def get_user_by_short_uuid(
         self,
-        short_uuid: Annotated[str, Path(description="Short UUID of the user", alias="shortUuid")],
+        short_uuid: Annotated[str, Path(alias="shortUuid"), Field(description="Short UUID of the user")],
     ) -> UserResponseDto:
         """Get user by Short UUID"""
         ...
@@ -155,7 +135,7 @@ class UsersController(BaseController):
     @get("/users/by-username/{username}", response_class=UserResponseDto)
     async def get_user_by_username(
         self,
-        username: Annotated[str, Path(description="Username of the user")],
+        username: Annotated[str, Path(), Field(description="Username of the user")],
     ) -> UserResponseDto:
         """Get user by username"""
         ...
@@ -163,7 +143,7 @@ class UsersController(BaseController):
     @get("/users/{userId}", response_class=UserResponseDto)
     async def get_user_by_id(
         self,
-        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+        user_id: Annotated[int, Path(alias="userId"), Field(description="ID of the user")],
     ) -> UserResponseDto:
         """Get user by ID"""
         ...
@@ -171,7 +151,7 @@ class UsersController(BaseController):
     @delete("/users/{userId}", response_class=None)
     async def delete_user(
         self,
-        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+        user_id: Annotated[int, Path(alias="userId"), Field(description="ID of the user")],
     ) -> None:
         """Delete user (204 No Content)"""
         ...
@@ -179,7 +159,7 @@ class UsersController(BaseController):
     @get("/users/{userId}/accessible-nodes", response_class=GetUserAccessibleNodesResponseDto)
     async def get_user_accessible_nodes(
         self,
-        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+        user_id: Annotated[int, Path(alias="userId"), Field(description="ID of the user")],
     ) -> GetUserAccessibleNodesResponseDto:
         """Get user accessible nodes"""
         ...
@@ -190,7 +170,7 @@ class UsersController(BaseController):
     )
     async def get_user_subscription_request_history(
         self,
-        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+        user_id: Annotated[int, Path(alias="userId"), Field(description="ID of the user")],
     ) -> GetUserSubscriptionRequestHistoryResponseDto:
         """Get user subscription request history, recent 24 records"""
         ...
@@ -198,7 +178,7 @@ class UsersController(BaseController):
     @post("/users/{userId}/actions/revoke", response_class=UserResponseDto)
     async def revoke_user_subscription(
         self,
-        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+        user_id: Annotated[int, Path(alias="userId"), Field(description="ID of the user")],
         body: Annotated[Optional[RevokeUserBodyDto], PydanticBody()] = None,
     ) -> UserResponseDto:
         """Revoke User Subscription"""
@@ -207,7 +187,7 @@ class UsersController(BaseController):
     @post("/users/{userId}/actions/disable", response_class=UserResponseDto)
     async def disable_user(
         self,
-        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+        user_id: Annotated[int, Path(alias="userId"), Field(description="ID of the user")],
     ) -> UserResponseDto:
         """Disable User"""
         ...
@@ -215,7 +195,7 @@ class UsersController(BaseController):
     @post("/users/{userId}/actions/enable", response_class=UserResponseDto)
     async def enable_user(
         self,
-        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+        user_id: Annotated[int, Path(alias="userId"), Field(description="ID of the user")],
     ) -> UserResponseDto:
         """Enable User"""
         ...
@@ -223,7 +203,7 @@ class UsersController(BaseController):
     @post("/users/{userId}/actions/reset-traffic", response_class=UserResponseDto)
     async def reset_user_traffic(
         self,
-        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+        user_id: Annotated[int, Path(alias="userId"), Field(description="ID of the user")],
     ) -> UserResponseDto:
         """Reset User Traffic"""
         ...
@@ -231,7 +211,7 @@ class UsersController(BaseController):
     @post("/users/{userId}/actions/extend", response_class=UserResponseDto)
     async def extend_user_expiration_date(
         self,
-        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+        user_id: Annotated[int, Path(alias="userId"), Field(description="ID of the user")],
         body: Annotated[ExtendUserBodyDto, PydanticBody()],
     ) -> UserResponseDto:
         """Extend user expiration date by the given number of days"""

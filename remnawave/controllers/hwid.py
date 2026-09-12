@@ -11,6 +11,7 @@ from remnawave.models import (
     GetTopUsersByHwidDevicesResponseDto,
     GetUserHwidDevicesResponseDto,
 )
+from pydantic import Field
 from rapid_api_client import Path, PydanticBody, Query
 from remnawave.rapid import BaseController, post, get
 
@@ -21,24 +22,24 @@ class HWIDUserController(BaseController):
         self,
         size: Annotated[
             Optional[int],
-            Query(default=None, ge=1, le=1000, description="Page size, 1..1000 (default 25)"),
+            Query(), Field(default=None, ge=1, le=1000, description="Page size, 1..1000 (default 25)"),
         ] = None,
         start: Annotated[
-            Optional[int], Query(default=None, description="Offset for pagination (default 0)")
+            Optional[int], Query(), Field(default=None, description="Offset for pagination (default 0)")
         ] = None,
         filters: Annotated[
-            Optional[str], Query(default=None, description="JSON array of filters")
+            Optional[str], Query(), Field(default=None, description="JSON array of filters")
         ] = None,
         filter_modes: Annotated[
             Optional[str],
-            Query(default=None, alias="filterModes", description="JSON object of filter modes"),
+            Query(alias="filterModes"), Field(default=None, description="JSON object of filter modes"),
         ] = None,
         global_filter_mode: Annotated[
             Optional[str],
-            Query(default=None, alias="globalFilterMode", description="Global filter mode"),
+            Query(alias="globalFilterMode"), Field(default=None, description="Global filter mode"),
         ] = None,
         sorting: Annotated[
-            Optional[str], Query(default=None, description="JSON array of sorting rules")
+            Optional[str], Query(), Field(default=None, description="JSON array of sorting rules")
         ] = None,
     ) -> GetUserHwidDevicesResponseDto:
         """Get all user HWID devices"""
@@ -78,7 +79,7 @@ class HWIDUserController(BaseController):
     @get("/hwid/devices/{userId}", response_class=GetUserHwidDevicesResponseDto)
     async def get_hwid_user(
         self,
-        user_id: Annotated[int, Path(description="ID of the User", alias="userId")],
+        user_id: Annotated[int, Path(alias="userId"), Field(description="ID of the User")],
     ) -> GetUserHwidDevicesResponseDto:
         """Get a user HWID device"""
         ...
@@ -88,10 +89,10 @@ class HWIDUserController(BaseController):
         self,
         size: Annotated[
             Optional[int],
-            Query(default=None, ge=1, le=100, description="Page size, 1..100 (default 5)"),
+            Query(), Field(default=None, ge=1, le=100, description="Page size, 1..100 (default 5)"),
         ] = None,
         start: Annotated[
-            Optional[int], Query(default=None, description="Offset for pagination (default 0)")
+            Optional[int], Query(), Field(default=None, description="Offset for pagination (default 0)")
         ] = None,
     ) -> GetTopUsersByHwidDevicesResponseDto:
         """Get top users by HWID devices"""

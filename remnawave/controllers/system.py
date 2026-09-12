@@ -1,5 +1,6 @@
 from typing import Annotated, Optional
 
+from pydantic import Field
 from rapid_api_client import PydanticBody, Query
 from remnawave.models.system import (
     GetBandwidthStatsResponseDto,
@@ -39,7 +40,7 @@ class SystemController(BaseController):
         self,
         tz: Annotated[
             Optional[str],
-            Query(default=None, description="IANA timezone, e.g. Europe/Moscow"),
+            Query(), Field(default=None, description="IANA timezone, e.g. Europe/Moscow"),
         ] = None,
     ) -> GetStatsResponseDto:
         """Get System Stats"""
@@ -50,7 +51,7 @@ class SystemController(BaseController):
         self,
         tz: Annotated[
             Optional[str],
-            Query(default=None, description="IANA timezone, e.g. Europe/Moscow"),
+            Query(), Field(default=None, description="IANA timezone, e.g. Europe/Moscow"),
         ] = None,
     ) -> GetBandwidthStatsResponseDto:
         """Get System Bandwidth Statistics"""
@@ -61,7 +62,7 @@ class SystemController(BaseController):
         self,
         tz: Annotated[
             Optional[str],
-            Query(default=None, description="IANA timezone, e.g. Europe/Moscow"),
+            Query(), Field(default=None, description="IANA timezone, e.g. Europe/Moscow"),
         ] = None,
     ) -> GetNodesStatisticsResponseDto:
         """Get Nodes Statistics"""
@@ -108,12 +109,12 @@ class SystemController(BaseController):
         self,
         start: Annotated[
             str,
-            Query(description="Start of the range, ISO 8601 datetime with timezone "
+            Query(), Field(description="Start of the range, ISO 8601 datetime with timezone "
                               "(e.g. 2026-07-15T00:00:00Z). Inclusive."),
         ],
         end: Annotated[
             str,
-            Query(description="End of the range, ISO 8601 datetime with timezone "
+            Query(), Field(description="End of the range, ISO 8601 datetime with timezone "
                               "(e.g. 2026-07-16T00:00:00Z). Exclusive."),
         ],
     ) -> GetStatsDigestResponseDto:

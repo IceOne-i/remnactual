@@ -1,5 +1,5 @@
 {
-  "note": "Built from ScopeCatalogService rules: controllers decorated with @ApiScopeResource, contract 3.4.3",
+  "note": "Built from ScopeCatalogService rules: controllers decorated with @ApiScopeResource, backend tag 3.4.4 (contract 3.4.15)",
   "scopes": [
     "*",
     "bandwidth-stats:*",
@@ -54,6 +54,7 @@
     "hosts:bulk-disable",
     "hosts:bulk-enable",
     "hosts:bulk-update",
+    "hosts:clone",
     "hosts:create",
     "hosts:delete",
     "hosts:get",

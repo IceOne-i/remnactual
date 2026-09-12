@@ -1,7 +1,7 @@
 from typing import Annotated, Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, StringConstraints, RootModel, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, RootModel, model_validator
 
 from remnawave.enums import (
     ALPN,
@@ -62,6 +62,13 @@ class ReorderHostItem(BaseModel):
 
 class ReorderHostsBodyDto(BaseModel):
     hosts: List[ReorderHostItem]
+
+
+class CloneHostBodyDto(BaseModel):
+    """POST /hosts/actions/clone (panel >= 3.4.4)."""
+    model_config = ConfigDict(populate_by_name=True)
+
+    clone_from_uuid: UUID = Field(alias="cloneFromUuid")
 
 
 class HostInboundData(BaseModel):

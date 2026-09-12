@@ -1,5 +1,6 @@
 from typing import Annotated, Optional
 
+from pydantic import Field
 from rapid_api_client import Path, PydanticBody, Query
 
 
@@ -40,22 +41,22 @@ class NodePluginsController(BaseController):
     async def get_torrent_blocker_reports(
         self,
         size: Annotated[
-            Optional[int], Query(default=None, ge=1, le=1000, description="Page size, 1..1000")
+            Optional[int], Query(), Field(default=None, ge=1, le=1000, description="Page size, 1..1000")
         ] = None,
-        start: Annotated[Optional[int], Query(default=None, ge=0, description="Offset")] = None,
+        start: Annotated[Optional[int], Query(), Field(default=None, ge=0, description="Offset")] = None,
         filters: Annotated[
-            Optional[str], Query(default=None, description="JSON array of filters")
+            Optional[str], Query(), Field(default=None, description="JSON array of filters")
         ] = None,
         filter_modes: Annotated[
             Optional[str],
-            Query(default=None, alias="filterModes", description="JSON object of filter modes"),
+            Query(alias="filterModes"), Field(default=None, description="JSON object of filter modes"),
         ] = None,
         global_filter_mode: Annotated[
             Optional[str],
-            Query(default=None, alias="globalFilterMode", description="Global filter mode"),
+            Query(alias="globalFilterMode"), Field(default=None, description="Global filter mode"),
         ] = None,
         sorting: Annotated[
-            Optional[str], Query(default=None, description="JSON array of sorting rules")
+            Optional[str], Query(), Field(default=None, description="JSON array of sorting rules")
         ] = None,
     ) -> GetTorrentBlockerReportsResponseDto:
         """Get Torrent Blocker Reports"""
@@ -99,7 +100,7 @@ class NodePluginsController(BaseController):
     @get("/node-plugins/{uuid}", response_class=GetNodePluginResponseDto)
     async def get_node_plugin_by_uuid(
         self,
-        uuid: Annotated[str, Path(description="Node plugin UUID")],
+        uuid: Annotated[str, Path(), Field(description="Node plugin UUID")],
     ) -> GetNodePluginResponseDto:
         """Get Node Plugin by uuid"""
         ...
@@ -107,7 +108,7 @@ class NodePluginsController(BaseController):
     @delete("/node-plugins/{uuid}", response_class=None)
     async def delete_node_plugin(
         self,
-        uuid: Annotated[str, Path(description="Node plugin UUID")],
+        uuid: Annotated[str, Path(), Field(description="Node plugin UUID")],
     ) -> None:
         """Delete Node Plugin (204 No Content)"""
         ...
@@ -162,7 +163,7 @@ class NodePluginsController(BaseController):
     @get("/node-plugins/shared-lists/by-name", response_class=GetSharedListResponseDto)
     async def get_shared_list(
         self,
-        name: Annotated[str, Query(description="Shared list name")],
+        name: Annotated[str, Query(), Field(description="Shared list name")],
     ) -> GetSharedListResponseDto:
         """Get Shared List by name
 

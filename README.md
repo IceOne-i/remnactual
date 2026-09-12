@@ -7,9 +7,9 @@
 [![Fork of remnawave/python-sdk](https://img.shields.io/badge/fork%20of-remnawave%2Fpython--sdk-24292f?logo=github)](https://github.com/remnawave/python-sdk)
 
 [![Remnawave panel](https://img.shields.io/badge/Remnawave%20panel-%E2%89%A5%203.0.0-1f6feb)](https://remna.st)
-[![Backend contract](https://img.shields.io/badge/backend--contract-3.4.3-1f6feb)](https://github.com/remnawave/backend/tree/3.4.3/libs/contract)
-[![Endpoints](https://img.shields.io/badge/endpoints-221-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
-[![Models](https://img.shields.io/badge/models-694-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
+[![Backend contract](https://img.shields.io/badge/backend--contract-3.4.4-1f6feb)](https://github.com/remnawave/backend/tree/3.4.4/libs/contract)
+[![Endpoints](https://img.shields.io/badge/endpoints-222-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
+[![Models](https://img.shields.io/badge/models-695-1f6feb)](https://github.com/IceOne-i/remnactual#controllers)
 [![API docs](https://img.shields.io/badge/API%20docs-docs.rw-1f6feb)](https://docs.rw/api)
 
 [![Pydantic v2](https://img.shields.io/badge/pydantic-v2-e92063?logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
@@ -34,6 +34,7 @@ Asynchronous Python client for the **[Remnawave](https://remna.st)** panel API, 
 
 | SDK version | Remnawave panel | Backend contract |
 | ----------- | --------------- | ---------------- |
+| Next release | >= 3.0.0       | `remnawave/backend` at tag 3.4.4 |
 | 3.4.3       | >= 3.0.0        | `remnawave/backend` at tag 3.4.3 |
 | 3.3.2       | >= 3.0.0        | `remnawave/backend` at tag 3.3.2 |
 | 3.2.3       | >= 3.0.0        | `@remnawave/backend-contract` 3.2.3 |
@@ -42,11 +43,23 @@ Asynchronous Python client for the **[Remnawave](https://remna.st)** panel API, 
 | 2.8.1       | >= 2.8.0, < 3.0 | `@remnawave/backend-contract` 2.8.35 |
 
 Every endpoint, request body and response model in this fork is verified against
-`libs/contract` of [`remnawave/backend`](https://github.com/remnawave/backend) at tag `3.4.3`.
+`libs/contract` of [`remnawave/backend`](https://github.com/remnawave/backend) through tag `3.4.4`.
 
 > The npm package `@remnawave/backend-contract` has its **own** version series and does not
 > track the panel: tag `3.3.2` of the backend ships contract `3.4.2`, tag `3.4.3` ships
-> `3.4.13`. Always compare tag to tag — comparing npm versions silently mixes up releases.
+> `3.4.13`, and tag `3.4.4` ships `3.4.15`. Always compare tag to tag — comparing npm versions
+> silently mixes up releases.
+
+Panel **3.4.4** adds `sdk.hosts.clone_host(CloneHostBodyDto(clone_from_uuid=host_uuid))`.
+It returns `HostResponseDto` (HTTP 201) and requires the `hosts:clone` scope (or a broader
+hosts write scope). The SDK exposes `Scope.HOSTS_CLONE` and `ErrorCode.CLONE_HOST_ERROR`
+(`A258`). Existing methods retain their panel requirements.
+
+Dependencies now use `rapid-api-client` 0.10.0, HTTPX 0.28.1, Pydantic 2.13.5,
+orjson 3.12.0 and cryptography 50.0.1 as their minimum versions. Custom controller
+annotations should put validation and descriptions in a separate Pydantic `Field`,
+e.g. `Annotated[int, Query(), Field(default=25, ge=1)]`. PATCH serialization still
+preserves explicit `None` as JSON `null` and omits fields that were not set.
 
 > 3.1, 3.2, 3.2.3 and 3.3 are purely additive, so the panel floor stays at 3.0.0: the fields
 > they added are optional here and simply stay `None` (or empty) against an older panel.

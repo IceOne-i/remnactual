@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from pydantic import Field
 from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
@@ -49,7 +50,7 @@ class InternalSquadsController(BaseController):
     @get("/internal-squads/{uuid}", response_class=GetInternalSquadResponseDto)
     async def get_internal_squad_by_uuid(
         self,
-        uuid: Annotated[str, Path(description="UUID of the internal squad")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the internal squad")],
     ) -> GetInternalSquadResponseDto:
         """Get internal squad by uuid"""
         ...
@@ -57,7 +58,7 @@ class InternalSquadsController(BaseController):
     @delete("/internal-squads/{uuid}", response_class=None)
     async def delete_internal_squad(
         self,
-        uuid: Annotated[str, Path(description="UUID of the internal squad")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the internal squad")],
     ) -> None:
         """Delete internal squad (204, без тела)"""
         ...
@@ -65,7 +66,7 @@ class InternalSquadsController(BaseController):
     @post("/internal-squads/{uuid}/bulk-actions/add-users", response_class=None)
     async def add_users_to_internal_squad(
         self,
-        uuid: Annotated[str, Path(description="UUID of the internal squad")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the internal squad")],
     ) -> None:
         """Add all users to internal squad (202, без тела)"""
         ...
@@ -73,7 +74,7 @@ class InternalSquadsController(BaseController):
     @post("/internal-squads/{uuid}/bulk-actions/add-many-users", response_class=None)
     async def add_many_users_to_internal_squad(
         self,
-        uuid: Annotated[str, Path(description="UUID of the internal squad")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the internal squad")],
         body: Annotated[AddManyUsersToInternalSquadBodyDto, PydanticBody()],
     ) -> None:
         """Add many users to internal squad by user ids (202, без тела)"""
@@ -82,7 +83,7 @@ class InternalSquadsController(BaseController):
     @delete("/internal-squads/{uuid}/bulk-actions/remove-users", response_class=None)
     async def remove_users_from_internal_squad(
         self,
-        uuid: Annotated[str, Path(description="UUID of the internal squad")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the internal squad")],
     ) -> None:
         """Delete users from internal squad (202, без тела)"""
         ...
@@ -90,7 +91,7 @@ class InternalSquadsController(BaseController):
     @delete("/internal-squads/{uuid}/bulk-actions/remove-many-users", response_class=None)
     async def remove_many_users_from_internal_squad(
         self,
-        uuid: Annotated[str, Path(description="UUID of the internal squad")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the internal squad")],
         body: Annotated[DeleteManyUsersFromInternalSquadBodyDto, PydanticBody()],
     ) -> None:
         """Delete many users from internal squad by user ids (202, без тела)"""
@@ -102,7 +103,7 @@ class InternalSquadsController(BaseController):
     )
     async def get_accessible_nodes(
         self,
-        uuid: Annotated[str, Path(description="UUID of the internal squad")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the internal squad")],
     ) -> GetInternalSquadAccessibleNodesResponseDto:
         """Get accessible nodes for internal squad"""
         ...
