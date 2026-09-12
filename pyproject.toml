@@ -6,11 +6,11 @@ license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.11,<3.15"
 dependencies = [
-    "rapid-api-client (==0.6.0)",
-    "orjson (>=3.10.15,<4.0.0)",
-    "httpx (>=0.27.2,<0.28.0)",
-    "pydantic[email]>=2.9.2,<3.0.0",
-    "cryptography (>=46.0.3,<47.0.0)",
+    "rapid-api-client==0.10.0",
+    "orjson>=3.12.0,<4.0.0",
+    "httpx>=0.28.1,<0.29.0",
+    "pydantic[email]>=2.13.5,<3.0.0",
+    "cryptography>=50.0.1,<51.0.0",
 ]
 keywords = ["remnawave", "api", "sdk", "proxy", "httpx", "async", "xray"]
 classifiers = [
@@ -35,14 +35,14 @@ Homepage = "https://github.com/IceOne-i/remnactual"
 
 [dependency-groups]
 dev = [
-    "pytest>=8.0",
-    "pytest-asyncio>=0.25.3",
-    "pytest-mock>=3.9",
-    "pytest-xdist>=3.6",
-    "python-dotenv>=1.0.1",
-    "pytz>=2025.1",
-    "ruff>=0.4.4",
-    "twine>=5.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-mock>=3.15.1",
+    "pytest-xdist>=3.8.0",
+    "python-dotenv>=1.2.3",
+    "pytz>=2026.3.post1",
+    "ruff>=0.16.7",
+    "twine>=7.0.0",
 ]
 
 [tool.pytest.ini_options]
@@ -64,5 +64,5 @@ packages = ["remnawave"]
 include = ["remnawave", "tests", "README.md", "LICENSE"]
 
 [build-system]
-requires = ["hatchling>=1.27", "hatch-vcs>=0.4"]
+requires = ["hatchling>=1.32.0", "hatch-vcs>=0.5.0"]
 build-backend = "hatchling.build"

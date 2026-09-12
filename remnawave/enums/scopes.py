@@ -206,6 +206,7 @@ class Scope(StrEnum):
     HOSTS_WRITE = "hosts:write"
     HOSTS_LIST_TAGS = "hosts:list-tags"
     HOSTS_CREATE = "hosts:create"
+    HOSTS_CLONE = "hosts:clone"
     HOSTS_UPDATE = "hosts:update"
     HOSTS_LIST = "hosts:list"
     HOSTS_GET = "hosts:get"

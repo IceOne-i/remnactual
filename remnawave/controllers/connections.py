@@ -1,5 +1,6 @@
 from typing import Annotated, Optional
 
+from pydantic import Field
 from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
@@ -20,7 +21,7 @@ class ConnectionsController(BaseController):
     @post("/connections/by-user/{userId}", response_class=ConnectionsByUserResponseDto)
     async def connections_by_user(
         self,
-        user_id: Annotated[int, Path(description="ID of the user", alias="userId")],
+        user_id: Annotated[int, Path(alias="userId"), Field(description="ID of the user")],
     ) -> ConnectionsByUserResponseDto:
         """Request Connections for User.
 
@@ -34,7 +35,7 @@ class ConnectionsController(BaseController):
     @get("/connections/by-user/{jobId}", response_class=ConnectionsByUserResultResponseDto)
     async def connections_by_user_result(
         self,
-        job_id: Annotated[str, Path(description="Job ID returned by connections_by_user", alias="jobId")],
+        job_id: Annotated[str, Path(alias="jobId"), Field(description="Job ID returned by connections_by_user")],
     ) -> ConnectionsByUserResultResponseDto:
         """Get Connections for User by Job ID.
 
@@ -48,7 +49,7 @@ class ConnectionsController(BaseController):
     @post("/connections/by-node/{nodeUuid}", response_class=ConnectionsByNodeResponseDto)
     async def connections_by_node(
         self,
-        node_uuid: Annotated[str, Path(description="UUID of the node", alias="nodeUuid")],
+        node_uuid: Annotated[str, Path(alias="nodeUuid"), Field(description="UUID of the node")],
     ) -> ConnectionsByNodeResponseDto:
         """Request Connections for Node.
 
@@ -62,7 +63,7 @@ class ConnectionsController(BaseController):
     @get("/connections/by-node/{jobId}", response_class=ConnectionsByNodeResultResponseDto)
     async def connections_by_node_result(
         self,
-        job_id: Annotated[str, Path(description="Job ID returned by connections_by_node", alias="jobId")],
+        job_id: Annotated[str, Path(alias="jobId"), Field(description="Job ID returned by connections_by_node")],
     ) -> ConnectionsByNodeResultResponseDto:
         """Get Connections for Node by Job ID.
 
@@ -75,7 +76,7 @@ class ConnectionsController(BaseController):
     @post("/connections/geocheck/{nodeUuid}", response_class=GeocheckByNodeResponseDto)
     async def geocheck_by_node(
         self,
-        node_uuid: Annotated[str, Path(description="UUID of the node", alias="nodeUuid")],
+        node_uuid: Annotated[str, Path(alias="nodeUuid"), Field(description="UUID of the node")],
         body: Annotated[Optional[GeocheckByNodeBodyDto], PydanticBody()] = None,
     ) -> GeocheckByNodeResponseDto:
         """Request Geocheck for Node.
@@ -91,7 +92,7 @@ class ConnectionsController(BaseController):
     @get("/connections/geocheck/{jobId}", response_class=GeocheckByNodeResultResponseDto)
     async def geocheck_by_node_result(
         self,
-        job_id: Annotated[str, Path(description="Job ID returned by geocheck_by_node", alias="jobId")],
+        job_id: Annotated[str, Path(alias="jobId"), Field(description="Job ID returned by geocheck_by_node")],
     ) -> GeocheckByNodeResultResponseDto:
         """Get Geocheck for Node by Job ID.
 

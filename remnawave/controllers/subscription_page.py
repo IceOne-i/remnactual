@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from pydantic import Field
 from rapid_api_client.annotations import Path, PydanticBody
 
 from remnawave.models import (
@@ -50,7 +51,7 @@ class SubscriptionPageConfigController(BaseController):
     @get("/subscription-page-configs/{uuid}", response_class=GetSubscriptionPageConfigResponseDto)
     async def get_config_by_uuid(
         self,
-        uuid: Annotated[str, Path(description="Subscription page config UUID")],
+        uuid: Annotated[str, Path(), Field(description="Subscription page config UUID")],
     ) -> GetSubscriptionPageConfigResponseDto:
         """Get subscription page config by uuid"""
         ...
@@ -58,7 +59,7 @@ class SubscriptionPageConfigController(BaseController):
     @delete("/subscription-page-configs/{uuid}", response_class=None)
     async def delete_config(
         self,
-        uuid: Annotated[str, Path(description="Subscription page config UUID")],
+        uuid: Annotated[str, Path(), Field(description="Subscription page config UUID")],
     ) -> None:
         """Delete subscription page config.
 

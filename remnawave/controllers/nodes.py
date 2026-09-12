@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from pydantic import Field
 from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
@@ -46,7 +47,7 @@ class NodesController(BaseController):
     @get("/nodes/{uuid}", response_class=NodeResponseDto)
     async def get_one_node(
         self,
-        uuid: Annotated[str, Path(description="Node UUID")],
+        uuid: Annotated[str, Path(), Field(description="Node UUID")],
     ) -> NodeResponseDto:
         """Get node by UUID"""
         ...
@@ -54,7 +55,7 @@ class NodesController(BaseController):
     @delete("/nodes/{uuid}", response_class=None)
     async def delete_node(
         self,
-        uuid: Annotated[str, Path(description="Node UUID")],
+        uuid: Annotated[str, Path(), Field(description="Node UUID")],
     ) -> None:
         """Delete a node. Отвечает 204 без тела."""
         ...
@@ -70,7 +71,7 @@ class NodesController(BaseController):
     @post("/nodes/{uuid}/actions/enable", response_class=NodeResponseDto)
     async def enable_node(
         self,
-        uuid: Annotated[str, Path(description="Node UUID")],
+        uuid: Annotated[str, Path(), Field(description="Node UUID")],
     ) -> NodeResponseDto:
         """Enable a node"""
         ...
@@ -78,7 +79,7 @@ class NodesController(BaseController):
     @post("/nodes/{uuid}/actions/disable", response_class=NodeResponseDto)
     async def disable_node(
         self,
-        uuid: Annotated[str, Path(description="Node UUID")],
+        uuid: Annotated[str, Path(), Field(description="Node UUID")],
     ) -> NodeResponseDto:
         """Disable a node"""
         ...
@@ -86,7 +87,7 @@ class NodesController(BaseController):
     @post("/nodes/{uuid}/actions/restart", response_class=None)
     async def restart_node(
         self,
-        uuid: Annotated[str, Path(description="Node UUID")],
+        uuid: Annotated[str, Path(), Field(description="Node UUID")],
         body: Annotated[RestartNodeBodyDto, PydanticBody()] = RestartNodeBodyDto(
             force_restart=False
         ),
@@ -114,7 +115,7 @@ class NodesController(BaseController):
     @post("/nodes/{uuid}/actions/reset-traffic", response_class=None)
     async def reset_node_traffic(
         self,
-        uuid: Annotated[str, Path(description="UUID of the node")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the node")],
     ) -> None:
         """Reset Node Traffic. Отвечает 204 без тела."""
         ...

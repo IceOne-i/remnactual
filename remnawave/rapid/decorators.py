@@ -6,11 +6,11 @@ from typing import Any, Callable, Coroutine, Optional, Type
 import httpx
 from httpx import AsyncClient, Response
 from pydantic import TypeAdapter
-from rapid_api_client.typing import BM, T
+from rapid_api_client.utils import T
 
 from remnawave.exceptions import ApiErrorResponse, NetworkError
 
-from .client import BaseController, CustomRapidParameters
+from .client import BM, BaseController, CustomRapidParameters
 
 
 def http(

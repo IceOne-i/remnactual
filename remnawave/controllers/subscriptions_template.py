@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from pydantic import Field
 from rapid_api_client.annotations import Path, PydanticBody
 
 from remnawave.models import (
@@ -48,7 +49,7 @@ class SubscriptionsTemplateController(BaseController):
     @get("/subscription-templates/{uuid}", response_class=GetTemplateResponseDto)
     async def get_template_by_uuid(
         self,
-        uuid: Annotated[str, Path(description="Template UUID")],
+        uuid: Annotated[str, Path(), Field(description="Template UUID")],
     ) -> GetTemplateResponseDto:
         """Get subscription template by uuid"""
         ...
@@ -56,7 +57,7 @@ class SubscriptionsTemplateController(BaseController):
     @delete("/subscription-templates/{uuid}", response_class=None)
     async def delete_template(
         self,
-        uuid: Annotated[str, Path(description="Template UUID")],
+        uuid: Annotated[str, Path(), Field(description="Template UUID")],
     ) -> None:
         """Delete subscription template.
 

@@ -178,6 +178,7 @@ from .host_mapper import (
     HostMapperValue,
 )
 from .hosts import (
+    CloneHostBodyDto,
     CreateHostBodyDto,
     CreateHostInboundData,
     CreateHostRequestDto,
@@ -818,6 +819,7 @@ __all__ = [
     "BulkUpdateUsersSquadsBodyDto",
     "BulkUpdateUsersSquadsRequestDto",
     "CPUStatistic",
+    "CloneHostBodyDto",
     "CloneNodePluginBodyDto",
     "CloneNodePluginRequestDto",
     "CloneNodePluginResponseDto",

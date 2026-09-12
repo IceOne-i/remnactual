@@ -1,5 +1,6 @@
 from typing import Annotated, Optional
 
+from pydantic import Field
 from rapid_api_client import Path, Query
 from rapid_api_client.annotations import PydanticBody
 
@@ -47,7 +48,7 @@ class InfraBillingController(BaseController):
     @get("/infra-billing/providers/{uuid}", response_class=GetInfraProviderResponseDto)
     async def get_infra_provider_by_uuid(
         self,
-        uuid: Annotated[str, Path(description="UUID of the infra provider")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the infra provider")],
     ) -> GetInfraProviderResponseDto:
         """Get infra provider by uuid"""
         ...
@@ -55,7 +56,7 @@ class InfraBillingController(BaseController):
     @delete("/infra-billing/providers/{uuid}", response_class=None)
     async def delete_infra_provider_by_uuid(
         self,
-        uuid: Annotated[str, Path(description="UUID of the infra provider")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the infra provider")],
     ) -> None:
         """Delete infra provider by uuid (204, без тела)"""
         ...
@@ -73,11 +74,11 @@ class InfraBillingController(BaseController):
         self,
         start: Annotated[
             Optional[int],
-            Query(default=None, description="Offset for pagination (default 0)"),
+            Query(), Field(default=None, description="Offset for pagination (default 0)"),
         ] = None,
         size: Annotated[
             Optional[int],
-            Query(default=None, ge=1, le=500, description="Page size, 1..500 (default 50)"),
+            Query(), Field(default=None, ge=1, le=500, description="Page size, 1..500 (default 50)"),
         ] = None,
     ) -> GetInfraBillingHistoryRecordsResponseDto:
         """Get infra billing history"""
@@ -86,7 +87,7 @@ class InfraBillingController(BaseController):
     @delete("/infra-billing/history/{uuid}", response_class=None)
     async def delete_infra_billing_history_record_by_uuid(
         self,
-        uuid: Annotated[str, Path(description="UUID of the billing history record")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the billing history record")],
     ) -> None:
         """Delete infra billing history (204, без тела)"""
         ...
@@ -115,7 +116,7 @@ class InfraBillingController(BaseController):
     @delete("/infra-billing/nodes/{uuid}", response_class=None)
     async def delete_infra_billing_node_by_uuid(
         self,
-        uuid: Annotated[str, Path(description="UUID of the infra billing node")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the infra billing node")],
     ) -> None:
         """Delete infra billing node (204, без тела)"""
         ...

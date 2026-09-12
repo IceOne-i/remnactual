@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from pydantic import Field
 from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
@@ -48,7 +49,7 @@ class ExternalSquadsController(BaseController):
     @get("/external-squads/{uuid}", response_class=GetExternalSquadByUuidResponseDto)
     async def get_external_squad_by_uuid(
         self,
-        uuid: Annotated[str, Path(description="UUID of the external squad")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the external squad")],
     ) -> GetExternalSquadByUuidResponseDto:
         """Get external squad by uuid"""
         ...
@@ -56,7 +57,7 @@ class ExternalSquadsController(BaseController):
     @delete("/external-squads/{uuid}", response_class=None)
     async def delete_external_squad(
         self,
-        uuid: Annotated[str, Path(description="UUID of the external squad")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the external squad")],
     ) -> None:
         """Delete external squad (204, без тела)"""
         ...
@@ -64,7 +65,7 @@ class ExternalSquadsController(BaseController):
     @post("/external-squads/{uuid}/bulk-actions/add-users", response_class=None)
     async def add_users_to_external_squad(
         self,
-        uuid: Annotated[str, Path(description="UUID of the external squad")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the external squad")],
     ) -> None:
         """Add all users to external squad (202, без тела)"""
         ...
@@ -72,7 +73,7 @@ class ExternalSquadsController(BaseController):
     @delete("/external-squads/{uuid}/bulk-actions/remove-users", response_class=None)
     async def remove_users_from_external_squad(
         self,
-        uuid: Annotated[str, Path(description="UUID of the external squad")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the external squad")],
     ) -> None:
         """Delete users from external squad (202, без тела)"""
         ...

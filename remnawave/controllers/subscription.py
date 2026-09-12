@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from pydantic import Field
 from rapid_api_client import Path
 
 from remnawave.enums import ClientType
@@ -12,7 +13,7 @@ class SubscriptionController(BaseController):
     @get("/sub/{shortUuid}/info", response_class=GetSubscriptionInfoResponseDto)
     async def get_subscription_info_by_short_uuid(
         self,
-        short_uuid: Annotated[str, Path(description="Short UUID of the user", alias="shortUuid")],
+        short_uuid: Annotated[str, Path(alias="shortUuid"), Field(description="Short UUID of the user")],
     ) -> GetSubscriptionInfoResponseDto:
         """None"""
         ...
@@ -20,7 +21,7 @@ class SubscriptionController(BaseController):
     @get("/sub/{shortUuid}", response_class=str)
     async def get_subscription(
         self,
-        short_uuid: Annotated[str, Path(description="Short UUID of the user", alias="shortUuid")],
+        short_uuid: Annotated[str, Path(alias="shortUuid"), Field(description="Short UUID of the user")],
     ) -> str:
         """None"""
         ...
@@ -28,8 +29,8 @@ class SubscriptionController(BaseController):
     @get("/sub/{shortUuid}/{clientType}", response_class=str)
     async def get_subscription_by_client_type(
         self,
-        client_type: Annotated[ClientType, Path(description="Client type", alias="clientType")],
-        short_uuid: Annotated[str, Path(description="Short UUID of the user", alias="shortUuid")],
+        client_type: Annotated[ClientType, Path(alias="clientType"), Field(description="Client type")],
+        short_uuid: Annotated[str, Path(alias="shortUuid"), Field(description="Short UUID of the user")],
     ) -> str:
         """None"""
         ...

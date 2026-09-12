@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from pydantic import Field
 from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
@@ -29,7 +30,7 @@ class NodeIntegrationsController(BaseController):
     @get("/node-integrations/{uuid}", response_class=GetNodeIntegrationResponseDto)
     async def get_node_integration(
         self,
-        uuid: Annotated[str, Path(description="Node integration UUID")],
+        uuid: Annotated[str, Path(), Field(description="Node integration UUID")],
     ) -> GetNodeIntegrationResponseDto:
         """Get Node Integration by uuid"""
         ...
@@ -56,7 +57,7 @@ class NodeIntegrationsController(BaseController):
     @delete("/node-integrations/{uuid}", response_class=None)
     async def delete_node_integration(
         self,
-        uuid: Annotated[str, Path(description="Node integration UUID")],
+        uuid: Annotated[str, Path(), Field(description="Node integration UUID")],
     ) -> None:
         """Delete Node Integration (204 No Content)"""
         ...

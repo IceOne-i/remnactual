@@ -1,6 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
+from pydantic import Field
 from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
@@ -28,7 +29,7 @@ class NodeSshController(BaseController):
     @post("/node-ssh/{uuid}/ticket", response_class=CreateSshTicketResponseDto)
     async def create_ssh_ticket(
         self,
-        uuid: Annotated[UUID, Path(description="Node UUID")],
+        uuid: Annotated[UUID, Path(), Field(description="Node UUID")],
     ) -> CreateSshTicketResponseDto:
         """Create a single-use ticket for opening an SSH terminal session"""
         ...

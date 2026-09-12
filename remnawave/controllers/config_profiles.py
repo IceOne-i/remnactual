@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from pydantic import Field
 from rapid_api_client import Path
 from rapid_api_client.annotations import PydanticBody
 
@@ -54,7 +55,7 @@ class ConfigProfilesController(BaseController):
     @get("/config-profiles/{uuid}/inbounds", response_class=GetInboundsByProfileUuidResponseDto)
     async def get_inbounds_by_profile_uuid(
         self,
-        uuid: Annotated[str, Path(description="UUID of the config profile")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the config profile")],
     ) -> GetInboundsByProfileUuidResponseDto:
         """Get inbounds by profile uuid"""
         ...
@@ -62,7 +63,7 @@ class ConfigProfilesController(BaseController):
     @get("/config-profiles/{uuid}", response_class=GetConfigProfileByUuidResponseDto)
     async def get_config_profile_by_uuid(
         self,
-        uuid: Annotated[str, Path(description="UUID of the config profile")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the config profile")],
     ) -> GetConfigProfileByUuidResponseDto:
         """Get config profile by uuid"""
         ...
@@ -70,7 +71,7 @@ class ConfigProfilesController(BaseController):
     @delete("/config-profiles/{uuid}", response_class=None)
     async def delete_config_profile_by_uuid(
         self,
-        uuid: Annotated[str, Path(description="UUID of the config profile")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the config profile")],
     ) -> None:
         """Delete config profile
 
@@ -93,7 +94,7 @@ class ConfigProfilesController(BaseController):
     )
     async def get_computed_config_profile_by_uuid(
         self,
-        uuid: Annotated[str, Path(description="UUID of the config profile")],
+        uuid: Annotated[str, Path(), Field(description="UUID of the config profile")],
     ) -> GetComputedConfigProfileByUuidResponseDto:
         """Get computed config profile by uuid"""
         ...
